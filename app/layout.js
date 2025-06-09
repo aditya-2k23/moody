@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fugaz_One, Geist } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -6,9 +6,9 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fugaz = Fugaz_One({
   subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata = {
@@ -17,12 +17,24 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const Header = (
+    <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
+      <h1 className={`${fugaz.className} text-base sm:text-lg textGradient`}>Moody</h1>
+    </header>
+  )
+
+  const Footer = (
+    <footer>
+      blaw
+    </footer>
+  );
+
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <header>Header</header>
+      <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col ${geistSans.variable}`}>
+        {Header}
         {children}
-        <footer>Footer</footer>
+        {Footer}
       </body>
     </html>
   );
