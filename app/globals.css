@@ -1,6 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.fugaz {
+  font-family: "Fugaz One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
 
 .textGradient {
   background: -webkit-linear-gradient(#4338ca, #818cf8);

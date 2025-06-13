@@ -1,13 +1,8 @@
-import { Fugaz_One, Open_Sans } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
-});
-
-const fugaz = Fugaz_One({
-  subsets: ["latin"],
-  weight: ["400"],
 });
 
 export const metadata = {
@@ -18,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
-      <h1 className={`${fugaz.className} text-lg sm:text-2xl textGradient`}>Moody</h1>
+      <h1 className={`fugaz text-lg sm:text-2xl textGradient`}>Moody</h1>
 
       <div className="flex items-center justify-between">
         PLACEHOLDER CTA || STATS
@@ -28,7 +23,7 @@ export default function RootLayout({ children }) {
 
   const Footer = (
     <footer className="p-4 sm:p-8 grid place-items-center">
-      <p className={`text-indigo-400 ${fugaz.className}`}>Created with 💜</p>
+      <p className={`text-indigo-400 fugaz`}>Created with 💜</p>
     </footer>
   );
 
