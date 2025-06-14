@@ -1,5 +1,6 @@
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -13,7 +14,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
-      <h1 className={`fugaz text-lg sm:text-2xl textGradient`}>Moody</h1>
+      <Link href="/">
+        <h1 className={`fugaz text-lg sm:text-2xl textGradient`}>Moody</h1>
+      </Link>
 
       <div className="flex items-center justify-between">
         PLACEHOLDER CTA || STATS
