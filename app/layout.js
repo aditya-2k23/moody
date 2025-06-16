@@ -1,6 +1,7 @@
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { AuthProvider } from "@/context/authContext";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -32,11 +33,13 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 ${openSans.className}`}>
-        {Header}
-        {children}
-        {Footer}
-      </body>
+      <AuthProvider>
+        <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 ${openSans.className}`}>
+          {Header}
+          {children}
+          {Footer}
+        </body>
+      </AuthProvider>
     </html>
   );
 }
