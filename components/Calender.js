@@ -1,4 +1,7 @@
+"use client";
+
 import { baseRating, gradients, demoData } from "@/utils";
+import { useState } from "react";
 
 const months = {
   "January": "Jan",
@@ -18,13 +21,25 @@ const months = {
 const now = new Date();
 const dayList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export default function Calender({ demo }) {
-  const year = 2025;
-  const month = "June";
+export default function Calender({ demo, completeData, handleSetMood }) {
+  const now = new Date();
+  const currentMonth = now.getMonth();
 
-  const monthNow = new Date(year, Object.keys(months).indexOf(month), 1);
+  const [selectedMonth, setSelectedMonth] = useState(Object.keys(months)[currentMonth]);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
+  const numericMonth = Object.keys(months).indexOf(selectedMonth);
+  const data = completeData?.[selectedYear]?.[numericMonth] || {};
+  console.log("Data for selected month:", data);
+
+  function handleIncrementMonth(val) {
+    // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
+
+  }
+
+  const monthNow = new Date(selectedYear, Object.keys(months).indexOf(selectedMonth), 1);
   const firstDayOfMonth = monthNow.getDay();
-  const daysInMonth = new Date(year, Object.keys(months).indexOf(month) + 1, 0).getDate();
+  const daysInMonth = new Date(selectedYear, Object.keys(months).indexOf(selectedMonth) + 1, 0).getDate();
 
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = (Math.floor(daysToDisplay / 7)) + (daysToDisplay % 7 ? 1 : 0);
@@ -44,7 +59,7 @@ export default function Calender({ demo }) {
               <div className="bg-white" key={dayOfWeekIndex} />
             );
 
-            let color = demo ? gradients.indigo[baseRating[dayIndex]] : dayIndex in demoData ? gradients.indigo[demoData[dayIndex]] : "white";
+            let color = demo ? gradients.indigo[baseRating[dayIndex]] : dayIndex in data ? gradients.indigo[data[dayIndex]] : "white";
 
             return (
               <div style={{ background: color }} className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${isToday ? "border-indigo-400" : "border-indigo-100"} ${color === "white" ? "text-indigo-400" : "text-white"}`} key={dayOfWeekIndex}>

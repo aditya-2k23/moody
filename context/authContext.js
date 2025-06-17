@@ -13,7 +13,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [userDataObj, setUserDataObj] = useState({});
+  const [userDataObj, setUserDataObj] = useState(null);
   const [loading, setLoading] = useState(true);
 
   function signUp(email, password) {
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   }
 
   function logOut() {
-    setUserDataObj({});
+    setUserDataObj(null);
     setCurrentUser(null);
     return signOut(auth);
   }
@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
         setCurrentUser(user);
 
         if (!user) {
+          console.log("No User found!");
           return;
         }
 
@@ -65,6 +66,7 @@ export function AuthProvider({ children }) {
   const value = {
     currentUser,
     userDataObj,
+    setUserDataObj,
     signUp,
     signIn,
     logOut,
