@@ -7,6 +7,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import Login from './Login';
 import Loader from './Loader';
 import { db } from '@/firebase';
+import { moods } from '@/utils';
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
@@ -17,15 +18,13 @@ export default function Dashboard() {
   function countValues() {
     let total_number_of_days = 0;
     let sum_moods = 0;
-    for (let year in data) {
-      for (let month in data[year]) {
+    for (let year in data)
+      for (let month in data[year])
         for (let day in data[year][month]) {
           let days_mood = data[year][month][day];
           total_number_of_days++;
           sum_moods += days_mood;
         }
-      }
-    }
 
     return { num_days: total_number_of_days, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
   }
@@ -72,14 +71,6 @@ export default function Dashboard() {
     }
   }
 
-  const moods = {
-    'Awful': '😭',
-    'Sad': '😞',
-    'Existing': '😐',
-    'Good': '🙂',
-    'Elated': '😁',
-  }
-
   useEffect(() => {
     if (!currentUser || !userDataObj) {
       console.log("User not authenticated or user data not available.");
@@ -119,7 +110,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <Calender completeData={data} handleSetMood={handleSetMood} />
+      <Calender completeData={data} />
     </div>
   )
 }

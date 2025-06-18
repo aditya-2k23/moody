@@ -22,3 +22,28 @@ export const demoData = {
   "15": 2, "16": 4, "17": 1, "18": 3, "19": 5,
   "20": 2, "21": 4, "22": 1, "23": 3, "24": 5,
 }
+
+export const moods = {
+  'Awful': '😭',
+  'Sad': '😞',
+  'Existing': '😐',
+  'Good': '🙂',
+  'Elated': '😁',
+}
+
+export const months = {
+  "January": "Jan",
+  "February": "Feb",
+  "March": "Mar",
+  "April": "Apr",
+  "May": "May",
+  "June": "Jun",
+  "July": "Jul",
+  "August": "Aug",
+  "September": "Sep",
+  "October": "Oct",
+  "November": "Nov",
+  "December": "Dec"
+};
+
+export const dayList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
