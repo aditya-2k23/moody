@@ -8,10 +8,13 @@ import Login from './Login';
 import Loader from './Loader';
 import { db } from '@/firebase';
 import convertMood, { moods } from '@/utils';
+import { useSearchParams } from 'next/navigation';
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
+  const searchParams = useSearchParams();
+  const shouldRegister = searchParams.get('register') === 'true';
 
   const now = new Date();
 
@@ -98,9 +101,8 @@ export default function Dashboard() {
 
   if (loading)
     return <Loader />
-
   if (!currentUser)
-    return <Login />
+    return <Login initialRegister={shouldRegister} />
 
   return (
     <div className='flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16'>

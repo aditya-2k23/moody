@@ -5,10 +5,10 @@ import Button from "./Button";
 import Input from "./Input";
 import { useAuth } from "@/context/authContext";
 
-export default function Login() {
+export default function Login({ initialRegister = false }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(initialRegister);
   const [authenticating, setAuthenticating] = useState(false);
 
   const { signUp, signIn, currentUser } = useAuth();
