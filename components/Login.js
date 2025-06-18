@@ -11,13 +11,9 @@ export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
 
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, currentUser } = useAuth();
 
   const handleSubmit = async () => {
-    if (!email || !password || password.length < 6) {
-      return alert("Please fill in all fields with valid data.");
-    }
-
     setAuthenticating(true);
 
     try {
@@ -33,6 +29,9 @@ export default function Login() {
       }
     } catch (error) {
       console.log(`${isRegister ? "Sign Up" : "Sign In"} Error:`, error.message);
+      if (!email || !password || password.length < 6) {
+        return alert("Please fill in all fields with valid data.");
+      }
     } finally {
       setAuthenticating(false);
     }
@@ -41,7 +40,7 @@ export default function Login() {
   return (
     <div className='flex flex-col flex-1 justify-center items-center gap-4 md:gap-5'>
       <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
-      <p className="font-semibold font-sans">You&apos;re just one step away</p>
+      <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
       <Input value={email} onChange={(e) => {
         setEmail(e.target.value);
