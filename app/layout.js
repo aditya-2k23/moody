@@ -2,6 +2,7 @@ import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { AuthProvider } from "@/context/authContext";
+import Logout from "@/components/Logout";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -16,8 +17,10 @@ export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
       <Link href="/">
-        <h1 className={`fugaz text-lg sm:text-2xl textGradient`}>Moody</h1>
+        <h1 className={`fugaz text-xl sm:text-3xl textGradient`}>Moody</h1>
       </Link>
+
+      <Logout />
     </header>
   )
 
