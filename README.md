@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Moody
 
-## Getting Started
+Moody is a modern mood-tracking web application built with Next.js, React, and Firebase. It allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **User Authentication**: Sign up, log in, and log out securely using Firebase Authentication.
+- **Mood Tracking**: Log your daily mood with a single click and view your mood history on a calendar.
+- **Dashboard**: Personalized dashboard showing mood stats, average mood, and time remaining in the day.
+- **Accessibility**: Show/hide password toggle for better accessibility.
+- **Error & Success Feedback**: Toast notifications for login errors, registration errors, and successful logins.
+- **Responsive Design**: Fully responsive and mobile-friendly UI using Tailwind CSS.
+- **Modern UI**: Clean, attractive, and easy-to-use interface.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Next.js** (App Router)
+- **React** 19+
+- **Firebase** (Authentication & Firestore)
+- **Tailwind CSS** (for easy styling)
+- **react-hot-toast** (for notifications)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Getting Started
 
-## Learn More
+1. **Clone the repository:**
 
-To learn more about Next.js, take a look at the following resources:
+   ```sh
+   git clone https://www.github.com/aditya-2k23/moody.git
+   cd moody
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```sh
+   npm install
+   ```
 
-## Deploy on Vercel
+3. **Set up environment variables:**  
+   Copy `.env.example` to `.env` and fill in your Firebase credentials.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+     ```env
+     NEXT_PUBLIC_API_KEY=your_api_key
+     NEXT_PUBLIC_AUTH_DOMAIN=your_auth_domain
+     NEXT_PUBLIC_PROJECT_ID=your_project_id
+     NEXT_PUBLIC_STORAGE_BUCKET=your_storage_bucket
+     NEXT_PUBLIC_MESSAGING_SENDER_ID=your_messaging_sender_id
+     NEXT_PUBLIC_APP_ID=your_app_id
+     ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Run the development server:**
+
+   ```sh
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+## 📝 How to Use
+
+1. **Sign Up**: Click the "Sign Up" button on the homepage CTA to create a new account.
+2. **Log In**: Use your credentials to log in. If you enter a wrong password or non-existent user, a toast will notify you.
+3. **Dashboard**: After logging in, you'll be redirected to your dashboard where you can:
+   - Log your mood for the day
+   - View your mood history on a calendar
+   - See stats like average mood and number of days tracked
+4. **Show/Hide Password**: Use the eye icon in the password field to toggle visibility.
+5. **Log Out**: Use the logout button in the dashboard to end your session.
+
+## 📁 Project Structure
+
+- `app/` - Next.js app directory (routing, pages)
+- `components/` - Reusable React components (Button, Input, Dashboard, etc.)
+- `context/` - React context for authentication
+- `public/` - Static assets
+- `utils/` - Utility functions
+- `firebase.js` - Firebase configuration
+
+## 🙏 Credits
+
+- Built with 💜 by [Aditya](https://github.com/aditya-2k23)
+- Inspired by [Smoljames](https://www.youtube.com/@Smoljames) mood-tracking app [Broodl](https://github.com/jamezmca/broodl/)
