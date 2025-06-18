@@ -1,7 +1,7 @@
 "use client";
 
 import { auth, db } from "@/firebase";
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 
@@ -28,6 +28,11 @@ export function AuthProvider({ children }) {
     setUserDataObj(null);
     setCurrentUser(null);
     return signOut(auth);
+  }
+
+  function signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
   }
 
   useEffect(() => {
@@ -70,6 +75,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     logOut,
+    signInWithGoogle,
     loading
   };
 
