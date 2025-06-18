@@ -10,6 +10,7 @@ export default function Login({ initialRegister = false }) {
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(initialRegister);
   const [authenticating, setAuthenticating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { signUp, signIn, currentUser } = useAuth();
 
@@ -38,18 +39,37 @@ export default function Login({ initialRegister = false }) {
   }
 
   return (
-    <div className='flex flex-col flex-1 justify-center items-center gap-4 md:gap-5'>
+    <div className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4'>
       <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
       <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
       <Input value={email} onChange={(e) => {
         setEmail(e.target.value);
       }} inputType="email" placeholderText="Email" />
-      <Input value={password} onChange={(e) => {
-        setPassword(e.target.value);
-      }} inputType="password" placeholderText="Password" />
+      <div className="relative w-full max-w-[400px] mx-auto">
+        <Input
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+          inputType={showPassword ? "text" : "password"}
+          placeholderText="Password"
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-indigo-600 hover:opacity-75 transition"
+          onClick={() => setShowPassword((prev) => !prev)}
+          tabIndex={0}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
+        </button>
+      </div>
 
-      <div className="max-w-[400px] w-full mx-auto"><Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full /></div>
+      <div className="max-w-[400px] w-full mx-auto">
+        <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
+      </div>
+
       <p className="text-center font-sans">{
         isRegister ? "Already have an account?" : "Don't have an account?"
       } <Button onClick={() => setIsRegister(!isRegister)} className="text-indigo-600" text={isRegister ? "Sign In" : "Sign Up"} normal={false} /></p>
