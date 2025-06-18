@@ -10,7 +10,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata = {
-  title: "Moody",
+  title: "Moody ⋅ Track Your Mood",
   description: "Track your mood every day of the year!",
 };
 
