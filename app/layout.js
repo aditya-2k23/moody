@@ -30,10 +30,10 @@ export default function RootLayout({ children }) {
       <p className={`text-indigo-500 fugaz`}>Created with 💜 by Aditya</p>
       <div className="flex gap-4">
         <Link href="https://www.github.com/aditya-2k23" target="_blank" rel="noopener noreferrer">
-          <Button text={<><i className="fa-brands fa-github md:mr-1"></i> GitHub</>} normal={false} className="text-slate-700 hover:text-indigo-500 duration-200" />
+          <Button text={<><i className="fa-brands fa-github md:mr-1"></i> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 duration-200" />
         </Link>
         <Link href="https://www.linkedin.com/in/aditya-2k23" target="_blank" rel="noopener noreferrer">
-          <Button text={<><i className="fa-brands fa-linkedin md:mr-1"></i> LinkedIn</>} normal={false} className="text-slate-700 hover:text-indigo-500 duration-200" />
+          <Button text={<><i className="fa-brands fa-linkedin md:mr-1"></i> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 duration-200" />
         </Link>
       </div>
     </footer>
