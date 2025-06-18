@@ -9,6 +9,9 @@ export default function Logout() {
   if (!currentUser) return null;
 
   return (
-    <Button text="Log Out" onClick={logOut} />
+    <div className="flex items-center justify-center gap-2">
+      <p className="text-sm sm:text-base font-sans text-slate-700 font-semibold fugaz">Hello <span className="textGradient">{currentUser.email.split("@")[0]}</span>👋</p>
+      <Button text={<>Log Out<i className="ml-1 sm:ml-2 fa-solid fa-right-from-bracket text-indigo-600"></i></>} onClick={logOut} />
+    </div>
   )
 }

@@ -1,16 +1,16 @@
 # Moody
 
-Moody is a modern mood-tracking web application built with Next.js, React, and Firebase. It allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback.
+Moody is a **minimalistic** and modern mood-tracking web application built with Next.js, React, and Firebase. Designed for simplicity and ease of use, it allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback—all while maintaining a clutter-free, focused experience.
 
 ## 🚀 Features
 
-- **User Authentication**: Sign up, log in, and log out securely using Firebase Authentication.
+- **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
 - **Mood Tracking**: Log your daily mood with a single click and view your mood history on a calendar.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, and time remaining in the day.
 - **Accessibility**: Show/hide password toggle for better accessibility.
 - **Error & Success Feedback**: Toast notifications for login errors, registration errors, and successful logins.
 - **Responsive Design**: Fully responsive and mobile-friendly UI using Tailwind CSS.
-- **Modern UI**: Clean, attractive, and easy-to-use interface.
+- **Modern UI**: Clean, attractive, and easy-to-use interface with a minimalistic approach.
 
 ## 🛠️ Tech Stack
 
