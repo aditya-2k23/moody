@@ -59,11 +59,12 @@ export default function Calender({ demo, completeData }) {
       </div>
       <div className="flex flex-col overflow-hidden gap-1 py-4 sm:py-6 md:py-10">
         {/* Day of week headings */}
-        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500">
+        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500 mb-1">
           {dayList.map((day) => (
             <div key={day}>{day.slice(0, 3)}</div>
           ))}
         </div>
+
         {[...Array(numRows).keys()].map((row, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-7 gap-1 ">
             {dayList.map((dayOfWeek, dayOfWeekIndex) => {
