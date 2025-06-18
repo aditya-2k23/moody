@@ -7,7 +7,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import Login from './Login';
 import Loader from './Loader';
 import { db } from '@/firebase';
-import { moods } from '@/utils';
+import convertMood, { moods } from '@/utils';
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
@@ -29,9 +29,26 @@ export default function Dashboard() {
     return { num_days: total_number_of_days, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
   }
 
+  const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
+
+  function getTimeRemaining() {
+    const now = new Date();
+    const hours = 23 - now.getHours();
+    const minutes = 59 - now.getMinutes();
+    const seconds = 59 - now.getSeconds();
+    return `${hours}H ${minutes}M ${seconds}S`;
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining(getTimeRemaining());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const statuses = {
     ...countValues(),
-    time_remaining: `${23 - now.getHours()}H ${60 - now.getMinutes()}M`,
+    time_remaining: timeRemaining,
   }
 
   async function handleSetMood(mood) {
@@ -72,7 +89,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (!currentUser || !userDataObj) {
+    if (!currentUser) {
       console.log("User not authenticated or user data not available.");
       return;
     }
@@ -89,9 +106,13 @@ export default function Dashboard() {
     <div className='flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16'>
       <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
         {Object.keys(statuses).map((status, statusIndex) => (
-          <div key={statusIndex} className="flex flex-col gap-1 sm:gap-2">
-            <p className='font-medium capitalize text-xs sm:text-sm'>{status.replaceAll('_', ' ')}</p>
-            <p className='fugaz text-base sm:text-lg truncate'>{statuses[status]}{status === "num_days" ? "🔥" : ""}</p>
+          <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
+            <p className='font-semibold capitalize text-xs sm:text-sm'>{status.replaceAll('_', ' ')}</p>
+            <p className='fugaz text-base sm:text-lg truncate'>
+              {statuses[status]}
+              {status === "num_days" ? "🔥" : ""}
+              {status === "average_mood" ? `${moods[convertMood(statuses["average_mood"])]}` : ""}
+            </p>
           </div>
         ))}
       </div>
