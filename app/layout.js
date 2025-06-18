@@ -18,10 +18,6 @@ export default function RootLayout({ children }) {
       <Link href="/">
         <h1 className={`fugaz text-lg sm:text-2xl textGradient`}>Moody</h1>
       </Link>
-
-      <div className="flex items-center justify-between">
-        PLACEHOLDER CTA || STATS
-      </div>
     </header>
   )
 
