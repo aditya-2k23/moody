@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "./Button";
 import Input from "./Input";
 import { useAuth } from "@/context/authContext";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Login({ initialRegister = false }) {
   const [email, setEmail] = useState("");
@@ -27,25 +28,55 @@ export default function Login({ initialRegister = false }) {
       } else {
         console.log("Logging in with existing user!");
         await signIn(email, password);
+        toast.success("Successfully logged in!");
       }
     } catch (error) {
       console.log(`${isRegister ? "Sign Up" : "Sign In"} Error:`, error.message);
       if (!email || !password || password.length < 6) {
-        return alert("Please fill in all fields with valid data.");
+        toast.error("Please fill in all fields with valid information.");
+        return;
+      }
+
+      if (!isRegister) {
+        toast.error(
+          error.message.includes("user-not-found")
+            ? "User does not exist."
+            : error.message.includes("wrong-password")
+              ? "Incorrect password."
+              : "Login failed. Please check your email or password."
+        );
       }
     } finally {
       setAuthenticating(false);
     }
   }
 
+  // Listen for Enter key to submit the form
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4'>
+    <div
+      className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4'
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+    >
+      <Toaster position="top-center" />
+
       <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
       <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
-      <Input value={email} onChange={(e) => {
-        setEmail(e.target.value);
-      }} inputType="email" placeholderText="Email" />
+      <Input
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+        }}
+        inputType="email"
+        placeholderText="Email"
+      />
       <div className="relative w-full max-w-[400px] mx-auto">
         <Input
           value={password}

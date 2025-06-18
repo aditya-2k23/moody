@@ -9,6 +9,7 @@ import Loader from './Loader';
 import { db } from '@/firebase';
 import convertMood, { moods } from '@/utils';
 import { useSearchParams } from 'next/navigation';
+import { Toaster } from "react-hot-toast";
 
 export default function Dashboard() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
@@ -105,35 +106,39 @@ export default function Dashboard() {
     return <Login initialRegister={shouldRegister} />
 
   return (
-    <div className='flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16'>
-      <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
-        {Object.keys(statuses).map((status, statusIndex) => (
-          <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
-            <p className='font-semibold capitalize text-xs sm:text-sm'>{status.replaceAll('_', ' ')}</p>
-            <p className='fugaz text-base sm:text-lg truncate'>
-              {statuses[status]}
-              {status === "num_days" ? "🔥" : ""}
-              {status === "average_mood" ? `${moods[convertMood(statuses["average_mood"])]}` : ""}
-            </p>
-          </div>
-        ))}
+    <>
+      <Toaster position="top-center" />
+
+      <div className='flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16'>
+        <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
+          {Object.keys(statuses).map((status, statusIndex) => (
+            <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
+              <p className='font-semibold capitalize text-xs sm:text-sm'>{status.replaceAll('_', ' ')}</p>
+              <p className='fugaz text-base sm:text-lg truncate'>
+                {statuses[status]}
+                {status === "num_days" ? "🔥" : ""}
+                {status === "average_mood" ? `${moods[convertMood(statuses["average_mood"])]}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
+
+        <div className="flex items-stretch flex-wrap gap-4">
+          {Object.keys(moods).map((mood, moodIndex) => (
+            <button onClick={() => {
+              const currentMood = moodIndex + 1;
+              handleSetMood(currentMood);
+            }} key={moodIndex} className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition bg-indigo-50 hover:bg-indigo-100 text-center flex flex-col items-center gap-3 flex-1`}>
+              <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
+              <p className='fugaz text-indigo-500 text-xs sm:text-sm md:text-base'>{mood}</p>
+            </button>
+          ))}
+        </div>
+
+        <Calender completeData={data} />
       </div>
-
-      <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
-
-      <div className="flex items-stretch flex-wrap gap-4">
-        {Object.keys(moods).map((mood, moodIndex) => (
-          <button onClick={() => {
-            const currentMood = moodIndex + 1;
-            handleSetMood(currentMood);
-          }} key={moodIndex} className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition bg-indigo-50 hover:bg-indigo-100 text-center flex flex-col items-center gap-3 flex-1`}>
-            <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
-            <p className='fugaz text-indigo-500 text-xs sm:text-sm md:text-base'>{mood}</p>
-          </button>
-        ))}
-      </div>
-
-      <Calender completeData={data} />
-    </div>
+    </>
   )
 }
