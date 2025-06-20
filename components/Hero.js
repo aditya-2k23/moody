@@ -11,7 +11,7 @@ export default function Hero() {
 
       <CallToAction />
 
-      <Calender demo />
+      <Calender demo showJournalPopup={false} />
     </div>
   )
 }

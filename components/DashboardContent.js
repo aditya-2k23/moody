@@ -70,7 +70,8 @@ export default function DashboardContent() {
             background: "#f5f3ff",
             color: "#3730a3",
             fontWeight: "bold"
-          }
+          },
+          removeDelay: 1000
         }
       );
       setWasAuthenticated(true);
@@ -142,7 +143,7 @@ export default function DashboardContent() {
 
         <Journal currentUser={currentUser} />
 
-        <Calender completeData={data} />
+        <Calender completeData={data} showJournalPopup />
       </div>
     </>
   );

@@ -6,7 +6,7 @@ import Button from "./Button";
 
 const monthsArr = Object.keys(months);
 
-export default function Calender({ demo, completeData }) {
+export default function Calender({ demo, completeData, showJournalPopup = false }) {
   const now = new Date();
   const currentMonth = now.getMonth();
 
@@ -44,7 +44,7 @@ export default function Calender({ demo, completeData }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {selectedDay && (
+      {showJournalPopup && selectedDay && (
         <div className="relative mb-4 p-4 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
           <button
             className="absolute top-0 right-2 text-indigo-400 hover:text-indigo-700 text-2xl font-bold focus:outline-none"
