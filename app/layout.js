@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
       <Link href="/">
-        <h1 className={`fugaz text-xl sm:text-3xl textGradient`}>Moody</h1>
+        <h1 className={`fugaz text-2xl sm:text-4xl textGradient`}>Moody</h1>
       </Link>
 
       <Logout />

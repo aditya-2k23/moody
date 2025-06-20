@@ -37,13 +37,13 @@ export default function Journal({ currentUser }) {
   };
 
   return (
-    <div className="py-4 px-2 flex flex-col gap-3 bg-white">
-      <h2 className="text-xl md:text-2xl font-bold">Journal</h2>
+    <div className="py-4 flex flex-col gap-2 bg-white">
+      <h2 className="text-2xl md:text-3xl font-bold fugaz">Quick Journal</h2>
       <textarea
         name="journal"
         id="journal"
-        className="mt-2 w-full h-24 md:h-32 p-2 text-gray-700 text-base md:text-lg border rounded-lg shadow-md outline-none focus:ring-2 focus:ring-indigo-500 hover:shadow-lg transition-all duration-200"
-        placeholder="Write about your day..."
+        className="mt-2 w-full h-24 md:h-28 p-2 text-gray-700 text-base md:text-lg border rounded-lg shadow-md outline-none focus:ring-2 focus:ring-indigo-500 hover:shadow-lg transition-all duration-200"
+        placeholder="What happened today... 🫶"
         value={entry}
         onChange={e => setEntry(e.target.value)}
       />

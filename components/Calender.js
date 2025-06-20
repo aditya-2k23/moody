@@ -12,6 +12,8 @@ export default function Calender({ demo, completeData }) {
 
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedJournal, setSelectedJournal] = useState("");
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = completeData?.[selectedYear]?.[numericMonth] || {};
@@ -42,6 +44,16 @@ export default function Calender({ demo, completeData }) {
 
   return (
     <div className="flex flex-col gap-2">
+      {selectedDay && (
+        <div className="mb-4 p-4 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+          <h3 className="font-bold text-indigo-600 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
+          {selectedJournal ? (
+            <p className="whitespace-pre-line text-gray-700">{selectedJournal}</p>
+          ) : (
+            <p className="text-gray-400 italic">No journal entry for this day.</p>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl">
         <Button
           text={<i className="fa-solid fa-circle-chevron-left"></i>}
@@ -57,9 +69,9 @@ export default function Calender({ demo, completeData }) {
           onClick={() => handleIncrementMonth(+1)}
         />
       </div>
-      <div className="flex flex-col overflow-hidden gap-1 py-4 sm:py-6 md:py-10">
+      <div className="flex flex-col overflow-hidden gap-1 px-1 py-4 sm:py-6 md:py-10">
         {/* Day of week headings */}
-        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500 mb-1">
+        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500 ml-2 mb-1">
           {dayList.map((day) => (
             <div key={day}>{day.slice(0, 3)}</div>
           ))}
@@ -67,7 +79,7 @@ export default function Calender({ demo, completeData }) {
 
         {[...Array(numRows).keys()].map((row, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-7 gap-1 ">
-            {dayList.map((dayOfWeek, dayOfWeekIndex) => {
+            {dayList.map((_, dayOfWeekIndex) => {
               let dayIndex = (rowIndex * 7) + dayOfWeekIndex - (firstDayOfMonth - 1);
               let dayDisplay = dayIndex > daysInMonth ? false : (row === 0 && dayOfWeekIndex < firstDayOfMonth) ? false : true;
               let isToday = dayIndex === now.getDate();
@@ -75,8 +87,18 @@ export default function Calender({ demo, completeData }) {
                 <div className="bg-white" key={dayOfWeekIndex} />
               );
               let color = demo ? gradients.indigo[baseRating[dayIndex]] : dayIndex in data ? gradients.indigo[data[dayIndex]] : "white";
+              let isSelected = dayIndex === selectedDay;
               return (
-                <div style={{ background: color }} className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg ${isToday ? "border-indigo-400" : "border-indigo-100"} ${color === "white" ? "text-indigo-400" : "text-white"}`} key={dayOfWeekIndex}>
+                <div
+                  style={{ background: color }}
+                  className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer ${isToday ? "border-indigo-400" : "border-indigo-100"} ${isSelected ? "ring-2 ring-indigo-600" : ""} ${color === "white" ? "text-indigo-400" : "text-white"}`}
+                  key={dayOfWeekIndex}
+                  onClick={() => {
+                    setSelectedDay(dayIndex);
+                    setSelectedJournal(data[`journal_${dayIndex}`] || "");
+                  }}
+                  title={data[`journal_${dayIndex}`] ? "View journal entry" : undefined}
+                >
                   <p>{dayIndex}</p>
                   {data[`journal_${dayIndex}`] && (
                     <span className="ml-auto" title="Journal entry">📝</span>

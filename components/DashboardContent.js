@@ -100,7 +100,7 @@ export default function DashboardContent() {
     <>
       <Toaster position="top-center" />
 
-      <div className='flex flex-col flex-1 gap-8 sm:gap-12 md:gap-16'>
+      <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
         <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-lg">
           {Object.keys(statuses).map((status, statusIndex) => (
             <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
