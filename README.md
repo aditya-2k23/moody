@@ -7,6 +7,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
 - **Mood Tracking**: Log your daily mood with a single click and view your mood history on a calendar.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, and time remaining in the day.
+- **Quick Journal**: Log a daily short note about what happened today.
 - **Accessibility**: Show/hide password toggle for better accessibility.
 - **Error & Success Feedback**: Toast notifications for login errors, registration errors, and successful logins.
 - **Responsive Design**: Fully responsive and mobile-friendly UI using Tailwind CSS.
@@ -63,6 +64,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
    - Log your mood for the day
    - View your mood history on a calendar
    - See stats like average mood and number of days tracked
+   - Log a daily journal to maintain a better history of the reasons of your current mood.
 4. **Show/Hide Password**: Use the eye icon in the password field to toggle visibility.
 5. **Log Out**: Use the logout button in the dashboard to end your session.
 
