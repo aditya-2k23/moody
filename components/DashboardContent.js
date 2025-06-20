@@ -9,6 +9,7 @@ import convertMood, { moods } from "@/utils";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import Journal from "./Journal";
 
 export default function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
@@ -123,6 +124,8 @@ export default function DashboardContent() {
             </button>
           ))}
         </div>
+
+        <Journal currentUser={currentUser} />
 
         <Calender completeData={data} />
       </div>
