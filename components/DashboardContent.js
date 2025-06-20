@@ -60,6 +60,19 @@ export default function DashboardContent() {
   useEffect(() => {
     if (!wasAuthenticated && currentUser) {
       toast.success("Successfully logged in!");
+      toast(
+        "Tip: Click any date in the calendar to view your previous journal logs!",
+        {
+          position: "bottom-center",
+          icon: "📝",
+          duration: 8000,
+          style: {
+            background: "#f5f3ff",
+            color: "#3730a3",
+            fontWeight: "bold"
+          }
+        }
+      );
       setWasAuthenticated(true);
     }
   }, [currentUser, wasAuthenticated]);
