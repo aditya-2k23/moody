@@ -34,9 +34,11 @@ export default function DashboardContent() {
     for (let year in data)
       for (let month in data[year])
         for (let day in data[year][month]) {
-          let days_mood = data[year][month][day];
-          total_number_of_days++;
-          sum_moods += days_mood;
+          const value = data[year][month][day];
+          if (typeof value === "number") { // Only count moods
+            total_number_of_days++;
+            sum_moods += value;
+          }
         }
     return { num_days: total_number_of_days, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
   }
