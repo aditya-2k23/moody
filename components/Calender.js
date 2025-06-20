@@ -45,7 +45,15 @@ export default function Calender({ demo, completeData }) {
   return (
     <div className="flex flex-col gap-2">
       {selectedDay && (
-        <div className="mb-4 p-4 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+        <div className="relative mb-4 p-4 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+          <button
+            className="absolute top-0 right-2 text-indigo-400 hover:text-indigo-700 text-2xl font-bold focus:outline-none"
+            onClick={() => { setSelectedDay(null); setSelectedJournal(""); }}
+            title="Close"
+            aria-label="Close journal entry"
+          >
+            &times;
+          </button>
           <h3 className="font-bold text-indigo-600 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
           {selectedJournal ? (
             <p className="whitespace-pre-line text-gray-700">{selectedJournal}</p>
