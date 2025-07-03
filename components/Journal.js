@@ -88,7 +88,7 @@ export default function Journal({ currentUser }) {
     <div className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <h2 className="text-2xl md:text-3xl font-bold fugaz mb-4">Quick Journal</h2>
+        <h2 className="text-2xl md:text-3xl font-bold fugaz mb-4">📝 Quick Journal</h2>
         {placeholderLoading ? (
           <div className="w-full h-24 md:h-28 rounded-lg bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 animate-pulse relative overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center">
@@ -135,14 +135,14 @@ export default function Journal({ currentUser }) {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-500/90 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-purple-500/90 rounded-xl flex items-center justify-center cursor-default glow">
                   <span className="text-2xl">🧩</span>
                 </div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">emotional triggers</h3>
+                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide">emotional triggers</h3>
               </div>
 
               <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '🙂'}</span>
+                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
                 <span className="text-sm md:text-base font-semibold text-indigo-500 capitalize fugaz">{insights.mood}</span>
               </div>
             </div>
@@ -166,14 +166,14 @@ export default function Journal({ currentUser }) {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center glow">
+                <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center cursor-default glow">
                   <span className="text-2xl">💡</span>
                 </div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">PERSONALIZED INSIGHT</h3>
+                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide">PERSONALIZED INSIGHT</h3>
               </div>
 
               <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '🙂'}</span>
+                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
                 <span className="text-sm md:text-base font-semibold text-indigo-500 capitalize fugaz">{insights.mood}</span>
               </div>
             </div>

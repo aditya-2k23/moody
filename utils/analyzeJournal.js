@@ -17,7 +17,7 @@ export const analyzeEntry = async (journal_entry) => {
 
     Respond with a valid JSON format:
     {
-      "mood": "one of Happy, Sad, Angry, Anxious, Excited, Grateful, Tired, Stressed, Neutral",
+      "mood": "one of Happy, Elated, Good, Existing, Sad, Awful, Angry, Anxious, Excited, Grateful, Tired, Stressed, Neutral",
       "triggers": ["list of keywords or events that influenced the mood"],
       "insight": "a kind, helpful reflection or tip based on the entry",
       "pro_tip": "a short, actionable tip based on the user's mood and entry",

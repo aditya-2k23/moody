@@ -29,6 +29,14 @@ export const moods = {
   'Existing': '😐',
   'Good': '😊',
   'Elated': '😃',
+
+  "Grateful": '🙏',
+  "Excited": '🤩',
+  "Neutral": '😶',
+  "Anxious": '😰',
+  "Tired": '😴',
+  "Stressed": '😩',
+  "Angry": '😡',
 }
 
 export const months = {
@@ -50,26 +58,10 @@ export const dayList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
 
 export default function convertMood(moodIndex) {
   moodIndex = Math.floor(moodIndex);
-  console.log("Converting mood index:", moodIndex);
-
-  switch (moodIndex) {
-    case 0:
-      return 'Awful';
-    case 1:
-      return 'Sad';
-    case 2:
-      return 'Existing';
-    case 3:
-      return 'Good';
-    case 4:
-      return 'Elated';
-    default:
-      if (moodIndex < 0) {
-        return 'Awful';
-      } else if (moodIndex > 4) {
-        return 'Elated';
-      } else {
-        return 'Existing'; // Fallback for unexpected values
-      }
-  }
+  // Get all mood keys in order
+  const moodKeys = Object.keys(moods);
+  // Clamp moodIndex to valid range
+  if (moodIndex < 0) moodIndex = 0;
+  if (moodIndex >= moodKeys.length) moodIndex = moodKeys.length - 1;
+  return moodKeys[moodIndex];
 }

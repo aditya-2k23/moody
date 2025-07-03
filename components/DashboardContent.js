@@ -19,6 +19,7 @@ export default function DashboardContent() {
   const now = new Date();
   const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
+  const [showAllMoods, setShowAllMoods] = useState(false);
 
   function getTimeRemaining() {
     const now = new Date();
@@ -155,7 +156,7 @@ export default function DashboardContent() {
 
         <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
         <div className="flex items-stretch flex-wrap gap-4">
-          {Object.keys(moods).map((mood, moodIndex) => {
+          {(showAllMoods ? Object.keys(moods) : Object.keys(moods).slice(0, 5)).map((mood, moodIndex) => {
             const currentMood = moodIndex + 1;
             const isSelected = todaysMood === currentMood;
             return (
@@ -171,6 +172,14 @@ export default function DashboardContent() {
               </button>
             );
           })}
+          {Object.keys(moods).length > 5 && (
+            <button
+              onClick={() => setShowAllMoods((prev) => !prev)}
+              className="p-4 px-8 rounded-2xl border border-indigo-200 bg-white text-indigo-500 font-semibold hover:bg-indigo-100 duration-200 transition text-center flex-1 min-w-[100px]"
+            >
+              {showAllMoods ? <i className="fas fa-chevron-up"></i> : <i className="fas fa-chevron-down"></i>}
+            </button>
+          )}
         </div>
 
         <Journal currentUser={currentUser} />
