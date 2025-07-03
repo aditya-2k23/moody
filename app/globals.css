@@ -40,3 +40,12 @@
     transform: scale(1);
   }
 }
+
+/* Glow with a yellow color starting to pick out from the background */
+.glow {
+  transition: box-shadow 0.2s ease-out;
+}
+
+.glow:hover {
+  box-shadow: 2px 1px 2px 2px rgba(254, 240, 138, 0.822);
+}
