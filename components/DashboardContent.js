@@ -29,18 +29,37 @@ export default function DashboardContent() {
   }
 
   function countValues() {
-    let total_number_of_days = 0;
     let sum_moods = 0;
+    let total_number_of_days = 0;
+
+    const entryDates = new Set();
     for (let year in data)
       for (let month in data[year])
         for (let day in data[year][month]) {
           const value = data[year][month][day];
-          if (typeof value === "number") { // Only count moods
+          if (typeof value === "number") {
             total_number_of_days++;
             sum_moods += value;
+            const dateStr = `${year}-${String(Number(month) + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            entryDates.add(dateStr);
           }
         }
-    return { num_days: total_number_of_days, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
+
+    let streak = 0;
+    let current = new Date();
+    while (true) {
+      const y = current.getFullYear();
+      const m = String(current.getMonth() + 1).padStart(2, '0');
+      const d = String(current.getDate()).padStart(2, '0');
+      const key = `${y}-${m}-${d}`;
+      if (entryDates.has(key)) {
+        streak++;
+        current.setDate(current.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return { streak, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
   }
 
   useEffect(() => {
@@ -121,7 +140,7 @@ export default function DashboardContent() {
               <p className='font-semibold capitalize text-xs sm:text-base'>{status.replaceAll('_', ' ')}</p>
               <p className='fugaz text-base sm:text-xl truncate'>
                 {statuses[status]}
-                {status === "num_days" ? "🔥" : ""}
+                {status === "streak" ? "🔥" : ""}
                 {status === "average_mood" ? `${moods[convertMood(statuses["average_mood"])]} ` : ""}
               </p>
             </div>
