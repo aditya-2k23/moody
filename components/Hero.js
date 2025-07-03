@@ -1,5 +1,6 @@
 import Calender from "./Calender";
 import CallToAction from "./CallToAction";
+import Quote from "./Quote";
 
 export default function Hero() {
   return (
@@ -10,6 +11,8 @@ export default function Hero() {
       <p className="text-lg sm:text-xl md:text-2xl text-center w-full mx-auto max-w-[600px]">Create your mood record and see how you feel on <span className="font-semibold">every day of every year.</span></p>
 
       <CallToAction />
+
+      <Quote />
 
       <Calender demo showJournalPopup={false} />
     </div>
