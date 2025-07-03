@@ -166,7 +166,7 @@ export default function Journal({ currentUser }) {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center glow">
                   <span className="text-2xl">💡</span>
                 </div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">PERSONALIZED INSIGHT</h3>
@@ -177,10 +177,10 @@ export default function Journal({ currentUser }) {
                 <span className="text-sm md:text-base font-semibold text-indigo-500 capitalize fugaz">{insights.mood}</span>
               </div>
             </div>
-            <h4 className="text-xl font-bold text-gray-800 mb-3">Keep the Momentum Going</h4>
+            <h4 className="text-xl font-bold text-gray-800 mb-3">{insights.headline || "Personalized Insight"}</h4>
             <p className="text-gray-600 leading-relaxed mb-4">{insights.insight}</p>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 glow">
               <p className="text-sm text-yellow-800">
                 <span className="font-semibold">💡 Pro tip:</span> {insights.pro_tip}
               </p>

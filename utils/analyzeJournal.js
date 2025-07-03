@@ -8,6 +8,7 @@ export const analyzeEntry = async (journal_entry) => {
     2. **Insight or Tip**: Give a kind, encouraging suggestion based on their emotional tone and content.
     3. **Triggers**: List keywords or events that influenced the mood (e.g., productivity, friends, gratitude).
     4. **Pro Tip**: Give a short, actionable tip based on the user's mood and entry.
+    5. **Headline**: Write a short, creative, and mood-appropriate headline for the insight card. It should be positive, supportive, and tailored to the user's mood. Do not use generic phrases like 'Keep the Momentum Going'.
 
     Here is the user's journal entry:
     ---
@@ -19,7 +20,8 @@ export const analyzeEntry = async (journal_entry) => {
       "mood": "one of Happy, Sad, Angry, Anxious, Excited, Grateful, Tired, Stressed, Neutral",
       "triggers": ["list of keywords or events that influenced the mood"],
       "insight": "a kind, helpful reflection or tip based on the entry",
-      "pro_tip": "a short, actionable tip based on the user's mood and entry"
+      "pro_tip": "a short, actionable tip based on the user's mood and entry",
+      "headline": "a short, creative, mood-appropriate headline for the insight card"
     }
     `;
 
