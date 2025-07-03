@@ -10,8 +10,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata = {
-  title: "Moody ⋅ Track Your Mood",
-  description: "Track your mood every day of the year!",
+  title: "Moody+ ⋅ Track Your Mood",
+  description: "Track your mood every day of the year! Now with the power of AI to provide insights.",
 };
 
 export default function RootLayout({ children }) {
