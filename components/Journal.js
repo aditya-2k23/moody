@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { analyzeEntry } from "@/utils/analyzeJournal";
 
@@ -44,10 +44,25 @@ export default function Journal({ currentUser }) {
       toast.error("Journal entry cannot be empty.");
       return;
     }
+
     setLoadingInsights(true);
+    const docRef = doc(db, "users", currentUser.uid, "insights", entry);
+
     try {
-      const result = await analyzeEntry(entry);
-      setInsights(result);
+      // Check cache first
+      const cachedDoc = await getDoc(docRef);
+      if (cachedDoc.exists()) {
+        setInsights(cachedDoc.data());
+        console.log("Loaded cached insights.");
+      } else {
+        // Fetch new insights
+        const result = await analyzeEntry(entry);
+        setInsights(result);
+
+        // Cache the new insights
+        await setDoc(docRef, result);
+        console.log("New insights generated and cached.");
+      }
     } catch (error) {
       toast.error(error.message);
     } finally {
