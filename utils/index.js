@@ -34,6 +34,7 @@ export const moods = {
   "Excited": '🤩',
   "Neutral": '😶',
   "Anxious": '😰',
+  "Unsure": '😟',
   "Tired": '😴',
   "Stressed": '😩',
   "Angry": '😡',

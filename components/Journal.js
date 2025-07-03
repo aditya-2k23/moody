@@ -6,7 +6,8 @@ import toast from "react-hot-toast";
 import { analyzeEntry } from "@/utils/analyzeJournal";
 import { generateCreativePlaceholder } from "@/utils/generatePlaceholder";
 import Loader from "./Loader";
-import convertMood, { moods } from "@/utils";
+import { moods } from "@/utils";
+import Image from "next/image";
 
 export default function Journal({ currentUser }) {
   const [entry, setEntry] = useState("");
@@ -112,7 +113,7 @@ export default function Journal({ currentUser }) {
             className="self-end px-4 py-2 font-semibold shadow-md rounded-xl flex items-center gap-2"
             text={
               <span className="flex items-center gap-2">
-                <img src="/ai-full.svg" alt="AI Icon" className="w-6 h-6" />
+                <Image src="/ai-full.svg" alt="AI Icon" width={24} height={24} />
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
@@ -132,6 +133,7 @@ export default function Journal({ currentUser }) {
 
       {insights && (
         <>
+          <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 font-bold text-gray-800 fugaz"><Image src="/ai.svg" alt="AI Icon" width={26} height={26} />AI Insights</h2>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
