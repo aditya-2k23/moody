@@ -121,6 +121,12 @@ export default function DashboardContent() {
     }
   }
 
+  // Get today's mood if already set
+  let todaysMood = null;
+  if (data && data[now.getFullYear()] && data[now.getFullYear()][now.getMonth()]) {
+    todaysMood = data[now.getFullYear()][now.getMonth()][now.getDate()] || null;
+  }
+
   if (loading) return <Loader />;
   if (!currentUser) return <Login initialRegister={shouldRegister} />;
 
@@ -149,15 +155,22 @@ export default function DashboardContent() {
 
         <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
         <div className="flex items-stretch flex-wrap gap-4">
-          {Object.keys(moods).map((mood, moodIndex) => (
-            <button onClick={() => {
-              const currentMood = moodIndex + 1;
-              handleSetMood(currentMood);
-            }} key={moodIndex} className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition bg-indigo-50 hover:bg-indigo-100 text-center flex flex-col items-center gap-3 flex-1`}>
-              <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
-              <p className='fugaz text-indigo-500 text-xs sm:text-sm md:text-base'>{mood}</p>
-            </button>
-          ))}
+          {Object.keys(moods).map((mood, moodIndex) => {
+            const currentMood = moodIndex + 1;
+            const isSelected = todaysMood === currentMood;
+            return (
+              <button
+                onClick={() => handleSetMood(currentMood)}
+                key={moodIndex}
+                className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
+                  ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg' : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-500'}`}
+                style={{ outline: isSelected ? '2px solid #4338ca' : 'none', outlineOffset: 2 }}
+              >
+                <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
+                <p className={`fugaz text-xs sm:text-sm md:text-base ${isSelected ? 'text-white' : 'text-indigo-500'}`}>{mood}</p>
+              </button>
+            );
+          })}
         </div>
 
         <Journal currentUser={currentUser} />

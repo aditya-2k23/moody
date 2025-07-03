@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { analyzeEntry } from "@/utils/analyzeJournal";
 import { generateCreativePlaceholder } from "@/utils/generatePlaceholder";
 import Loader from "./Loader";
+import convertMood, { moods } from "@/utils";
 
 export default function Journal({ currentUser }) {
   const [entry, setEntry] = useState("");
@@ -132,48 +133,57 @@ export default function Journal({ currentUser }) {
       {insights && (
         <>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-purple-500/90 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🧩</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-purple-500/90 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">🧩</span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">emotional triggers</h3>
               </div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">emotional triggers</h3>
+
+              <div className="flex flex-col items-center justify-between min-w-[90px]">
+                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '🙂'}</span>
+                <span className="text-sm md:text-base font-semibold text-indigo-500 capitalize fugaz">{insights.mood}</span>
+              </div>
             </div>
 
-            <div>
-              <h4 className="text-xl font-bold text-gray-800 mb-3">What Influenced your Mood</h4>
-              {insights.summary}
-              {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {insights.triggers.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 shadow-sm hover:bg-indigo-200 transition-all duration-150"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+            <h4 className="text-xl font-bold text-gray-800 mb-3">What Influenced your Mood</h4>
+            {insights.summary}
+            {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {insights.triggers.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 shadow-sm hover:bg-indigo-200 transition-all duration-150"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">💡</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-500/90 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">💡</span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">PERSONALIZED INSIGHT</h3>
               </div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">PERSONALIZED INSIGHT</h3>
+
+              <div className="flex flex-col items-center justify-between min-w-[90px]">
+                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '🙂'}</span>
+                <span className="text-sm md:text-base font-semibold text-indigo-500 capitalize fugaz">{insights.mood}</span>
+              </div>
             </div>
+            <h4 className="text-xl font-bold text-gray-800 mb-3">Keep the Momentum Going</h4>
+            <p className="text-gray-600 leading-relaxed mb-4">{insights.insight}</p>
 
-            <div>
-              <h4 className="text-xl font-bold text-gray-800 mb-3">Keep the Momentum Going</h4>
-              <p className="text-gray-600 leading-relaxed mb-4">{insights.insight}</p>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                <p className="text-sm text-yellow-800">
-                  <span className="font-semibold">💡 Pro tip:</span> {insights.pro_tip}
-                </p>
-              </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+              <p className="text-sm text-yellow-800">
+                <span className="font-semibold">💡 Pro tip:</span> {insights.pro_tip}
+              </p>
             </div>
           </div>
         </>
