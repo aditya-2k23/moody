@@ -56,12 +56,14 @@ export const months = {
 
 export const dayList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export default function convertMood(moodIndex) {
-  moodIndex = Math.floor(moodIndex);
-  // Get all mood keys in order
-  const moodKeys = Object.keys(moods);
-  // Clamp moodIndex to valid range
-  if (moodIndex < 0) moodIndex = 0;
-  if (moodIndex >= moodKeys.length) moodIndex = moodKeys.length - 1;
-  return moodKeys[moodIndex];
+export default function convertMood(moodValue) {
+  if (typeof moodValue === 'number') {
+    const moodKeys = Object.keys(moods);
+    const idx = Math.max(0, Math.min(moodKeys.length - 1, moodValue - 1));
+    return moodKeys[idx];
+  }
+  if (typeof moodValue === 'string' && moods[moodValue]) {
+    return moodValue;
+  }
+  return 'Neutral';
 }

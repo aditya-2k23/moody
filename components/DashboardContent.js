@@ -30,37 +30,46 @@ export default function DashboardContent() {
   }
 
   function countValues() {
-    let sum_moods = 0;
     let total_number_of_days = 0;
+    let lastMood = null;
+    let lastDate = null;
 
-    const entryDates = new Set();
+    const entryDates = [];
     for (let year in data)
       for (let month in data[year])
         for (let day in data[year][month]) {
           const value = data[year][month][day];
           if (typeof value === "number") {
             total_number_of_days++;
-            sum_moods += value;
-            const dateStr = `${year}-${String(Number(month) + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            entryDates.add(dateStr);
+            const dateObj = new Date(Number(year), Number(month), Number(day));
+            entryDates.push({ date: dateObj, mood: value });
           }
         }
-
+    if (entryDates.length > 0) {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      entryDates.sort((a, b) => b.date - a.date);
+      const prevEntry = entryDates.find(e => e.date < today);
+      if (prevEntry) {
+        lastMood = prevEntry.mood;
+        lastDate = prevEntry.date;
+      } else {
+        lastMood = entryDates[0].mood;
+        lastDate = entryDates[0].date;
+      }
+    }
     let streak = 0;
+    const entryDateSet = new Set(entryDates.map(e => e.date.toDateString()));
     let current = new Date();
     while (true) {
-      const y = current.getFullYear();
-      const m = String(current.getMonth() + 1).padStart(2, '0');
-      const d = String(current.getDate()).padStart(2, '0');
-      const key = `${y}-${m}-${d}`;
-      if (entryDates.has(key)) {
+      const key = current.toDateString();
+      if (entryDateSet.has(key)) {
         streak++;
         current.setDate(current.getDate() - 1);
       } else {
         break;
       }
     }
-    return { streak, average_mood: ((sum_moods / total_number_of_days) || 0).toFixed(2) };
+    return { streak, lastMood, lastDate };
   }
 
   useEffect(() => {
@@ -142,16 +151,31 @@ export default function DashboardContent() {
 
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
         <div className="grid grid-cols-3 bg-indigo-50 text-indigo-500 p-4 gap-4 rounded-xl">
-          {Object.keys(statuses).map((status, statusIndex) => (
-            <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
-              <p className='font-semibold capitalize text-xs sm:text-base'>{status.replaceAll('_', ' ')}</p>
-              <p className='fugaz text-base sm:text-xl truncate'>
-                {statuses[status]}
-                {status === "streak" ? "🔥" : ""}
-                {status === "average_mood" ? `${moods[convertMood(statuses["average_mood"])]} ` : ""}
-              </p>
-            </div>
-          ))}
+          {Object.keys(statuses).map((status, statusIndex) => {
+            if (status === "lastMood") {
+              return (
+                <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
+                  <p className='font-semibold capitalize text-xs sm:text-base'>Last Mood</p>
+                  <p className='fugaz text-base sm:text-xl truncate flex items-center gap-2'>
+                    {statuses.lastMood ? <>
+                      <span className="text-2xl md:text-3xl">{moods[convertMood(statuses.lastMood)]}</span>
+                      <span className="capitalize">{convertMood(statuses.lastMood)}</span>
+                    </> : '--'}
+                  </p>
+                </div>
+              );
+            }
+            if (status === "lastDate") return null;
+            return (
+              <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
+                <p className='font-semibold capitalize text-xs sm:text-base'>{status.replaceAll('_', ' ')}</p>
+                <p className='fugaz text-base sm:text-xl truncate'>
+                  {statuses[status]}
+                  {status === "streak" ? "🔥" : ""}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
         <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
