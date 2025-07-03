@@ -5,19 +5,21 @@ export const analyzeEntry = async (journal_entry) => {
     const prompt = `You are an AI journal assistant that helps users reflect on their mental well-being. A user has written a journal entry. Your task is to analyze the entry and provide the following:
 
     1. **Mood**: Categorize the emotional tone as one of [Happy, Sad, Angry, Anxious, Excited, Grateful, Tired, Stressed, Neutral].
-    2. **Summary**: Write a one-line summary of the journal entry.
-    3. **Insight or Tip**: Give a kind, encouraging suggestion based on their emotional tone and content.
+    2. **Insight or Tip**: Give a kind, encouraging suggestion based on their emotional tone and content.
+    3. **Triggers**: List keywords or events that influenced the mood (e.g., productivity, friends, gratitude).
+    4. **Pro Tip**: Give a short, actionable tip based on the user's mood and entry.
 
     Here is the user's journal entry:
     ---
       "${journal_entry}"
     ---
 
-    Respond in this JSON format:
+    Respond with a valid JSON format:
     {
-      "mood": "...",
-      "summary": "...",
-      "insight": "..."
+      "mood": "one of Happy, Sad, Angry, Anxious, Excited, Grateful, Tired, Stressed, Neutral",
+      "triggers": ["list of keywords or events that influenced the mood"],
+      "insight": "a kind, helpful reflection or tip based on the entry",
+      "pro_tip": "a short, actionable tip based on the user's mood and entry"
     }
     `;
 
