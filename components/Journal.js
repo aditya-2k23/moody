@@ -1,20 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { analyzeEntry } from "@/utils/analyzeJournal";
+import { generateCreativePlaceholder } from "@/utils/generatePlaceholder";
+import Loader from "./Loader";
 
 export default function Journal({ currentUser }) {
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [placeholder, setPlaceholder] = useState("What happened today... 🫶");
+  const [placeholderLoading, setPlaceholderLoading] = useState(true);
 
   const now = new Date();
   const day = now.getDate();
   const month = now.getMonth();
   const year = now.getFullYear();
+
+  useEffect(() => {
+    (async () => {
+      setPlaceholderLoading(true);
+      const creative = await generateCreativePlaceholder();
+      setPlaceholder(creative);
+      setPlaceholderLoading(false);
+    })();
+  }, []);
 
   const handleSave = async () => {
     if (!entry.trim()) {
@@ -75,14 +88,24 @@ export default function Journal({ currentUser }) {
       {/* Journal Entry Section */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
         <h2 className="text-2xl md:text-3xl font-bold fugaz mb-4">Quick Journal</h2>
-        <textarea
-          name="journal"
-          id="journal"
-          className="w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-lg border rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-indigo-500 duration-200"
-          placeholder="What happened today... 🫶"
-          value={entry}
-          onChange={e => setEntry(e.target.value)}
-        />
+        {placeholderLoading ? (
+          <div className="w-full h-24 md:h-28 rounded-lg bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 animate-pulse relative overflow-hidden">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-indigo-400 flex gap-2 text-base md:text-lg font-medium select-none animate-pulse">Generating inspiration... <Loader size="xl" /></span>
+            </div>
+          </div>
+        ) : (
+          <textarea
+            name="journal"
+            id="journal"
+            className="w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-base lg:text-lg border rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-indigo-500 duration-200 transition-opacity"
+            placeholder={placeholder}
+            value={entry}
+            onChange={e => setEntry(e.target.value)}
+            disabled={placeholderLoading}
+            style={{ opacity: placeholderLoading ? 0 : 1, transition: 'opacity 0.3s' }}
+          />
+        )}
         <div className="flex justify-end gap-2">
           <Button
             className="self-end px-4 py-2 font-semibold shadow-md rounded-xl flex items-center gap-2"
