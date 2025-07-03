@@ -98,7 +98,7 @@ export default function Journal({ currentUser }) {
           <textarea
             name="journal"
             id="journal"
-            className="w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-base lg:text-lg border rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-indigo-500 duration-200 transition-opacity"
+            className="w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-base lg:text-lg border rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/80 transition-all duration-200"
             placeholder={placeholder}
             value={entry}
             onChange={e => setEntry(e.target.value)}
