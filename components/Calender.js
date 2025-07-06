@@ -17,7 +17,6 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = completeData?.[selectedYear]?.[numericMonth] || {};
-  console.log("Data for selected month:", data);
 
   function handleIncrementMonth(val) {
     // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
@@ -88,18 +87,50 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
         {[...Array(numRows).keys()].map((row, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-7 gap-1 ">
             {dayList.map((_, dayOfWeekIndex) => {
+              // Calculate the actual day number for this calendar cell
               let dayIndex = (rowIndex * 7) + dayOfWeekIndex - (firstDayOfMonth - 1);
-              let dayDisplay = dayIndex > daysInMonth ? false : (row === 0 && dayOfWeekIndex < firstDayOfMonth) ? false : true;
+
+              // Determine if this cell should display a day number
+              let shouldDisplayDay = true;
+              if (dayIndex > daysInMonth) {
+                shouldDisplayDay = false; // Beyond the last day of the month
+              } else if (row === 0 && dayOfWeekIndex < firstDayOfMonth) {
+                shouldDisplayDay = false; // Before the first day of the month
+              }
+
+              // If this cell shouldn't display a day, render empty cell
+              if (!shouldDisplayDay) {
+                return <div className="bg-white" key={dayOfWeekIndex} />;
+              }
+
+              // Check if this day is today
               let isToday = dayIndex === now.getDate();
-              if (!dayDisplay) return (
-                <div className="bg-white" key={dayOfWeekIndex} />
-              );
-              let color = demo ? gradients.indigo[baseRating[dayIndex]] : dayIndex in data ? gradients.indigo[data[dayIndex]] : "white";
-              let isSelected = dayIndex === selectedDay;
+
+              // Determine the background color based on mood data
+              let backgroundColor = "white"; // Default color
+
+              if (demo) {
+                // Demo mode: use baseRating data
+                let moodRating = baseRating[dayIndex];
+                if (moodRating !== undefined && moodRating >= 0 && moodRating <= 12) {
+                  backgroundColor = gradients.indigo[moodRating];
+                }
+              } else {
+                // Real data mode: use actual user data
+                if (dayIndex in data) {
+                  let moodRating = data[dayIndex] - 1;
+                  if (moodRating >= 0 && moodRating <= 12) {
+                    backgroundColor = gradients.indigo[moodRating];
+                    console.log(moodRating);
+                  }
+                }
+              }
+
+              let isSelected = (dayIndex === selectedDay);
               return (
                 <div
-                  style={{ background: color }}
-                  className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer ${isToday ? "border-indigo-400" : "border-indigo-100"} ${isSelected ? "ring-2 ring-indigo-600" : ""} ${color === "white" ? "text-indigo-400" : "text-white"}`}
+                  style={{ background: backgroundColor }}
+                  className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer ${isToday ? "border-indigo-400" : "border-indigo-100"} ${isSelected ? "ring-2 ring-indigo-600" : ""} ${backgroundColor === "white" ? "text-indigo-400" : "text-white"}`}
                   key={dayOfWeekIndex}
                   onClick={() => {
                     setSelectedDay(dayIndex);
@@ -107,7 +138,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                   }}
                   title={data[`journal_${dayIndex}`] ? "View journal entry" : undefined}
                 >
-                  <p>{dayIndex}</p>
+                  <p className="font-bold">{dayIndex}</p>
                   {data[`journal_${dayIndex}`] && (
                     <span className="ml-auto" title="Journal entry">📝</span>
                   )}
