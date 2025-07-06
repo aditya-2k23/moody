@@ -8,8 +8,10 @@ import { generateCreativePlaceholder } from "@/utils/generatePlaceholder";
 import Loader from "./Loader";
 import { moods } from "@/utils";
 import Image from "next/image";
+import { useTheme } from "@/context/themeContext";
 
 export default function Journal({ currentUser }) {
+  const { theme } = useTheme();
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
@@ -21,6 +23,12 @@ export default function Journal({ currentUser }) {
   const day = now.getDate();
   const month = now.getMonth();
   const year = now.getFullYear();
+
+  // Determine if we're in dark mode
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // Choose the appropriate AI icon
+  const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   useEffect(() => {
     (async () => {
@@ -89,10 +97,10 @@ export default function Journal({ currentUser }) {
     <div className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-        <div className="absolute bottom-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-0 left-0 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-36 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl"></div>
 
-        <h2 className="text-2xl md:text-3xl font-bold fugaz mb-4">📝 Quick Journal</h2>
+        <h2 className="text-2xl md:text-3xl font-bold fugaz mb-4 flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
         {placeholderLoading ? (
           <div className="w-full h-24 md:h-28 rounded-lg bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 animate-pulse relative overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center">
@@ -103,7 +111,7 @@ export default function Journal({ currentUser }) {
           <textarea
             name="journal"
             id="journal"
-            className="w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-base lg:text-lg border rounded-lg shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/80 transition-all duration-200"
+            className="dark:bg-slate-700/80 w-full h-24 md:h-28 p-4 text-gray-700 text-base md:text-base lg:text-lg border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/80 transition-all duration-200 dark:focus:ring-indigo-300/80 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500 resize-none"
             placeholder={placeholder}
             value={entry}
             onChange={e => setEntry(e.target.value)}
@@ -116,7 +124,7 @@ export default function Journal({ currentUser }) {
             className="self-end px-4 py-2 font-semibold shadow-md rounded-xl flex items-center gap-2"
             text={
               <span className="flex items-center gap-2">
-                <Image src="/ai-full.svg" alt="AI Icon" width={24} height={24} />
+                <Image src={aiIcon} alt="AI Icon" width={24} height={24} />
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
@@ -136,7 +144,7 @@ export default function Journal({ currentUser }) {
 
       {insights && (
         <>
-          <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 font-bold text-gray-800 fugaz"><Image src="/ai.svg" alt="AI Icon" width={26} height={26} />AI Insights</h2>
+          <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 font-bold text-gray-800 dark:text-gray-200 fugaz"><Image src={aiIcon} alt="AI Icon" width={26} height={26} />AI Insights</h2>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">

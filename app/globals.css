@@ -28,6 +28,17 @@
   box-shadow: 0px 0px 1px 1px lavender;
 }
 
+.dark .purpleShadow {
+  box-shadow: 3px 3px 1px 1px rgb(51 65 85 / 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.dark .purpleShadow:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 1px 1px rgb(51 65 85 / 0.2);
+  ;
+}
+
 .sparkle {
   animation: sparkle 1.5s infinite ease-in-out;
 }
@@ -36,9 +47,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.2);
   }
+
   100% {
     transform: scale(1);
   }
@@ -76,7 +89,7 @@
 }
 
 .dark .bg-slate-100 {
-  @apply bg-slate-800;
+  @apply bg-slate-800
 }
 
 .dark .hover\:bg-slate-100:hover {

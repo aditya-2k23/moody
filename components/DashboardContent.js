@@ -152,7 +152,7 @@ export default function DashboardContent() {
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-400 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-hidden">
           <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl"></div>
 
           {Object.keys(statuses).map((status, statusIndex) => {
             if (status === "lastMood") {
@@ -190,23 +190,26 @@ export default function DashboardContent() {
               <button
                 onClick={() => handleSetMood(currentMood)}
                 key={moodIndex}
+                style={{
+                  outline: isSelected ? '2px solid var(--outline-color)' : 'none',
+                  outlineOffset: 2,
+                  '--outline-color': 'rgb(79 70 229)' // indigo-600 for light mode
+                }}
                 className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
-                  ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-400'}`}
-                style={{ outline: isSelected ? '2px solid #4338ca' : 'none', outlineOffset: 2 }}
+                  ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
               >
                 <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
-                <p className={`fugaz text-xs sm:text-sm md:text-base ${isSelected ? 'text-white' : 'text-indigo-500'}`}>{mood}</p>
+                <p className="fugaz text-xs sm:text-sm md:text-base">{mood}</p>
               </button>
             );
           })}
-          {Object.keys(moods).length > 5 && (
-            <button
-              onClick={() => setShowAllMoods((prev) => !prev)}
-              className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 font-semibold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px]"
-            >
-              {showAllMoods ? <i className="fas fa-chevron-up"></i> : <i className="fas fa-chevron-down"></i>}
-            </button>
-          )}
+
+          <button
+            onClick={() => setShowAllMoods((prev) => !prev)}
+            className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px]"
+          >
+            {showAllMoods ? <i className="fas fa-chevron-up"></i> : <i className="fas fa-chevron-down"></i>}
+          </button>
         </div>
 
         <Journal currentUser={currentUser} />
