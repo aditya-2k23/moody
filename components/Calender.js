@@ -169,10 +169,10 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                 >
                   <p className="font-bold">{dayIndex}</p>
                   {isToday && (
-                    <span title="Today">📅</span>
+                    <span title="Today"><i class="fa-solid fa-calendar-days"></i></span>
                   )}
                   {data[`journal_${dayIndex}`] && (
-                    <span className="ml-auto" title="Journal entry">📝</span>
+                    <span className="ml-auto" title="Journal entry"><i class="fa-solid fa-note-sticky"></i></span>
                   )}
                 </div>
               )
