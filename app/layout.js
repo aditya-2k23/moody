@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
       <Link href="/">
-        <h1 className={`fugaz text-2xl sm:text-4xl textGradient hover:scale-110 duration-200`} title="Home">Moody</h1>
+        <h1 className={`fugaz text-2xl sm:text-4xl textGradient hover:scale-110 duration-200`} title="Home">Moody+</h1>
       </Link>
 
       <div className="flex items-center gap-4">

@@ -2,7 +2,7 @@ import Dashboard from '@/components/Dashboard';
 import Main from '@/components/Main';
 
 export const metadata = {
-  title: "Moody ⋅ Dashboard",
+  title: "Moody+ ⋅ Dashboard",
 };
 
 export default function DashboardPage() {
