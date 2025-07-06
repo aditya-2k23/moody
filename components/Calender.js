@@ -44,9 +44,9 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
   return (
     <div className="flex flex-col gap-2">
       {showJournalPopup && selectedDay && (
-        <div className="relative mb-4 p-4 py-2 bg-indigo-50 dark:bg-slate-800 rounded-lg border border-indigo-200 dark:border-indigo-700">
+        <div className="relative mb-4 px-4 py-3 md:py-4 bg-indigo-50 dark:bg-slate-700/70 rounded-lg border border-indigo-200 dark:border-none">
           <button
-            className="absolute top-0 right-2 text-indigo-400 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-500 text-2xl font-bold focus:outline-none"
+            className="absolute top-1 right-3 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-300/80 text-2xl font-bold focus:outline-none duration-150 hover:scale-125"
             onClick={() => { setSelectedDay(null); setSelectedJournal(""); }}
             title="Close"
             aria-label="Close journal entry"
@@ -154,7 +154,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
-                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer
+                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer truncate
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
                     ${isSelected ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
                     ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : ""}
@@ -169,10 +169,10 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                 >
                   <p className="font-bold">{dayIndex}</p>
                   {isToday && (
-                    <span title="Today"><i class="fa-solid fa-calendar-days"></i></span>
+                    <span title="Today"><i className="fa-solid fa-calendar-days"></i></span>
                   )}
                   {data[`journal_${dayIndex}`] && (
-                    <span className="ml-auto" title="Journal entry"><i class="fa-solid fa-note-sticky"></i></span>
+                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><i className="fa-solid fa-note-sticky"></i></span>
                   )}
                 </div>
               )
