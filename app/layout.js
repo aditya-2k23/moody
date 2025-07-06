@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
       <Link href="/">
-        <h1 className={`fugaz text-2xl sm:text-4xl textGradient`}>Moody</h1>
+        <h1 className={`fugaz text-2xl sm:text-4xl textGradient hover:scale-110 duration-200`} title="Home">Moody</h1>
       </Link>
 
       <div className="flex items-center gap-4">
@@ -33,12 +33,12 @@ export default function RootLayout({ children }) {
 
   const Footer = (
     <footer className="p-4 sm:p-8 pt-0 sm:pt-0 flex justify-between text-sm md:text-base">
-      <p className={`text-indigo-500 dark:text-indigo-400 fugaz`}>Created with 💜 by Aditya</p>
+      <p className={`text-indigo-500 dark:text-indigo-400 fugaz cursor-default`}>Created with 💜 by Aditya</p>
       <div className="flex gap-4">
-        <Link href="https://www.github.com/aditya-2k23" target="_blank" rel="noopener noreferrer">
+        <Link href="https://www.github.com/aditya-2k23" target="_blank" rel="noopener noreferrer" title="Adi's GitHub">
           <Button text={<><i className="fa-brands fa-github md:mr-1"></i> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
-        <Link href="https://www.linkedin.com/in/aditya-2k23" target="_blank" rel="noopener noreferrer">
+        <Link href="https://www.linkedin.com/in/aditya-2k23" target="_blank" rel="noopener noreferrer" title="Adi's LinkedIn">
           <Button text={<><i className="fa-brands fa-linkedin md:mr-1"></i> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
       </div>

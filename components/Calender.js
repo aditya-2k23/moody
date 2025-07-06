@@ -65,12 +65,12 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
         <Button
           text={<i className="fa-solid fa-circle-chevron-left"></i>}
           normal={false}
-          className="mr-auto text-indigo-500/70 dark:text-indigo-400/70 hover:opacity-80 duration-200"
+          className="mr-auto text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 duration-200 hover:scale-110"
           onClick={() => handleIncrementMonth(-1)}
         />
         <p className="fugaz col-span-3 whitespace-nowrap textGradient text-center capitalize">{selectedMonth}, {selectedYear}</p>
         <Button
-          className="ml-auto text-indigo-500/70 dark:text-indigo-400/70 hover:opacity-80 duration-200"
+          className="ml-auto text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 duration-200 hover:scale-110"
           text={<i className="fa-solid fa-circle-chevron-right"></i>}
           normal={false}
           onClick={() => handleIncrementMonth(+1)}

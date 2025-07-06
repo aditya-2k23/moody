@@ -6,7 +6,7 @@ export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   const themes = [
-    { value: 'light', icon: '☀️' },
+    { value: 'light', icon: '🌞' },
     { value: 'dark', icon: '🌙' }
   ];
 
@@ -19,8 +19,8 @@ export default function ThemeToggle() {
           className={`
             w-10 h-10 rounded-full text-lg font-medium transition-all duration-200 flex items-center justify-center
             ${theme === t.value || (theme === 'system' && t.value === 'light')
-              ? 'bg-slate-200/85 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-600'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 border border-transparent hover:border-indigo-300 dark:hover:border-indigo-600'
+              ? 'bg-slate-200/85 dark:bg-slate-700 shadow-sm border border-indigo-200 dark:border-indigo-600'
+              : 'hover:bg-slate-200/50 dark:hover:bg-slate-700/50 border border-transparent hover:border-indigo-400 dark:hover:border-indigo-600'
             }
           `}
           title={t.value === 'light' ? 'Light Mode' : 'Dark Mode'}
