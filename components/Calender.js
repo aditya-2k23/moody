@@ -44,33 +44,33 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
   return (
     <div className="flex flex-col gap-2">
       {showJournalPopup && selectedDay && (
-        <div className="relative mb-4 p-4 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+        <div className="relative mb-4 p-4 py-2 bg-indigo-50 dark:bg-slate-800 rounded-lg border border-indigo-200 dark:border-indigo-700">
           <button
-            className="absolute top-0 right-2 text-indigo-400 hover:text-indigo-700 text-2xl font-bold focus:outline-none"
+            className="absolute top-0 right-2 text-indigo-400 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-500 text-2xl font-bold focus:outline-none"
             onClick={() => { setSelectedDay(null); setSelectedJournal(""); }}
             title="Close"
             aria-label="Close journal entry"
           >
             &times;
           </button>
-          <h3 className="font-bold text-indigo-600 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
+          <h3 className="font-bold text-indigo-600 dark:text-indigo-400 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
           {selectedJournal ? (
-            <p className="whitespace-pre-line text-gray-700">{selectedJournal}</p>
+            <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">{selectedJournal}</p>
           ) : (
-            <p className="text-gray-400 italic">No journal entry for this day.</p>
+            <p className="text-gray-400 dark:text-gray-500 italic">No journal entry for this day.</p>
           )}
         </div>
       )}
-      <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl">
+      <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl">
         <Button
           text={<i className="fa-solid fa-circle-chevron-left"></i>}
           normal={false}
-          className="mr-auto text-indigo-500 hover:opacity-80 duration-200"
+          className="mr-auto text-indigo-500/70 dark:text-indigo-400/70 hover:opacity-80 duration-200"
           onClick={() => handleIncrementMonth(-1)}
         />
         <p className="fugaz col-span-3 whitespace-nowrap textGradient text-center capitalize">{selectedMonth}, {selectedYear}</p>
         <Button
-          className="ml-auto text-indigo-500 hover:opacity-80 duration-200"
+          className="ml-auto text-indigo-500/70 dark:text-indigo-400/70 hover:opacity-80 duration-200"
           text={<i className="fa-solid fa-circle-chevron-right"></i>}
           normal={false}
           onClick={() => handleIncrementMonth(+1)}
@@ -78,7 +78,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
       </div>
       <div className="flex flex-col overflow-hidden gap-1 px-1 py-4 sm:py-6 md:py-10">
         {/* Day of week headings */}
-        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500 ml-2 mb-1">
+        <div className="grid grid-cols-7 gap-1 text-sm font-semibold text-indigo-500 dark:text-indigo-400 ml-2 mb-1">
           {dayList.map((day) => (
             <div key={day}>{day.slice(0, 3)}</div>
           ))}
@@ -100,37 +100,66 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
 
               // If this cell shouldn't display a day, render empty cell
               if (!shouldDisplayDay) {
-                return <div className="bg-white" key={dayOfWeekIndex} />;
+                return <div className="bg-white dark:bg-gray-900/0" key={dayOfWeekIndex} />;
               }
 
               // Check if this day is today
               let isToday = dayIndex === now.getDate();
 
               // Determine the background color based on mood data
-              let backgroundColor = "white"; // Default color
+              let backgroundColor = "transparent"; // Default color
+              let moodRating = null;
 
               if (demo) {
                 // Demo mode: use baseRating data
-                let moodRating = baseRating[dayIndex];
+                moodRating = baseRating[dayIndex];
                 if (moodRating !== undefined && moodRating >= 0 && moodRating <= 12) {
                   backgroundColor = gradients.indigo[moodRating];
                 }
               } else {
                 // Real data mode: use actual user data
                 if (dayIndex in data) {
-                  let moodRating = data[dayIndex] - 1;
+                  moodRating = data[dayIndex] - 1;
                   if (moodRating >= 0 && moodRating <= 12) {
                     backgroundColor = gradients.indigo[moodRating];
-                    console.log(moodRating);
                   }
+                }
+              }
+
+              // Determine text color based on background darkness and theme
+              let textColor = "";
+              if (backgroundColor === "transparent") {
+                // No mood data - use default colors
+                textColor = "text-indigo-400 dark:text-indigo-200";
+              } else if (moodRating !== null) {
+                // Light backgrounds (ratings 0-4) - use dark text
+                if (moodRating < 2) {
+                  textColor = "text-indigo-500 dark:text-indigo-600";
+                }
+                else if (moodRating == 2) {
+                  textColor = "text-indigo-600 dark:text-indigo-600";
+                }
+                // Medium backgrounds (ratings 5-8) - use balanced text
+                else if (moodRating <= 8 && moodRating > 4) {
+                  textColor = "text-white dark:text-indigo-100";
+                }
+                // Dark backgrounds (ratings 9-12) - use light text
+                else {
+                  textColor = "text-white dark:text-gray-100";
                 }
               }
 
               let isSelected = (dayIndex === selectedDay);
               return (
                 <div
-                  style={{ background: backgroundColor }}
-                  className={`text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer ${isToday ? "border-indigo-400" : "border-indigo-100"} ${isSelected ? "ring-2 ring-indigo-600" : ""} ${backgroundColor === "white" ? "text-indigo-400" : "text-white"}`}
+                  style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
+                  className={`
+                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer
+                    ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
+                    ${isSelected ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
+                    ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : ""}
+                    ${textColor}
+                  `}
                   key={dayOfWeekIndex}
                   onClick={() => {
                     setSelectedDay(dayIndex);
@@ -139,6 +168,9 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                   title={data[`journal_${dayIndex}`] ? "View journal entry" : undefined}
                 >
                   <p className="font-bold">{dayIndex}</p>
+                  {isToday && (
+                    <span title="Today">📅</span>
+                  )}
                   {data[`journal_${dayIndex}`] && (
                     <span className="ml-auto" title="Journal entry">📝</span>
                   )}
