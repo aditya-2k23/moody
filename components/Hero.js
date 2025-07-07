@@ -1,6 +1,7 @@
-import Calender from "./Calender";
 import CallToAction from "./CallToAction";
 import Quote from "./Quote";
+import AnimatedDivider from "./AnimatedDivider";
+import Calender from "./Calender";
 
 export default function Hero() {
   return (
@@ -13,6 +14,8 @@ export default function Hero() {
       <CallToAction />
 
       <Quote />
+
+      <AnimatedDivider />
 
       <Calender demo showJournalPopup={false} />
     </div>
