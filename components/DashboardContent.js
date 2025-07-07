@@ -57,17 +57,13 @@ export default function DashboardContent() {
         lastDate = entryDates[0].date;
       }
     }
+
     let streak = 0;
     const entryDateSet = new Set(entryDates.map(e => e.date.toDateString()));
-    let current = new Date();
-    while (true) {
-      const key = current.toDateString();
-      if (entryDateSet.has(key)) {
-        streak++;
-        current.setDate(current.getDate() - 1);
-      } else {
-        break;
-      }
+    let current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    while (entryDateSet.has(current.toDateString())) {
+      streak++;
+      current.setDate(current.getDate() - 1);
     }
     return { streak, lastMood, lastDate };
   }
@@ -118,13 +114,33 @@ export default function DashboardContent() {
       newData[year][month][day] = mood;
       setData(newData);
       setUserDataObj(newData);
+
+      const entryDates = [];
+      for (let y in newData)
+        for (let m in newData[y])
+          for (let d in newData[y][m]) {
+            const value = newData[y][m][d];
+            if (typeof value === "number") {
+              const dateObj = new Date(Number(y), Number(m), Number(d));
+              entryDates.push(dateObj);
+            }
+          }
+      const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
+      let s = 0;
+      let current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      while (entryDateSet.has(current.toDateString())) {
+        s++;
+        current.setDate(current.getDate() - 1);
+      }
+      const streak = s;
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, {
         [year]: {
           [month]: {
             [day]: mood
           }
-        }
+        },
+        streak
       }, { merge: true });
     } catch (error) {
       console.error("Error setting mood:", error.message);
@@ -151,8 +167,8 @@ export default function DashboardContent() {
 
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-400 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
 
           {Object.keys(statuses).map((status, statusIndex) => {
             if (status === "lastMood") {

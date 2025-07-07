@@ -42,26 +42,32 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
   const numRows = (Math.floor(daysToDisplay / 7)) + (daysToDisplay % 7 ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 pb-3 md:pb-2 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-44 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl" />
+      <div className="absolute top-0 left-1/3 w-64 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/20 to-orange-300/20 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/30 to-orange-400/30 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl" />
+
       {showJournalPopup && selectedDay && (
-        <div className="relative mb-4 px-4 py-3 md:py-4 bg-indigo-50 dark:bg-slate-700/70 rounded-lg border border-indigo-200 dark:border-none">
+        <div className="relative mb-0 md:mb-2 px-4 py-3 md:py-4 bg-indigo-50 dark:bg-slate-700/70 rounded-lg border border-indigo-200 dark:border-none">
           <button
-            className="absolute top-1 right-3 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-300/80 text-2xl font-bold focus:outline-none duration-150 hover:scale-125"
+            className="absolute top-1 right-3 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-300/80 text-2xl font-bold outline-none duration-150 hover:scale-125"
             onClick={() => { setSelectedDay(null); setSelectedJournal(""); }}
             title="Close"
             aria-label="Close journal entry"
           >
             &times;
           </button>
-          <h3 className="font-bold text-indigo-600 dark:text-indigo-400 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
+          <h3 className="font-bold text-indigo-600 dark:text-indigo-300/95 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
           {selectedJournal ? (
             <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">{selectedJournal}</p>
           ) : (
-            <p className="text-gray-400 dark:text-gray-500 italic">No journal entry for this day.</p>
+            <p className="text-gray-500 dark:text-gray-400 italic">No journal entry for this day.</p>
           )}
         </div>
       )}
-      <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl">
+      <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl pt-4">
         <Button
           text={<i className="fa-solid fa-circle-chevron-left"></i>}
           normal={false}
@@ -85,7 +91,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
         </div>
 
         {[...Array(numRows).keys()].map((row, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-7 gap-1 ">
+          <div key={rowIndex} className="grid grid-cols-7 gap-1">
             {dayList.map((_, dayOfWeekIndex) => {
               // Calculate the actual day number for this calendar cell
               let dayIndex = (rowIndex * 7) + dayOfWeekIndex - (firstDayOfMonth - 1);
@@ -100,7 +106,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
 
               // If this cell shouldn't display a day, render empty cell
               if (!shouldDisplayDay) {
-                return <div className="bg-white dark:bg-gray-900/0" key={dayOfWeekIndex} />;
+                return <div className="bg-white/30 dark:bg-gray-900/0 border rounded-lg border-indigo-100/70 dark:border-slate-700/30" key={dayOfWeekIndex} />;
               }
 
               // Check if this day is today
@@ -157,7 +163,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
                     text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer truncate
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
                     ${isSelected ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
-                    ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : ""}
+                    ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : backgroundColor}
                     ${textColor}
                   `}
                   key={dayOfWeekIndex}
