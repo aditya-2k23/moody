@@ -18,6 +18,14 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Responsive Design**: Fully responsive and mobile-friendly UI using Tailwind CSS.
 - **Modern UI**: Clean, attractive, and easy-to-use interface with a minimalistic approach.
 
+### 🆕 Recent Features & Improvements
+
+- **Animated Gradient Glow Background**: A beautiful, subtle animated glow effect that moves with scroll and sits behind all content for a modern look.
+- **Animated Divider in Hero**: The Hero section now features a custom animated divider with glowing orb and floating particles.
+- **Improved Calendar Navigation**: Decorative backgrounds in the calendar no longer block navigation button clicks.
+- **Streak Calculation Fix**: Streaks are now calculated accurately and stored in the database, reflecting only consecutive days with mood entries.
+- **Login Toast Logic Improved**: Success toast only appears on actual login, not on every refresh.
+
 ## 🛠️ Tech Stack
 
 - **Next.js** (App Router)
