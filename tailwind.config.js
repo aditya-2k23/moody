@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,7 +10,30 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+        'float-up': 'floatUp 2s ease-out infinite',
+      },
+      keyframes: {
+        floatUp: {
+          '0%': {
+            transform: 'translateY(0px)',
+            opacity: '0',
+          },
+          '20%': {
+            opacity: '1',
+          },
+          '80%': {
+            opacity: '1',
+          },
+          '100%': {
+            transform: 'translateY(-20px)',
+            opacity: '0',
+          },
+        },
+      },
+    },
   },
   plugins: [],
 }
