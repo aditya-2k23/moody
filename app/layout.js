@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
   )
 
   const Footer = (
-    <footer className="p-4 sm:p-8 pt-0 sm:pt-0 flex justify-between text-sm md:text-base">
+    <footer className="p-4 sm:p-8 pt-2 sm:pt-0 flex justify-between text-sm md:text-base">
       <p className={`text-indigo-500 dark:text-indigo-400 fugaz cursor-default`}>Created with 💜 by Aditya</p>
       <div className="flex gap-4">
         <Link href="https://www.github.com/aditya-2k23" target="_blank" rel="noopener noreferrer" title="Adi's GitHub">
