@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
@@ -27,7 +29,6 @@ export default function Journal({ currentUser }) {
   // Determine if we're in dark mode
   const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  // Choose the appropriate AI icon
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   useEffect(() => {

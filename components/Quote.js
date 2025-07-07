@@ -44,7 +44,7 @@ export default function Quote() {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className={`w-full max-w-4xl mx-auto transition-opacity duration-1000 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`w-full mx-auto transition-opacity duration-1000 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl p-6 pb-10 sm:p-10 md:p-12 shadow-lg relative overflow-hidden">
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 dark:from-yellow-300/10 dark:to-orange-300/5 rounded-full blur-3xl"></div>
         <div className="absolute top-0 left-5 w-64 h-40 bg-gradient-to-tr from-purple-400/30 to-indigo-400/20 dark:from-purple-400/20 dark:to-indigo-400/10 rounded-full blur-3xl"></div>

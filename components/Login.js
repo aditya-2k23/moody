@@ -103,6 +103,7 @@ export default function Login({ initialRegister = false }) {
           className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-75 transition"
           onClick={() => setShowPassword((prev) => !prev)}
           tabIndex={0}
+          aria-label={showPassword ? "Hide password" : "Show password"}
           title={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
