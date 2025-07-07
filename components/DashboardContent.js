@@ -193,7 +193,7 @@ export default function DashboardContent() {
                 style={{
                   outline: isSelected ? '2px solid var(--outline-color)' : 'none',
                   outlineOffset: 2,
-                  '--outline-color': 'rgb(79 70 229)' // indigo-600 for light mode
+                  '--outline-color': 'rgb(79 70 229)'
                 }}
                 className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
                   ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
