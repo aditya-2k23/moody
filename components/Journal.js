@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -20,6 +20,7 @@ export default function Journal({ currentUser }) {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [placeholder, setPlaceholder] = useState("What happened today... 🫶");
   const [placeholderLoading, setPlaceholderLoading] = useState(true);
+  const hasGeneratedPlaceholder = useRef(false);
 
   const now = new Date();
   const day = now.getDate();
@@ -32,6 +33,10 @@ export default function Journal({ currentUser }) {
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   useEffect(() => {
+    // Prevent double-calling in React Strict Mode
+    if (hasGeneratedPlaceholder.current) return;
+    hasGeneratedPlaceholder.current = true;
+
     (async () => {
       setPlaceholderLoading(true);
       const creative = await generateCreativePlaceholder();
