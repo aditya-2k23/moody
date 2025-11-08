@@ -37,7 +37,14 @@ jobs:
           IMAGE=temaroon/moody
           VERSION=${{ steps.ver.outputs.version }}
           SHORT_SHA=$(git rev-parse --short HEAD)
-          docker build -t $IMAGE:$VERSION -t $IMAGE:sha-$SHORT_SHA .
+          docker build \
+            --build-arg NEXT_PUBLIC_API_KEY=${{ secrets.NEXT_PUBLIC_API_KEY }} \
+            --build-arg NEXT_PUBLIC_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_AUTH_DOMAIN }} \
+            --build-arg NEXT_PUBLIC_PROJECT_ID=${{ secrets.NEXT_PUBLIC_PROJECT_ID }} \
+            --build-arg NEXT_PUBLIC_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_STORAGE_BUCKET }} \
+            --build-arg NEXT_PUBLIC_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_MESSAGING_SENDER_ID }} \
+            --build-arg NEXT_PUBLIC_APP_ID=${{ secrets.NEXT_PUBLIC_APP_ID }} \
+            -t $IMAGE:$VERSION -t $IMAGE:sha-$SHORT_SHA .
 
       - name: Push tags
         run: |
