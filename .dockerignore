@@ -1,0 +1,9 @@
+node_modules
+.git
+.env
+Dockerfile
+docker-compose.yml
+logs/
+.vscode/
+*.ideas
+*.md
