@@ -53,8 +53,8 @@ jobs:
           SHORT_SHA=$(git rev-parse --short HEAD)
           docker push $IMAGE:$VERSION
           docker push $IMAGE:sha-$SHORT_SHA
+          docker tag $IMAGE:$VERSION $IMAGE:latest
           docker push $IMAGE:latest
 
       - name: Output image info
         run: echo "Pushed temaroon/moody:${{ steps.ver.outputs.version }} and sha-$SHORT_SHA"
-
