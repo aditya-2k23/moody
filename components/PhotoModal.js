@@ -71,13 +71,15 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
     }
   }, [currentIndex, images.length]);
 
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 0.5, 4));
+  const handleZoomIn = (step = 0.4) => {
+    const zoomStep = typeof step === 'number' ? step : 0.4;
+    setZoom((prev) => Math.min(prev + zoomStep, 4));
   };
 
-  const handleZoomOut = () => {
+  const handleZoomOut = (step = 0.4) => {
+    const zoomStep = typeof step === 'number' ? step : 0.4;
     setZoom((prev) => {
-      const newZoom = Math.max(prev - 0.5, 1);
+      const newZoom = Math.max(prev - zoomStep, 1);
       if (newZoom === 1) {
         setPosition({ x: 0, y: 0 });
       }
@@ -90,7 +92,6 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
     setPosition({ x: 0, y: 0 });
   };
 
-  // Handle drag for panning when zoomed
   const handleMouseDown = (e) => {
     if (zoom > 1) {
       setIsDragging(true);
@@ -111,16 +112,24 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
     setIsDragging(false);
   };
 
+  const handleWheel = (e) => {
+    if (e.deltaY < 0) {
+      handleZoomIn(0.2);
+    } else {
+      handleZoomOut(0.2);
+    }
+  };
+
   if (!currentImage) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/80 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center"
+      onWheel={handleWheel}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Close button */}
       <button
         onClick={onClose}
         className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
@@ -129,12 +138,10 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
         <i className="fa-solid fa-xmark"></i>
       </button>
 
-      {/* Image counter */}
       <div className="absolute top-4 left-4 z-10 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-sm font-medium">
         {currentIndex + 1} / {images.length}
       </div>
 
-      {/* Zoom controls */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-sm rounded-full p-1">
         <button
           onClick={handleZoomOut}
@@ -161,7 +168,6 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
         </button>
       </div>
 
-      {/* Previous button */}
       {images.length > 1 && (
         <button
           onClick={goToPrev}
@@ -173,7 +179,6 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
         </button>
       )}
 
-      {/* Next button */}
       {images.length > 1 && (
         <button
           onClick={goToNext}
@@ -185,19 +190,22 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
         </button>
       )}
 
-      {/* Main image */}
       <div
         className="relative w-full h-full flex items-center justify-center overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
         style={{ cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
       >
         <img
           src={getOptimizedUrl(currentImage.imageUrl, 1200)}
           alt={`Memory from day ${currentImage.day}`}
-          className="max-w-[90vw] max-h-[85vh] object-contain select-none transition-transform duration-200"
+          onDragStart={(e) => e.preventDefault()}
+          className={`max-w-[90vw] max-h-[85vh] object-contain select-none ${isDragging ? "" : "transition-transform duration-200"}`}
           style={{
             transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
           }}
@@ -205,12 +213,10 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
         />
       </div>
 
-      {/* Day label */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium">
         Day {currentImage.day}
       </div>
 
-      {/* Thumbnail strip for multiple images */}
       {images.length > 1 && (
         <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-sm p-2 rounded-xl max-w-[80vw] overflow-x-auto">
           {images.map((img, idx) => (
@@ -218,8 +224,8 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose }) {
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               className={`w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 ${idx === currentIndex
-                  ? "ring-2 ring-white scale-110"
-                  : "opacity-60 hover:opacity-100"
+                ? "ring-2 ring-white scale-110"
+                : "opacity-60 hover:opacity-100"
                 }`}
             >
               <img
