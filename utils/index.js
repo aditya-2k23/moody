@@ -239,3 +239,27 @@ export const quotes = [
     author: "Dan Millman"
   }
 ];
+
+// Curated journal placeholders - calm, reflective, and non-repetitive
+export const journalPlaceholders = [
+  "How did today really feel? 🌿",
+  "What's one moment you don't want to forget? ✨",
+  "Write freely. No one's judging. 🫶",
+  "What made today different? 🌅",
+  "Capture a feeling before it fades... 🍃",
+  "What would make tomorrow even better? 🌱",
+  "Describe today in three words... 💭",
+  "What gave you energy today? ☀️",
+  "What's been on your mind lately? 🌙",
+  "A small win worth celebrating... 🎉",
+  "Something that made you smile today... 😊",
+  "What are you grateful for right now? 🙏",
+  "How are you really doing? 💫",
+  "What did you learn about yourself today? 🌸",
+  "Pause. Breathe. Reflect. 🧘",
+  "What felt heavy today? Let it out... 🌊",
+  "One thing you're proud of today... 🌟",
+  "What brought you peace today? 🕊️",
+  "If today had a color, what would it be? 🎨",
+  "What do you need more of in your life? 💝"
+];
