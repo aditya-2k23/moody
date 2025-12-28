@@ -12,7 +12,7 @@ export const analyzeEntry = async (journal_entry) => {
     1. **Mood**
       - Identify the dominant emotional tone of the entry.
       - Choose **exactly one** mood from the following list:
-      [Happy, Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral]
+      [Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral]
 
     2. **Triggers**
       - Extract specific words, events, or themes from the entry that influenced the mood.
@@ -43,7 +43,7 @@ export const analyzeEntry = async (journal_entry) => {
 
     ### Response format (STRICT JSON ONLY — no explanations, no markdown):
     {
-      "mood": "one of Happy, Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral",
+      "mood": "one of Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral",
       "triggers": ["keywords or events influencing the mood"],
       "insight": "empathetic reflection based on the journal entry",
       "pro_tip": "short, actionable suggestion",
