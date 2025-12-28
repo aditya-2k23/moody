@@ -164,30 +164,57 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         }, { merge: true });
       }
 
-      // Upload images if present
+      // Upload images if present (parallel uploads for better performance)
       if (selectedImages.length > 0) {
-        let uploadedCount = 0;
-
-        for (const file of selectedImages) {
+        // Upload all images in parallel
+        const uploadPromises = selectedImages.map(async (file) => {
           const uploadResult = await uploadToCloudinary(file, currentUser.uid);
 
           if (!uploadResult.success) {
-            toast.error(`Failed to upload: ${file.name}`);
-            continue;
+            return { success: false, fileName: file.name, error: "upload" };
           }
 
           // Save memory to Firestore with publicId for deletion support
           const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url, uploadResult.publicId);
 
           if (!saveResult.success) {
-            toast.error(`Failed to save: ${file.name}`);
-            continue;
+            return { success: false, fileName: file.name, error: "save" };
           }
 
-          uploadedCount++;
+          return { success: true, fileName: file.name };
+        });
+
+        const results = await Promise.allSettled(uploadPromises);
+
+        let uploadedCount = 0;
+        const failedFiles = [];
+
+        results.forEach((result) => {
+          if (result.status === "fulfilled" && result.value.success) {
+            uploadedCount++;
+          } else if (result.status === "fulfilled" && !result.value.success) {
+            failedFiles.push(result.value.fileName);
+          } else if (result.status === "rejected") {
+            // Promise rejected (unexpected error)
+            failedFiles.push("unknown");
+          }
+        });
+
+        // Show individual errors for failed files
+        if (failedFiles.length > 0 && failedFiles.length < selectedImages.length) {
+          // Some failed, some succeeded
+          failedFiles.forEach((fileName) => {
+            if (fileName !== "unknown") {
+              toast.error(`Failed to upload: ${fileName}`);
+            }
+          });
         }
 
-        if (uploadedCount > 0) {
+        // Handle the all-failures edge case
+        if (uploadedCount === 0 && selectedImages.length > 0) {
+          toast.error("All uploads failed. Please try again.");
+          clearImages();
+        } else if (uploadedCount > 0) {
           // Invalidate cache so memories refresh
           invalidateMemoriesCache(currentUser.uid, year, month);
 
@@ -195,15 +222,15 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           if (onMemoryAdded) {
             onMemoryAdded();
           }
-        }
 
-        clearImages();
+          clearImages();
 
-        const photoText = uploadedCount === 1 ? "photo" : "photos";
-        if (entry.trim()) {
-          toast.success(`Journal and ${uploadedCount} ${photoText} saved!`);
-        } else {
-          toast.success(`${uploadedCount} ${photoText} saved!`);
+          const photoText = uploadedCount === 1 ? "photo" : "photos";
+          if (entry.trim()) {
+            toast.success(`Journal and ${uploadedCount} ${photoText} saved!`);
+          } else {
+            toast.success(`${uploadedCount} ${photoText} saved!`);
+          }
         }
       } else {
         toast.success("Journal entry saved!");
