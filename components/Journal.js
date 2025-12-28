@@ -37,8 +37,37 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   const month = now.getMonth();
   const year = now.getFullYear();
 
-  // Determine if we're in dark mode
-  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  // Determine if we're in dark mode (SSR-safe)
+  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
+
+  // Ref to track preview URLs for cleanup (avoids stale closure in unmount effect)
+  const previewUrlsRef = useRef([]);
+
+  // Keep ref in sync with imagePreviews state
+  useEffect(() => {
+    previewUrlsRef.current = imagePreviews;
+  }, [imagePreviews]);
+
+  // Cleanup: revoke all object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setIsDarkMode(mediaQuery.matches);
+      const handler = (e) => setIsDarkMode(e.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    } else {
+      setIsDarkMode(theme === 'dark');
+    }
+  }, [theme]);
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
@@ -121,30 +150,57 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         }, { merge: true });
       }
 
-      // Upload images if present
+      // Upload images if present (parallel uploads for better performance)
       if (selectedImages.length > 0) {
-        let uploadedCount = 0;
-
-        for (const file of selectedImages) {
+        // Upload all images in parallel
+        const uploadPromises = selectedImages.map(async (file) => {
           const uploadResult = await uploadToCloudinary(file, currentUser.uid);
 
           if (!uploadResult.success) {
-            toast.error(`Failed to upload: ${file.name}`);
-            continue;
+            return { success: false, fileName: file.name, error: "upload" };
           }
 
           // Save memory to Firestore with publicId for deletion support
           const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url, uploadResult.publicId);
 
           if (!saveResult.success) {
-            toast.error(`Failed to save: ${file.name}`);
-            continue;
+            return { success: false, fileName: file.name, error: "save" };
           }
 
-          uploadedCount++;
+          return { success: true, fileName: file.name };
+        });
+
+        const results = await Promise.allSettled(uploadPromises);
+
+        let uploadedCount = 0;
+        const failedFiles = [];
+
+        results.forEach((result) => {
+          if (result.status === "fulfilled" && result.value.success) {
+            uploadedCount++;
+          } else if (result.status === "fulfilled" && !result.value.success) {
+            failedFiles.push(result.value.fileName);
+          } else if (result.status === "rejected") {
+            // Promise rejected (unexpected error)
+            failedFiles.push("unknown");
+          }
+        });
+
+        // Show individual errors for failed files
+        if (failedFiles.length > 0 && failedFiles.length < selectedImages.length) {
+          // Some failed, some succeeded
+          failedFiles.forEach((fileName) => {
+            if (fileName !== "unknown") {
+              toast.error(`Failed to upload: ${fileName}`);
+            }
+          });
         }
 
-        if (uploadedCount > 0) {
+        // Handle the all-failures edge case
+        if (uploadedCount === 0 && selectedImages.length > 0) {
+          toast.error("All uploads failed. Please try again.");
+          clearImages();
+        } else if (uploadedCount > 0) {
           // Invalidate cache so memories refresh
           invalidateMemoriesCache(currentUser.uid, year, month);
 
@@ -152,15 +208,15 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           if (onMemoryAdded) {
             onMemoryAdded();
           }
-        }
 
-        clearImages();
+          clearImages();
 
-        const photoText = uploadedCount === 1 ? "photo" : "photos";
-        if (entry.trim()) {
-          toast.success(`Journal and ${uploadedCount} ${photoText} saved!`);
-        } else {
-          toast.success(`${uploadedCount} ${photoText} saved!`);
+          const photoText = uploadedCount === 1 ? "photo" : "photos";
+          if (entry.trim()) {
+            toast.success(`Journal and ${uploadedCount} ${photoText} saved!`);
+          } else {
+            toast.success(`${uploadedCount} ${photoText} saved!`);
+          }
         }
       } else {
         toast.success("Journal entry saved!");
@@ -254,23 +310,29 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         {/* Image Previews */}
         {imagePreviews.length > 0 && (
           <div className="flex flex-wrap gap-3 mt-3">
-            {imagePreviews.map((preview, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
-                  title="Remove"
-                >
-                  <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
-                </button>
-              </div>
-            ))}
+            {imagePreviews.map((preview, index) => {
+              // Security: Only render valid blob URLs to prevent XSS
+              const isSafeBlobUrl = typeof preview === 'string' && preview.startsWith('blob:');
+              if (!isSafeBlobUrl) return null;
+
+              return (
+                <div key={index} className="relative">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
+                    title="Remove"
+                  >
+                    <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
+                  </button>
+                </div>
+              );
+            })}
             {imagePreviews.length < MAX_IMAGES_PER_DAY && (
               <button
                 type="button"
