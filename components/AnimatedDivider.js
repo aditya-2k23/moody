@@ -8,7 +8,7 @@ export default function AnimatedDivider() {
     // Trigger animation after component mounts
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 2500);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
