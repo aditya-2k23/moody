@@ -74,14 +74,33 @@ export async function uploadToCloudinary(file, uid) {
  * Transform Cloudinary URL for optimized delivery
  * @param {string} url - Original Cloudinary URL
  * @param {number} width - Desired width
- * @returns {string} - Transformed URL
+ * @returns {string} - Transformed URL (or original if not a valid Cloudinary URL)
  */
 export function getOptimizedUrl(url, width = 300) {
-  if (!url || !url.includes("cloudinary.com")) return url;
+  if (!url) return url;
 
-  // Insert transformation parameters before /upload/
-  return url.replace(
-    "/upload/",
-    `/upload/w_${width},q_auto,f_auto/`
-  );
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Validate hostname is a genuine Cloudinary domain
+    // Accepts: res.cloudinary.com, {cloud_name}.res.cloudinary.com, etc.
+    const isCloudinaryHost = hostname.endsWith('.cloudinary.com') || hostname === 'cloudinary.com';
+
+    // Only transform if it's a valid Cloudinary host AND has /upload/ in the path
+    if (!isCloudinaryHost || !parsed.pathname.includes('/upload/')) {
+      return url;
+    }
+
+    // Insert transformation parameters after /upload/
+    parsed.pathname = parsed.pathname.replace(
+      '/upload/',
+      `/upload/w_${width},q_auto,f_auto/`
+    );
+
+    return parsed.toString();
+  } catch {
+    // Malformed URL - return original unmodified
+    return url;
+  }
 }

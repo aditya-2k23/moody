@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -96,7 +96,7 @@ export function useMemories(uid, year, month) {
   const yearMonth = `${year}-${String(month + 1).padStart(2, "0")}`;
   const cacheKey = `${CACHE_KEY_PREFIX}${uid}_${yearMonth}`;
 
-  const fetchMemories = async () => {
+  const fetchMemories = useCallback(async () => {
     // Guard: Skip fetch for future months
     if (isFutureMonth(year, month)) {
       setMemories([]);
@@ -143,11 +143,11 @@ export function useMemories(uid, year, month) {
     } finally {
       setStatus("loaded");
     }
-  };
+  }, [uid, year, month, cacheKey, yearMonth]);
 
   useEffect(() => {
     fetchMemories();
-  }, [uid, year, month]);
+  }, [fetchMemories]);
 
   // Remove a memory from local state (for optimistic updates after deletion)
   const removeMemory = (publicId) => {
