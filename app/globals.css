@@ -128,3 +128,18 @@
 .dark .journal-textarea::-webkit-resizer {
   background: linear-gradient(135deg, transparent 50%, #6366f1/90 50%, #6366f1/90 60%, transparent 60%, transparent 75%, #6366f1/90 75%, #6366f1/90 85%, transparent 85%);
 }
+
+/* Loading bar animation for dashboard navigation */
+@keyframes loading-bar {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 3s ease-out forwards;
+}
