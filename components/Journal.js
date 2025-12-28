@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { analyzeEntry } from "@/utils/analyzeJournal";
-import { generateCreativePlaceholder } from "@/utils/generatePlaceholder";
+import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
-import Loader from "./Loader";
 import { moods } from "@/utils";
 import Image from "next/image";
 import { useTheme } from "@/context/themeContext";
@@ -21,9 +20,9 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
-  const [placeholder, setPlaceholder] = useState("What happened today... 🫶");
-  const [placeholderLoading, setPlaceholderLoading] = useState(true);
-  const hasGeneratedPlaceholder = useRef(false);
+
+  // Get placeholder once on component mount (stable, no re-renders)
+  const [placeholder] = useState(() => getJournalPlaceholder());
 
   // Image upload state - supports multiple files (max 4 per day)
   const [selectedImages, setSelectedImages] = useState([]);
@@ -71,19 +70,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   }, [theme]);
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
-
-  useEffect(() => {
-    // Prevent double-calling in React Strict Mode
-    if (hasGeneratedPlaceholder.current) return;
-    hasGeneratedPlaceholder.current = true;
-
-    (async () => {
-      setPlaceholderLoading(true);
-      const creative = await generateCreativePlaceholder();
-      setPlaceholder(creative);
-      setPlaceholderLoading(false);
-    })();
-  }, []);
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files || []);
@@ -283,48 +269,39 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none"></div>
 
         <h2 className="text-xl md:text-2xl font-bold fugaz mb-4 flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
-        {placeholderLoading ? (
-          <div className="w-full h-24 md:h-28 rounded-lg bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 animate-pulse relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-indigo-400 flex gap-2 text-base md:text-lg font-medium select-none animate-pulse">Generating inspiration... <Loader size="xl" /></span>
-            </div>
-          </div>
-        ) : (
-          <div className="relative">
-            <textarea
-              name="journal"
-              id="journal"
-              className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
-              placeholder={placeholder}
-              value={entry}
-              onChange={(e) => {
-                setEntry(e.target.value);
-                // Auto-expand textarea to fit content
-                e.target.style.height = 'auto';
-                e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
-              }}
-              disabled={placeholderLoading}
-              style={{ opacity: placeholderLoading ? 0 : 1, transition: 'opacity 0.3s' }}
-            />
+        <div className="relative">
+          <textarea
+            name="journal"
+            id="journal"
+            className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
+            placeholder={placeholder}
+            value={entry}
+            onChange={(e) => {
+              setEntry(e.target.value);
+              // Auto-expand textarea to fit content
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
+            }}
+          />
 
-            {/* Floating generic photo upload button */}
-            {imagePreviews.length === 0 && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={saving || uploading}
-                className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 ring-indigo-500 dark:ring-indigo-400/80 hover:ring-0"
-                title="Add photos"
-              >
-                <i className="fa-regular fa-image text-lg"></i>
-              </button>
-            )}
-          </div>
-        )}
+          {/* Floating generic photo upload button */}
+          {imagePreviews.length === 0 && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={saving || uploading}
+              className="absolute bottom-3.5 right-4 w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80"
+              title="Add photos"
+            >
+              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-red-500 rounded-full" />
+              <i className="fa-regular fa-image text-lg"></i>
+            </button>
+          )}
+        </div>
 
         {/* New feature hint */}
-        {imagePreviews.length === 0 && !placeholderLoading && (
-          <p className="text-xs text-right text-indigo-400 dark:text-indigo-300 font-medium mt-1 flex items-center justify-end gap-1">
+        {imagePreviews.length === 0 && (
+          <p className="text-xs text-right text-indigo-500 dark:text-indigo-300 font-medium mt-1 flex items-center justify-end gap-1">
             <i className="fa-solid fa-sparkles text-[10px]"></i>
             <span>New! Add photos to your memories</span>
           </p>

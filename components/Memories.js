@@ -69,12 +69,12 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
           {items.map((item, index) => (
             <div
               key={`${item.day}-${index}`}
-              className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-slate-700 shadow-md hover:shadow-lg transition-all duration-200 group relative"
+              className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-slate-700 shadow-md hover:shadow-lg transition-all duration-200 group relative hover:ring-4 dark:hover:ring-2 ring-indigo-500 dark:ring-indigo-400"
             >
               {/* Image button */}
               <button
                 onClick={() => openModal(index)}
-                className="w-full h-full cursor-pointer hover:ring-4 dark:hover:ring-2 hover:ring-indigo-400 focus:ring-4 focus:ring-indigo-500 outline-none rounded-xl overflow-hidden"
+                className="w-full h-full cursor-pointer outline-none rounded-xl overflow-hidden"
                 disabled={deletingId === item.publicId}
               >
                 <img
@@ -92,7 +92,7 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
 
               {/* Expand icon overlay */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <div className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/30 backdrop-blur-xs rounded-full flex items-center justify-center">
                   <i className="fa-solid fa-expand text-white text-sm"></i>
                 </div>
               </div>
