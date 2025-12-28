@@ -26,7 +26,33 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
     setPosition({ x: 0, y: 0 });
   }, [currentIndex]);
 
-  // Keyboard navigation
+  // Navigation handlers (wrapped in useCallback for stable references)
+  const goToPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
+  }, []);
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev));
+  }, [images.length]);
+
+  // Zoom handlers (wrapped in useCallback for stable references)
+  const handleZoomIn = useCallback((step = 0.4) => {
+    const zoomStep = typeof step === 'number' ? step : 0.4;
+    setZoom((prev) => Math.min(prev + zoomStep, 4));
+  }, []);
+
+  const handleZoomOut = useCallback((step = 0.4) => {
+    const zoomStep = typeof step === 'number' ? step : 0.4;
+    setZoom((prev) => {
+      const newZoom = Math.max(prev - zoomStep, 1);
+      if (newZoom === 1) {
+        setPosition({ x: 0, y: 0 });
+      }
+      return newZoom;
+    });
+  }, []);
+
+  // Keyboard navigation (with all dependencies properly listed)
   useEffect(() => {
     const handleKeyDown = (e) => {
       switch (e.key) {
@@ -53,7 +79,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, images.length]);
+  }, [onClose, goToPrev, goToNext, handleZoomIn, handleZoomOut]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -62,34 +88,6 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
       document.body.style.overflow = "";
     };
   }, []);
-
-  const goToPrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  }, [currentIndex]);
-
-  const goToNext = useCallback(() => {
-    if (currentIndex < images.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  }, [currentIndex, images.length]);
-
-  const handleZoomIn = (step = 0.4) => {
-    const zoomStep = typeof step === 'number' ? step : 0.4;
-    setZoom((prev) => Math.min(prev + zoomStep, 4));
-  };
-
-  const handleZoomOut = (step = 0.4) => {
-    const zoomStep = typeof step === 'number' ? step : 0.4;
-    setZoom((prev) => {
-      const newZoom = Math.max(prev - zoomStep, 1);
-      if (newZoom === 1) {
-        setPosition({ x: 0, y: 0 });
-      }
-      return newZoom;
-    });
-  };
 
   const resetZoom = () => {
     setZoom(1);
@@ -139,12 +137,16 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
       if (onDelete) {
         onDelete(currentImage.publicId);
       }
+
+      // Compute expected length after deletion (parent hasn't re-rendered yet)
+      const newLength = Math.max(0, images.length - 1);
+
       // If this was the last image, close the modal
-      if (images.length <= 1) {
+      if (newLength === 0) {
         onClose();
       } else {
-        // Move to next image or previous if at end
-        if (currentIndex >= images.length - 1) {
+        // Move to previous image if we're at or beyond the new end
+        if (currentIndex >= newLength) {
           setCurrentIndex(Math.max(0, currentIndex - 1));
         }
       }
