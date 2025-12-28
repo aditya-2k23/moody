@@ -41,6 +41,23 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   // Determine if we're in dark mode (SSR-safe)
   const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
 
+  // Ref to track preview URLs for cleanup (avoids stale closure in unmount effect)
+  const previewUrlsRef = useRef([]);
+
+  // Keep ref in sync with imagePreviews state
+  useEffect(() => {
+    previewUrlsRef.current = imagePreviews;
+  }, [imagePreviews]);
+
+  // Cleanup: revoke all object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
+
   useEffect(() => {
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
