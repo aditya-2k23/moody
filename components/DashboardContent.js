@@ -4,8 +4,10 @@ import { useAuth } from "@/context/authContext";
 import Loader from "./Loader";
 import Login from "./Login";
 import Calender from "./Calender";
+import Memories from "./Memories";
+import { useMemories } from "@/hooks/useMemories";
 import toast, { Toaster } from "react-hot-toast";
-import convertMood, { moods } from "@/utils";
+import convertMood, { moods, months } from "@/utils";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -20,6 +22,21 @@ export default function DashboardContent() {
   const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
   const [showAllMoods, setShowAllMoods] = useState(false);
+
+  // Memories state - track selected month/year for the calendar
+  const [memoriesYear, setMemoriesYear] = useState(now.getFullYear());
+  const [memoriesMonth, setMemoriesMonth] = useState(now.getMonth());
+
+  // Fetch memories for the selected month
+  const { memories, loading: memoriesLoading, refetch: refetchMemories } = useMemories(
+    currentUser?.uid,
+    memoriesYear,
+    memoriesMonth
+  );
+
+  // Get month label for display
+  const monthsArr = Object.keys(months);
+  const memoriesLabel = `${monthsArr[memoriesMonth]} ${memoriesYear}`;
 
   function getTimeRemaining() {
     const now = new Date();
@@ -228,9 +245,25 @@ export default function DashboardContent() {
           </button>
         </div>
 
-        <Journal currentUser={currentUser} />
+        <Journal
+          currentUser={currentUser}
+          onMemoryAdded={refetchMemories}
+        />
 
-        <Calender completeData={data} showJournalPopup />
+        <Memories
+          items={memories}
+          loading={memoriesLoading}
+          monthLabel={memoriesLabel}
+        />
+
+        <Calender
+          completeData={data}
+          showJournalPopup
+          onMonthChange={(year, month) => {
+            setMemoriesYear(year);
+            setMemoriesMonth(month);
+          }}
+        />
       </div>
     </>
   );

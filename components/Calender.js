@@ -6,7 +6,7 @@ import Button from "./Button";
 
 const monthsArr = Object.keys(months);
 
-export default function Calender({ demo, completeData, showJournalPopup = false }) {
+export default function Calender({ demo, completeData, showJournalPopup = false, onMonthChange }) {
   const now = new Date();
   const currentMonth = now.getMonth();
 
@@ -19,18 +19,30 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
   const data = completeData?.[selectedYear]?.[numericMonth] || {};
 
   function handleIncrementMonth(val) {
+    let newYear = selectedYear;
+    let newMonthIndex = numericMonth + val;
+
     // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
-    if (numericMonth + val < 0) {
+    if (newMonthIndex < 0) {
       // set month value to 11 and decrement the year
-      setSelectedYear(curr => curr - 1);
+      newYear = selectedYear - 1;
+      newMonthIndex = 11;
+      setSelectedYear(newYear);
       setSelectedMonth(monthsArr[11]);
-    } else if (numericMonth + val > 11) {
+    } else if (newMonthIndex > 11) {
       // set month value to 0 and increment the year
-      setSelectedYear(curr => curr + 1);
+      newYear = selectedYear + 1;
+      newMonthIndex = 0;
+      setSelectedYear(newYear);
       setSelectedMonth(monthsArr[0]);
     } else {
       // set the month value to the new month
-      setSelectedMonth(monthsArr[numericMonth + val]);
+      setSelectedMonth(monthsArr[newMonthIndex]);
+    }
+
+    // Notify parent of month change
+    if (onMonthChange) {
+      onMonthChange(newYear, newMonthIndex);
     }
   }
 
