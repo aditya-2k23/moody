@@ -112,3 +112,19 @@
 .animation-delay-600 {
   animation-delay: 600ms;
 }
+
+/* Custom resize handle styling for journal textarea */
+.journal-textarea {
+  resize: vertical;
+  min-height: 6rem;
+  overflow: hidden;
+}
+
+.journal-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 50%, #818cf8 50%, #818cf8 60%, transparent 60%, transparent 75%, #818cf8 75%, #818cf8 85%, transparent 85%);
+  border-radius: 0 0 8px 0;
+}
+
+.dark .journal-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 50%, #6366f1/90 50%, #6366f1/90 60%, transparent 60%, transparent 75%, #6366f1/90 75%, #6366f1/90 85%, transparent 85%);
+}
