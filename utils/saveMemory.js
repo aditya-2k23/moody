@@ -7,13 +7,17 @@ import { doc, setDoc, getDoc, arrayUnion, Timestamp } from "firebase/firestore";
  * @param {number} day - Day of the month
  * @param {string} imageUrl - Cloudinary URL of the image
  * @param {string} publicId - Cloudinary public_id for deletion
+ * @param {number} [year] - Optional year (defaults to current year)
+ * @param {number} [month] - Optional month index 0-11 (defaults to current month)
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-export async function saveMemory(uid, day, imageUrl, publicId) {
+export async function saveMemory(uid, day, imageUrl, publicId, year, month) {
+  // Fallback to current date if year or month are not provided
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const yearMonth = `${year}-${String(month).padStart(2, "0")}`;
+  const targetYear = year ?? now.getFullYear();
+  // month parameter is 0-indexed (like Date.getMonth()), add 1 for display format
+  const targetMonth = month ?? now.getMonth();
+  const yearMonth = `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}`;
 
   const memoryItem = {
     day,
@@ -75,8 +79,8 @@ export async function deleteMemoryFromFirestore(uid, yearMonth, publicId) {
       const { deleteDoc } = await import("firebase/firestore");
       await deleteDoc(docRef);
     } else {
-      // Update with filtered items
-      await setDoc(docRef, { month: yearMonth, items: updatedItems });
+      // Update with filtered items (merge to preserve other fields)
+      await setDoc(docRef, { month: yearMonth, items: updatedItems }, { merge: true });
     }
 
     return { success: true };
