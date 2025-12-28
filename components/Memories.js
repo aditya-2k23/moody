@@ -66,7 +66,7 @@ export default function Memories({ items = [], loading = false, monthLabel = "" 
             <button
               key={`${item.day}-${index}`}
               onClick={() => openModal(index)}
-              className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-slate-700 shadow-md hover:shadow-lg transition-all duration-200 group relative cursor-pointer hover:ring-2 hover:ring-indigo-400 focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-slate-700 shadow-md hover:shadow-lg transition-all duration-200 group relative cursor-pointer hover:ring-4 dark:hover:ring-2 hover:ring-indigo-400 focus:ring-4 focus:ring-indigo-500 outline-none"
             >
               <img
                 src={getOptimizedUrl(item.imageUrl, 300)}

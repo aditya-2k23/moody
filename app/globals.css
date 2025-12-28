@@ -11,12 +11,12 @@
 }
 
 .textGradient {
-  @apply bg-gradient-to-b from-indigo-800 to-indigo-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-400 bg-clip-text text-transparent;
 }
 
 /* Dark mode gradient override */
 .dark .textGradient {
-  @apply bg-gradient-to-b from-indigo-600 to-indigo-300/75 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-300 bg-clip-text text-transparent;
 }
 
 .purpleShadow {
