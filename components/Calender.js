@@ -6,9 +6,10 @@ import Button from "./Button";
 
 const monthsArr = Object.keys(months);
 
-export default function Calender({ demo, completeData, showJournalPopup = false }) {
+export default function Calender({ demo, completeData, showJournalPopup = false, onMonthChange }) {
   const now = new Date();
   const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -18,19 +19,45 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = completeData?.[selectedYear]?.[numericMonth] || {};
 
+  // Check if we're at the current month (can't go forward)
+  const isAtCurrentMonth = selectedYear === currentYear && numericMonth === currentMonth;
+
   function handleIncrementMonth(val) {
+    // Block navigation to future months
+    if (val > 0 && isAtCurrentMonth) {
+      return;
+    }
+
+    let newYear = selectedYear;
+    let newMonthIndex = numericMonth + val;
+
     // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
-    if (numericMonth + val < 0) {
+    if (newMonthIndex < 0) {
       // set month value to 11 and decrement the year
-      setSelectedYear(curr => curr - 1);
+      newYear = selectedYear - 1;
+      newMonthIndex = 11;
+      setSelectedYear(newYear);
       setSelectedMonth(monthsArr[11]);
-    } else if (numericMonth + val > 11) {
-      // set month value to 0 and increment the year
-      setSelectedYear(curr => curr + 1);
+    } else if (newMonthIndex > 11) {
+      // Would go to next year - check if that's in the future
+      if (selectedYear + 1 > currentYear) {
+        return; // Block future year navigation
+      }
+      newYear = selectedYear + 1;
+      newMonthIndex = 0;
+      setSelectedYear(newYear);
       setSelectedMonth(monthsArr[0]);
     } else {
-      // set the month value to the new month
-      setSelectedMonth(monthsArr[numericMonth + val]);
+      // Check if the new month would be in the future
+      if (newYear === currentYear && newMonthIndex > currentMonth) {
+        return; // Block future month navigation
+      }
+      setSelectedMonth(monthsArr[newMonthIndex]);
+    }
+
+    // Notify parent of month change
+    if (onMonthChange) {
+      onMonthChange(newYear, newMonthIndex);
     }
   }
 
@@ -76,7 +103,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
         />
         <p className="fugaz col-span-3 whitespace-nowrap textGradient text-center capitalize">{selectedMonth}, {selectedYear}</p>
         <Button
-          className="ml-auto text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 duration-200 hover:scale-110"
+          className={`ml-auto duration-200 ${isAtCurrentMonth ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 hover:scale-110'}`}
           text={<i className="fa-solid fa-circle-chevron-right"></i>}
           normal={false}
           onClick={() => handleIncrementMonth(+1)}
@@ -156,22 +183,30 @@ export default function Calender({ demo, completeData, showJournalPopup = false 
               }
 
               let isSelected = (dayIndex === selectedDay);
+
+              // Check if this date is in the future
+              const isFutureDay = (selectedYear === currentYear && numericMonth === currentMonth && dayIndex > now.getDate()) ||
+                (selectedYear === currentYear && numericMonth > currentMonth) ||
+                (selectedYear > currentYear);
+
               return (
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
-                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg cursor-pointer truncate
+                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg truncate
+                    ${isFutureDay ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
-                    ${isSelected ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
+                    ${isSelected && !isFutureDay ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
                     ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : backgroundColor}
                     ${textColor}
                   `}
                   key={dayOfWeekIndex}
                   onClick={() => {
+                    if (isFutureDay) return; // Block click on future dates
                     setSelectedDay(dayIndex);
                     setSelectedJournal(data[`journal_${dayIndex}`] || "");
                   }}
-                  title={data[`journal_${dayIndex}`] ? "View journal entry" : undefined}
+                  title={isFutureDay ? "Future date" : (data[`journal_${dayIndex}`] ? "View journal entry" : undefined)}
                 >
                   <p className="font-bold">{dayIndex}</p>
                   {isToday && (

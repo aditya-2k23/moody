@@ -11,12 +11,12 @@
 }
 
 .textGradient {
-  @apply bg-gradient-to-b from-indigo-800 to-indigo-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-400 bg-clip-text text-transparent;
 }
 
 /* Dark mode gradient override */
 .dark .textGradient {
-  @apply bg-gradient-to-b from-indigo-600 to-indigo-300/75 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-300 bg-clip-text text-transparent;
 }
 
 .purpleShadow {
@@ -111,4 +111,20 @@
 
 .animation-delay-600 {
   animation-delay: 600ms;
+}
+
+/* Custom resize handle styling for journal textarea */
+.journal-textarea {
+  resize: vertical;
+  min-height: 6rem;
+  overflow: hidden;
+}
+
+.journal-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 50%, #818cf8 50%, #818cf8 60%, transparent 60%, transparent 75%, #818cf8 75%, #818cf8 85%, transparent 85%);
+  border-radius: 0 0 8px 0;
+}
+
+.dark .journal-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 50%, #6366f1/90 50%, #6366f1/90 60%, transparent 60%, transparent 75%, #6366f1/90 75%, #6366f1/90 85%, transparent 85%);
 }

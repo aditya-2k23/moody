@@ -1,6 +1,6 @@
 {
   "name": "moody",
-  "version": "1.2.1",
+  "version": "2.0.10",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "cloudinary": "^2.8.0",
     "firebase": "^11.9.1",
+    "firebase-admin": "^13.6.0",
     "next": "15.4.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

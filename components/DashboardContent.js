@@ -4,8 +4,10 @@ import { useAuth } from "@/context/authContext";
 import Loader from "./Loader";
 import Login from "./Login";
 import Calender from "./Calender";
+import Memories from "./Memories";
+import { useMemories } from "@/hooks/useMemories";
 import toast, { Toaster } from "react-hot-toast";
-import convertMood, { moods } from "@/utils";
+import convertMood, { moods, months } from "@/utils";
 import { useEffect, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -20,6 +22,21 @@ export default function DashboardContent() {
   const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
   const [showAllMoods, setShowAllMoods] = useState(false);
+
+  // Memories state - track selected month/year for the calendar
+  const [memoriesYear, setMemoriesYear] = useState(now.getFullYear());
+  const [memoriesMonth, setMemoriesMonth] = useState(now.getMonth());
+
+  // Fetch memories for the selected month
+  const { memories, status: memoriesStatus, refetch: refetchMemories, removeMemory, yearMonth: memoriesYearMonth } = useMemories(
+    currentUser?.uid,
+    memoriesYear,
+    memoriesMonth
+  );
+
+  // Get month label for display
+  const monthsArr = Object.keys(months);
+  const memoriesLabel = `${monthsArr[memoriesMonth]} ${memoriesYear}`;
 
   function getTimeRemaining() {
     const now = new Date();
@@ -166,7 +183,7 @@ export default function DashboardContent() {
       <Toaster position="top-center" />
 
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
-        <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-400 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-hidden">
+        <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-hidden">
           <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
 
@@ -197,7 +214,7 @@ export default function DashboardContent() {
           })}
         </div>
 
-        <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
+        <h4 className="text-3xl sm:text-4xl md:text-5xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
         <div className="flex items-stretch flex-wrap gap-4">
           {(showAllMoods ? Object.keys(moods) : Object.keys(moods).slice(0, 5)).map((mood, moodIndex) => {
             const currentMood = moodIndex + 1;
@@ -228,9 +245,27 @@ export default function DashboardContent() {
           </button>
         </div>
 
-        <Journal currentUser={currentUser} />
+        <Journal
+          currentUser={currentUser}
+          onMemoryAdded={refetchMemories}
+        />
 
-        <Calender completeData={data} showJournalPopup />
+        <Memories
+          items={memories}
+          status={memoriesStatus}
+          monthLabel={memoriesLabel}
+          yearMonth={memoriesYearMonth}
+          onDelete={removeMemory}
+        />
+
+        <Calender
+          completeData={data}
+          showJournalPopup
+          onMonthChange={(year, month) => {
+            setMemoriesYear(year);
+            setMemoriesMonth(month);
+          }}
+        />
       </div>
     </>
   );
