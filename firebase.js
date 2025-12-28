@@ -19,5 +19,5 @@ export const db = getFirestore(app);
 export const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 export const generator = getGenerativeModel(ai, {
-  model: "gemini-2.5-flash"
+  model: "gemini-3-flash"
 });

@@ -1,17 +1,29 @@
-import { generator } from "@/firebase";
+import { journalPlaceholders } from "@/utils";
 
-export const generateCreativePlaceholder = async () => {
-  const prompt = `You are an AI assistant for a journaling app. Generate a single, creative, engaging, and emotionally intelligent placeholder text for a daily journal entry textarea. The placeholder should inspire the user to reflect on their day, feelings, or experiences. Make it friendly, varied, and never generic. Do NOT include quotes or quotation marks. Only return the placeholder string, nothing else. It should be a maximum of 12 words. Also add an emoji at the end to make it more engaging.`;
-  try {
-    const result = await generator.generateContent(prompt);
-    let text = await result.response.text();
-    text = text.trim();
-    if (text.startsWith('```')) {
-      text = text.replace(/^```[a-zA-Z]*\n/, '').replace(/```$/, '').trim();
-    }
-    return text;
-  } catch (error) {
-    console.error("Error generating creative placeholder:", error);
-    return "What happened today... 🫶";
-  }
+/**
+ * Get a random journal placeholder from the curated list.
+ * Uses day-of-year for stable daily selection (same placeholder all day).
+ * Falls back to random if needed.
+ */
+export const getJournalPlaceholder = () => {
+  const today = new Date();
+  const startOfYear = new Date(today.getFullYear(), 0, 0);
+  const diff = today - startOfYear;
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  // Pick placeholder based on day of year for stable daily selection
+  const index = dayOfYear % journalPlaceholders.length;
+  return journalPlaceholders[index];
 };
+
+/**
+ * Get a random placeholder (truly random, not day-based).
+ * Useful for variety across sessions on the same day.
+ */
+export const getRandomPlaceholder = () => {
+  const index = Math.floor(Math.random() * journalPlaceholders.length);
+  return journalPlaceholders[index];
+};
+
+// Export the curated placeholders list for direct access
+export { journalPlaceholders };
