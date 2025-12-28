@@ -28,7 +28,7 @@ export default function DashboardContent() {
   const [memoriesMonth, setMemoriesMonth] = useState(now.getMonth());
 
   // Fetch memories for the selected month
-  const { memories, loading: memoriesLoading, refetch: refetchMemories } = useMemories(
+  const { memories, status: memoriesStatus, refetch: refetchMemories, removeMemory, yearMonth: memoriesYearMonth } = useMemories(
     currentUser?.uid,
     memoriesYear,
     memoriesMonth
@@ -252,8 +252,10 @@ export default function DashboardContent() {
 
         <Memories
           items={memories}
-          loading={memoriesLoading}
+          status={memoriesStatus}
           monthLabel={memoriesLabel}
+          yearMonth={memoriesYearMonth}
+          onDelete={removeMemory}
         />
 
         <Calender

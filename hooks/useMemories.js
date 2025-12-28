@@ -22,12 +22,10 @@ function getCachedMemories(cacheKey) {
     const { data, timestamp } = JSON.parse(cached);
     const now = Date.now();
 
-    // Check if cache is still valid (7 days)
     if (now - timestamp < CACHE_DURATION) {
       return data;
     }
 
-    // Cache expired, remove it
     localStorage.removeItem(cacheKey);
     return null;
   } catch {
@@ -68,34 +66,60 @@ export function invalidateMemoriesCache(uid, year, month) {
 }
 
 /**
+ * Check if a given year/month is in the future
+ * @param {number} year 
+ * @param {number} month - Month index (0-11)
+ * @returns {boolean}
+ */
+function isFutureMonth(year, month) {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+
+  if (year > currentYear) return true;
+  if (year === currentYear && month > currentMonth) return true;
+  return false;
+}
+
+/**
  * Custom hook to fetch memories for a specific month
  * @param {string} uid - User's UID
  * @param {number} year - Year (e.g., 2024)
  * @param {number} month - Month index (0-11)
- * @returns {{memories: Array, loading: boolean, error: string|null, refetch: Function}}
+ * @returns {{memories: Array, status: 'idle'|'loading'|'loaded', error: string|null, refetch: Function}}
  */
 export function useMemories(uid, year, month) {
   const [memories, setMemories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'loaded'
   const [error, setError] = useState(null);
 
   const yearMonth = `${year}-${String(month + 1).padStart(2, "0")}`;
   const cacheKey = `${CACHE_KEY_PREFIX}${uid}_${yearMonth}`;
 
   const fetchMemories = async () => {
-    if (!uid) {
-      setLoading(false);
+    // Guard: Skip fetch for future months
+    if (isFutureMonth(year, month)) {
+      setMemories([]);
+      setStatus("loaded");
       return;
     }
 
-    setLoading(true);
+    if (!uid) {
+      setMemories([]);
+      setStatus("loaded");
+      return;
+    }
+
+    // Clear previous memories immediately on month change
+    setMemories([]);
+    setStatus("loading");
     setError(null);
 
     // Check cache first
     const cached = getCachedMemories(cacheKey);
     if (cached !== null) {
       setMemories(cached);
-      setLoading(false);
+      setStatus("loaded");
       return;
     }
 
@@ -117,7 +141,7 @@ export function useMemories(uid, year, month) {
       setError(err.message);
       setMemories([]);
     } finally {
-      setLoading(false);
+      setStatus("loaded");
     }
   };
 
@@ -125,5 +149,18 @@ export function useMemories(uid, year, month) {
     fetchMemories();
   }, [uid, year, month]);
 
-  return { memories, loading, error, refetch: fetchMemories };
+  // Remove a memory from local state (for optimistic updates after deletion)
+  const removeMemory = (publicId) => {
+    setMemories((prev) => {
+      const updated = prev.filter((item) => item.publicId !== publicId);
+      // Also update the cache
+      setCachedMemories(cacheKey, updated);
+      return updated;
+    });
+  };
+
+  // For backwards compatibility, expose loading as derived state
+  const loading = status === "loading";
+
+  return { memories, status, loading, error, refetch: fetchMemories, removeMemory, yearMonth };
 }
