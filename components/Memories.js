@@ -74,7 +74,7 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
               {/* Image button */}
               <button
                 onClick={() => openModal(index)}
-                className="w-full h-full cursor-pointer hover:ring-4 dark:hover:ring-2 hover:ring-indigo-400 focus:ring-4 focus:ring-indigo-500 outline-none rounded-xl overflow-hidden"
+                className="w-full h-full cursor-pointer outline-none rounded-xl overflow-hidden"
                 disabled={deletingId === item.publicId}
               >
                 <img

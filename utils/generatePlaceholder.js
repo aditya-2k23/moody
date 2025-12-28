@@ -7,7 +7,7 @@ import { journalPlaceholders } from "@/utils";
  */
 export const getJournalPlaceholder = () => {
   const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 0);
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
   const diff = today - startOfYear;
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
 
