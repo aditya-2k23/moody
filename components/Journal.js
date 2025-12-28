@@ -147,8 +147,8 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             continue;
           }
 
-          // Save memory to Firestore
-          const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url);
+          // Save memory to Firestore with publicId for deletion support
+          const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url, uploadResult.publicId);
 
           if (!saveResult.success) {
             toast.error(`Failed to save: ${file.name}`);

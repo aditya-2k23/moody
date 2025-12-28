@@ -59,7 +59,8 @@ export async function uploadToCloudinary(file, uid) {
     const data = await response.json();
     return {
       success: true,
-      url: data.secure_url
+      url: data.secure_url,
+      publicId: data.public_id // Include publicId for deletion
     };
   } catch (error) {
     return {
