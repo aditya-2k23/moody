@@ -38,8 +38,20 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   const month = now.getMonth();
   const year = now.getFullYear();
 
-  // Determine if we're in dark mode
-  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  // Determine if we're in dark mode (SSR-safe)
+  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setIsDarkMode(mediaQuery.matches);
+      const handler = (e) => setIsDarkMode(e.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    } else {
+      setIsDarkMode(theme === 'dark');
+    }
+  }, [theme]);
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
