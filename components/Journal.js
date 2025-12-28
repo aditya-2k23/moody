@@ -333,23 +333,29 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         {/* Image Previews */}
         {imagePreviews.length > 0 && (
           <div className="flex flex-wrap gap-3 mt-3">
-            {imagePreviews.map((preview, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
-                  title="Remove"
-                >
-                  <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
-                </button>
-              </div>
-            ))}
+            {imagePreviews.map((preview, index) => {
+              // Security: Only render valid blob URLs to prevent XSS
+              const isSafeBlobUrl = typeof preview === 'string' && preview.startsWith('blob:');
+              if (!isSafeBlobUrl) return null;
+
+              return (
+                <div key={index} className="relative">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
+                    title="Remove"
+                  >
+                    <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
+                  </button>
+                </div>
+              );
+            })}
             {imagePreviews.length < MAX_IMAGES_PER_DAY && (
               <button
                 type="button"
