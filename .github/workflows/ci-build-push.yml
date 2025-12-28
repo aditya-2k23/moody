@@ -44,6 +44,8 @@ jobs:
             --build-arg NEXT_PUBLIC_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_STORAGE_BUCKET }} \
             --build-arg NEXT_PUBLIC_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_MESSAGING_SENDER_ID }} \
             --build-arg NEXT_PUBLIC_APP_ID=${{ secrets.NEXT_PUBLIC_APP_ID }} \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }} \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }} \
             -t $IMAGE:$VERSION -t $IMAGE:sha-$SHORT_SHA .
 
       - name: Push tags
