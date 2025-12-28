@@ -214,7 +214,7 @@ export default function DashboardContent() {
           })}
         </div>
 
-        <h4 className="text-4xl sm:text-5xl md:text-6xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
+        <h4 className="text-3xl sm:text-4xl md:text-5xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
         <div className="flex items-stretch flex-wrap gap-4">
           {(showAllMoods ? Object.keys(moods) : Object.keys(moods).slice(0, 5)).map((mood, moodIndex) => {
             const currentMood = moodIndex + 1;
