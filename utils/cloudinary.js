@@ -11,14 +11,14 @@ const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
  * Upload an image to Cloudinary
  * @param {File} file - The image file to upload
  * @param {string} uid - The user's UID
- * @returns {Promise<{success: boolean, url?: string, error?: string}>}
+ * @returns {Promise<{success: boolean, url?: string, publicId?: string, error?: string}>}
  */
 export async function uploadToCloudinary(file, uid) {
   // Validate file size
   if (file.size > MAX_FILE_SIZE) {
     return {
       success: false,
-      error: "Image must be less than 5MB"
+      error: "Image must be less than 7MB"
     };
   }
 
