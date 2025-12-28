@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
 // Configure Cloudinary with server-side credentials
 cloudinary.config({
@@ -25,7 +25,7 @@ export async function POST(request) {
     // Verify Firebase ID token
     let decodedToken;
     try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
+      decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
       console.error("Token verification failed:", error);
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(request) {
 
     // Delete from Firestore using Admin SDK
     try {
-      const docRef = adminDb.collection("users").doc(uid).collection("memories").doc(yearMonth);
+      const docRef = getAdminDb().collection("users").doc(uid).collection("memories").doc(yearMonth);
       const docSnap = await docRef.get();
 
       if (!docSnap.exists) {
