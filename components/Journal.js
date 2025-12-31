@@ -21,17 +21,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
 
-  // Voice input state
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef(null);
-
-  // Track interim transcript for live display (without duplicating final text)
-  const [interimTranscript, setInterimTranscript] = useState("");
-  // Store the "base" entry text before interim updates (typed + finalized speech)
-  const baseEntryRef = useRef("");
-  // Track the last processed final result index to prevent duplicates
-  const lastProcessedIndexRef = useRef(-1);
-
   // Cloud save status: 'idle' | 'saving' | 'saved'
   const [cloudStatus, setCloudStatus] = useState("idle");
 
@@ -91,8 +80,21 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
+  // Voice input hook
+  const {
+    isListening,
+    toggleVoiceInput,
+    syncBaseEntry,
+    getDisplayValue
+  } = useVoiceInput({
+    initialValue: entry,
+    onTranscriptChange: (newEntry) => setEntry(newEntry),
+  });
+
+  // Compute display value with interim transcript
+  const displayEntry = getDisplayValue(entry);
+
   // ========== Auto-Save Logic (Text Only) ==========
-  // Saves journal text to Firebase - reused by both auto-save and manual save
   const saveJournalText = useCallback(async () => {
     if (!entry.trim() || !currentUser?.uid) return false;
 
@@ -151,173 +153,7 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     };
   }, []);
 
-  // ========== Voice Input Logic (Web Speech API) ==========
-
-  // Smart punctuation cleanup for voice-generated text only
-  const cleanupVoiceText = useCallback((text) => {
-    if (!text.trim()) return text;
-
-    let cleaned = text.trim();
-
-    // Capitalize first letter
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-
-    // Detect question patterns and add ? if missing punctuation at end
-    const questionPatterns = /^(why|how|what|when|where|who|which|is it|do you|does|did|can|could|would|should|are you|will|have you|has|was|were)/i;
-    const hasPunctuation = /[.!?]$/.test(cleaned);
-
-    if (!hasPunctuation) {
-      if (questionPatterns.test(cleaned)) {
-        cleaned += "?";
-      } else {
-        // Add period for statements
-        cleaned += ".";
-      }
-    }
-
-    // Clean up excessive spaces
-    cleaned = cleaned.replace(/\s+/g, " ");
-
-    return cleaned;
-  }, []);
-
-  // Store cleanupVoiceText in a ref so onresult handler always has latest version
-  const cleanupVoiceTextRef = useRef(cleanupVoiceText);
-  useEffect(() => {
-    cleanupVoiceTextRef.current = cleanupVoiceText;
-  }, [cleanupVoiceText]);
-
-  useEffect(() => {
-    // Check for browser support
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      // Browser doesn't support speech recognition
-      return;
-    }
-
-    // Create recognition instance only once
-    if (!recognitionRef.current) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-
-      recognition.onresult = (event) => {
-        let finalTranscript = "";
-        let currentInterim = "";
-
-        // Only process the latest result to avoid duplicates
-        const lastResultIndex = event.results.length - 1;
-        const lastResult = event.results[lastResultIndex];
-
-        if (lastResult.isFinal) {
-          // Check if we already processed this index
-          if (lastResultIndex > lastProcessedIndexRef.current) {
-            finalTranscript = lastResult[0].transcript;
-            lastProcessedIndexRef.current = lastResultIndex;
-          }
-        } else {
-          // For interim, just show the current interim text
-          currentInterim = lastResult[0].transcript;
-        }
-
-        // Update interim transcript for live display
-        setInterimTranscript(currentInterim);
-
-        // When we get a NEW final result, append cleaned text to base entry
-        if (finalTranscript) {
-          const cleanedText = cleanupVoiceTextRef.current(finalTranscript);
-
-          // Use functional update with baseEntryRef for consistency
-          const base = baseEntryRef.current;
-          const separator = base && !base.endsWith(" ") && !base.endsWith("\n") ? " " : "";
-          const newEntry = base + separator + cleanedText;
-
-          // Update base ref FIRST to prevent race conditions
-          baseEntryRef.current = newEntry;
-          setEntry(newEntry);
-
-          // Clear interim since it's now finalized
-          setInterimTranscript("");
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        if (event.error !== "no-speech" && event.error !== "aborted") {
-          toast.error("Voice input error. Please try again.");
-        }
-        setIsListening(false);
-        setInterimTranscript("");
-      };
-
-      recognition.onend = () => {
-        // Only restart if still supposed to be listening (handles auto-stop)
-        if (recognitionRef.current?.shouldRestart) {
-          try {
-            recognition.start();
-          } catch (e) {
-            // Already started, ignore
-          }
-        } else {
-          setIsListening(false);
-          setInterimTranscript("");
-        }
-      };
-
-      recognitionRef.current = recognition;
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.shouldRestart = false;
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          // Already stopped, ignore
-        }
-      }
-    };
-  }, []); // No dependencies - create recognition instance once
-
-  // Toggle voice input
-  const toggleVoiceInput = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      toast.error("Voice input not supported in this browser.");
-      return;
-    }
-
-    if (isListening) {
-      // Stop listening
-      recognitionRef.current.shouldRestart = false;
-      recognitionRef.current.stop();
-      setIsListening(false);
-      setInterimTranscript("");
-    } else {
-      // Start listening - sync base ref with current entry and reset processed index
-      baseEntryRef.current = entry;
-      lastProcessedIndexRef.current = -1;
-      try {
-        recognitionRef.current.shouldRestart = true;
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (e) {
-        console.error("Failed to start speech recognition:", e);
-        toast.error("Could not start voice input.");
-      }
-    }
-  };
-
-  // Compute display value: base entry + interim transcript (live preview)
-  const displayEntry = interimTranscript
-    ? baseEntryRef.current + (baseEntryRef.current && !baseEntryRef.current.endsWith(" ") && !baseEntryRef.current.endsWith("\n") ? " " : "") + interimTranscript
-    : entry;
-
-  // Trigger auto-save when entry changes (from typing or voice)
+  // Trigger auto-save when entry changes
   useEffect(() => {
     if (entry.trim()) {
       triggerAutoSave();
