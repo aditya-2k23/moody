@@ -105,6 +105,12 @@ Please review and address any issues raised by these bots.
 * Mental health is a sensitive domain; empathy matters
 * Feedback should be clear, kind, and actionable
 
+## 💬 Community
+
+Have ideas or questions?
+Join the discussion here:
+👉 **[GitHub Discussions](https://github.com/aditya-2k23/moody/discussions)**
+
 ## 🤖 Docker Automation & Versioning
 
 This project uses GitHub Actions to automatically build and push Docker images to Docker Hub whenever changes are merged into the `main` branch.

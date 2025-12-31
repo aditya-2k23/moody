@@ -11,6 +11,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - [How to Use](#-how-to-use)
 - [CI/CD & Docker Automation](#-cicd--docker-automation)
 - [License](#-license)
+- [Community](#-community)
 - [Credits](#-credits)
 
 ## 🚀 Features
@@ -133,6 +134,11 @@ Moody uses GitHub Actions to automate the build and push process for Docker imag
 ## 📄 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
+
+## 💬 Community
+
+Have ideas, questions, or feedback? We'd love to hear from you!
+👉 **[Join the Discussion on GitHub](https://github.com/aditya-2k23/moody/discussions)**
 
 ## 🫶 Credits
 
