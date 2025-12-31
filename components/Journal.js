@@ -10,9 +10,12 @@ import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
-import { moods } from "@/utils";
 import Image from "next/image";
 import { useTheme } from "@/context/themeContext";
+import AIInsightsSection from "./AIInsightsSection";
+import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
+import NewFeatureDot from "./NewFeatureDot";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export default function Journal({ currentUser, onMemoryAdded }) {
   const { theme } = useTheme();
@@ -33,13 +36,10 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
 
-  // Image upload state - supports multiple files (max 4 per day)
+  // Image upload state
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null);
-  const MAX_IMAGES_PER_DAY = 4;
-  const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
 
   const now = new Date();
   const day = now.getDate();
@@ -48,23 +48,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   // Determine if we're in dark mode (SSR-safe)
   const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
-
-  // Ref to track preview URLs for cleanup (avoids stale closure in unmount effect)
-  const previewUrlsRef = useRef([]);
-
-  // Keep ref in sync with imagePreviews state
-  useEffect(() => {
-    previewUrlsRef.current = imagePreviews;
-  }, [imagePreviews]);
-
-  // Cleanup: revoke all object URLs on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      previewUrlsRef.current.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
-    };
-  }, []);
 
   useEffect(() => {
     if (theme === 'system') {
@@ -161,70 +144,25 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry]);
 
-  const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    // Check if adding these would exceed the max
-    if (selectedImages.length + files.length > MAX_IMAGES_PER_DAY) {
-      toast.error(`Maximum ${MAX_IMAGES_PER_DAY} photos per day`);
-      e.target.value = "";
-      return;
-    }
-
-    const validFiles = [];
-    const previews = [];
-
-    for (const file of files) {
-      // Validate file size (7MB max)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`"${file.name}" exceeds 7MB limit`);
-        continue;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error(`"${file.name}" is not an image`);
-        continue;
-      }
-
-      validFiles.push(file);
-      previews.push(URL.createObjectURL(file));
-    }
-
-    if (validFiles.length) {
-      setSelectedImages((prev) => [...prev, ...validFiles]);
-      setImagePreviews((prev) => [...prev, ...previews]);
-    }
-
-    e.target.value = "";
-  };
-
-  const removeImage = (index) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => {
-      // Revoke the URL to free memory
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
+  // ========== Image Upload Handlers ==========
+  const handleImagesChange = (files, previews) => {
+    setSelectedImages(files);
+    setImagePreviews(previews);
   };
 
   const clearImages = () => {
     imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     setSelectedImages([]);
     setImagePreviews([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
+  // ========== Save Handler ==========
   const handleSave = async () => {
     if (!entry.trim() && selectedImages.length === 0) {
       toast.error("Add a journal entry or photos.");
       return;
     }
 
-    // Cancel any pending auto-save debounce
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
