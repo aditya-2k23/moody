@@ -8,4 +8,4 @@ logs/
 *.ideas
 *.md
 *.txt
-*.github/
+.github/
