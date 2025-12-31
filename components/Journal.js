@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -20,6 +20,26 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  // Track interim transcript for live display (without duplicating final text)
+  const [interimTranscript, setInterimTranscript] = useState("");
+  // Store the "base" entry text before interim updates (typed + finalized speech)
+  const baseEntryRef = useRef("");
+  // Track the last processed final result index to prevent duplicates
+  const lastProcessedIndexRef = useRef(-1);
+
+  // Cloud save status: 'idle' | 'saving' | 'saved'
+  const [cloudStatus, setCloudStatus] = useState("idle");
+
+  // Debounce timer ref for auto-save
+  const debounceTimerRef = useRef(null);
+
+  // Track if entry has unsaved changes (for auto-save logic)
+  const hasUnsavedChangesRef = useRef(false);
 
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
@@ -70,6 +90,240 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   }, [theme]);
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
+
+  // ========== Auto-Save Logic (Text Only) ==========
+  // Saves journal text to Firebase - reused by both auto-save and manual save
+  const saveJournalText = useCallback(async () => {
+    if (!entry.trim() || !currentUser?.uid) return false;
+
+    try {
+      const docRef = doc(db, "users", currentUser.uid);
+      await setDoc(docRef, {
+        [year]: {
+          [month]: {
+            [`journal_${day}`]: entry
+          }
+        }
+      }, { merge: true });
+      return true;
+    } catch (error) {
+      console.error("Auto-save error:", error);
+      return false;
+    }
+  }, [entry, currentUser?.uid, year, month, day]);
+
+  // Trigger auto-save with debounce (600ms)
+  const triggerAutoSave = useCallback(() => {
+    // Clear any existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only proceed if there's text to save
+    if (!entry.trim()) {
+      setCloudStatus("idle");
+      return;
+    }
+
+    // Show "saving" status while debounce timer is active
+    setCloudStatus("saving");
+    hasUnsavedChangesRef.current = true;
+
+    debounceTimerRef.current = setTimeout(async () => {
+      const success = await saveJournalText();
+      if (success) {
+        setCloudStatus("saved");
+        hasUnsavedChangesRef.current = false;
+        // Reset to idle after showing "saved" briefly
+        setTimeout(() => setCloudStatus("idle"), 2000);
+      } else {
+        setCloudStatus("idle");
+      }
+    }, 600);
+  }, [entry, saveJournalText]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ========== Voice Input Logic (Web Speech API) ==========
+
+  // Smart punctuation cleanup for voice-generated text only
+  const cleanupVoiceText = useCallback((text) => {
+    if (!text.trim()) return text;
+
+    let cleaned = text.trim();
+
+    // Capitalize first letter
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+
+    // Detect question patterns and add ? if missing punctuation at end
+    const questionPatterns = /^(why|how|what|when|where|who|which|is it|do you|does|did|can|could|would|should|are you|will|have you|has|was|were)/i;
+    const hasPunctuation = /[.!?]$/.test(cleaned);
+
+    if (!hasPunctuation) {
+      if (questionPatterns.test(cleaned)) {
+        cleaned += "?";
+      } else {
+        // Add period for statements
+        cleaned += ".";
+      }
+    }
+
+    // Clean up excessive spaces
+    cleaned = cleaned.replace(/\s+/g, " ");
+
+    return cleaned;
+  }, []);
+
+  // Store cleanupVoiceText in a ref so onresult handler always has latest version
+  const cleanupVoiceTextRef = useRef(cleanupVoiceText);
+  useEffect(() => {
+    cleanupVoiceTextRef.current = cleanupVoiceText;
+  }, [cleanupVoiceText]);
+
+  useEffect(() => {
+    // Check for browser support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      // Browser doesn't support speech recognition
+      return;
+    }
+
+    // Create recognition instance only once
+    if (!recognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (event) => {
+        let finalTranscript = "";
+        let currentInterim = "";
+
+        // Only process the latest result to avoid duplicates
+        const lastResultIndex = event.results.length - 1;
+        const lastResult = event.results[lastResultIndex];
+
+        if (lastResult.isFinal) {
+          // Check if we already processed this index
+          if (lastResultIndex > lastProcessedIndexRef.current) {
+            finalTranscript = lastResult[0].transcript;
+            lastProcessedIndexRef.current = lastResultIndex;
+          }
+        } else {
+          // For interim, just show the current interim text
+          currentInterim = lastResult[0].transcript;
+        }
+
+        // Update interim transcript for live display
+        setInterimTranscript(currentInterim);
+
+        // When we get a NEW final result, append cleaned text to base entry
+        if (finalTranscript) {
+          const cleanedText = cleanupVoiceTextRef.current(finalTranscript);
+
+          // Use functional update with baseEntryRef for consistency
+          const base = baseEntryRef.current;
+          const separator = base && !base.endsWith(" ") && !base.endsWith("\n") ? " " : "";
+          const newEntry = base + separator + cleanedText;
+
+          // Update base ref FIRST to prevent race conditions
+          baseEntryRef.current = newEntry;
+          setEntry(newEntry);
+
+          // Clear interim since it's now finalized
+          setInterimTranscript("");
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        if (event.error !== "no-speech" && event.error !== "aborted") {
+          toast.error("Voice input error. Please try again.");
+        }
+        setIsListening(false);
+        setInterimTranscript("");
+      };
+
+      recognition.onend = () => {
+        // Only restart if still supposed to be listening (handles auto-stop)
+        if (recognitionRef.current?.shouldRestart) {
+          try {
+            recognition.start();
+          } catch (e) {
+            // Already started, ignore
+          }
+        } else {
+          setIsListening(false);
+          setInterimTranscript("");
+        }
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.shouldRestart = false;
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Already stopped, ignore
+        }
+      }
+    };
+  }, []); // No dependencies - create recognition instance once
+
+  // Toggle voice input
+  const toggleVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error("Voice input not supported in this browser.");
+      return;
+    }
+
+    if (isListening) {
+      // Stop listening
+      recognitionRef.current.shouldRestart = false;
+      recognitionRef.current.stop();
+      setIsListening(false);
+      setInterimTranscript("");
+    } else {
+      // Start listening - sync base ref with current entry and reset processed index
+      baseEntryRef.current = entry;
+      lastProcessedIndexRef.current = -1;
+      try {
+        recognitionRef.current.shouldRestart = true;
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error("Failed to start speech recognition:", e);
+        toast.error("Could not start voice input.");
+      }
+    }
+  };
+
+  // Compute display value: base entry + interim transcript (live preview)
+  const displayEntry = interimTranscript
+    ? baseEntryRef.current + (baseEntryRef.current && !baseEntryRef.current.endsWith(" ") && !baseEntryRef.current.endsWith("\n") ? " " : "") + interimTranscript
+    : entry;
+
+  // Trigger auto-save when entry changes (from typing or voice)
+  useEffect(() => {
+    if (entry.trim()) {
+      triggerAutoSave();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry]);
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files || []);
@@ -134,7 +388,14 @@ export default function Journal({ currentUser, onMemoryAdded }) {
       return;
     }
 
+    // Cancel any pending auto-save debounce
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
     setSaving(true);
+    setCloudStatus("saving");
     setUploading(selectedImages.length > 0);
 
     try {
@@ -148,6 +409,7 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             }
           }
         }, { merge: true });
+        hasUnsavedChangesRef.current = false;
       }
 
       // Upload images if present (parallel uploads for better performance)
@@ -224,9 +486,17 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save. Please try again.");
+      setCloudStatus("idle");
     } finally {
       setSaving(false);
       setUploading(false);
+      // Show saved status, then reset after delay
+      if (entry.trim()) {
+        setCloudStatus("saved");
+        setTimeout(() => setCloudStatus("idle"), 2500);
+      } else {
+        setCloudStatus("idle");
+      }
     }
   };
 
@@ -265,24 +535,76 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     <div className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-        <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
 
-        <h2 className="text-xl md:text-2xl font-bold fugaz mb-4 flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
+        {/* Header with Cloud Status Indicator */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
+
+          {/* Cloud Save Status - single div, content changes based on state */}
+          <div
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-500 ease-out ${cloudStatus === "idle"
+              ? "opacity-0 scale-95 pointer-events-none"
+              : "opacity-100 scale-100"
+              }`}
+          >
+            <i className={`fa-solid text-sm ${cloudStatus === "saving"
+              ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
+              : "fa-check text-green-500 dark:text-green-400"
+              }`}></i>
+            <span className={`text-xs font-medium ${cloudStatus === "saving"
+              ? "text-indigo-500 dark:text-indigo-300"
+              : "text-green-600 dark:text-green-400"
+              }`}>
+              {cloudStatus === "saving" ? "Saving..." : "Saved"}
+            </span>
+          </div>
+        </div>
+
         <div className="relative">
           <textarea
             name="journal"
             id="journal"
             className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
             placeholder={placeholder}
-            value={entry}
+            value={displayEntry}
             onChange={(e) => {
-              setEntry(e.target.value);
+              const newValue = e.target.value;
+              setEntry(newValue);
+              // Keep base ref in sync when user types (not during voice input interim)
+              if (!interimTranscript) {
+                baseEntryRef.current = newValue;
+              }
               // Auto-expand textarea to fit content
               e.target.style.height = 'auto';
               e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
             }}
           />
+
+          {/* Listening indicator - subtle, positioned near textarea */}
+          {isListening && (
+            <div className="absolute top-2 right-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-50/90 dark:bg-red-500/20 backdrop-blur-sm transition-all duration-300 animate-fade-in">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+              <span className="text-xs text-red-500 dark:text-red-300 font-medium">Listening...</span>
+            </div>
+          )}
+
+          {/* Voice Input Button - enhanced visual feedback when listening */}
+          <button
+            type="button"
+            onClick={toggleVoiceInput}
+            className={`absolute bottom-4 right-[60px] w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+              ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
+              : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
+              }`}
+            title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
+          >
+            <i className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""}`}></i>
+          </button>
 
           {/* Floating generic photo upload button */}
           {imagePreviews.length === 0 && (
@@ -290,7 +612,7 @@ export default function Journal({ currentUser, onMemoryAdded }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={saving || uploading}
-              className="absolute bottom-3.5 right-4 w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80"
+              className="absolute bottom-4 right-3.5 w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80"
               title="Add photos"
             >
               <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-red-500 rounded-full" />
@@ -317,10 +639,12 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
               return (
                 <div key={index} className="relative">
-                  <img
+                  <Image
                     src={preview}
                     alt={`Preview ${index + 1}`}
                     className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
+                    width={80}
+                    height={80}
                   />
                   <button
                     type="button"

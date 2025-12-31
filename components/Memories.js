@@ -5,6 +5,7 @@ import { getOptimizedUrl } from "@/utils/cloudinary";
 import { deleteMemory } from "@/utils/deleteMemory";
 import PhotoModal from "./PhotoModal";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 /**
  * Memories component - displays a grid of memory images with modal viewer and delete support
@@ -77,11 +78,13 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
                 className="w-full h-full cursor-pointer outline-none rounded-xl overflow-hidden"
                 disabled={deletingId === item.publicId}
               >
-                <img
+                <Image
                   src={getOptimizedUrl(item.imageUrl, 300)}
                   alt={`Memory from day ${item.day}`}
                   loading="lazy"
                   className={`w-full h-full object-cover transition-transform duration-200 group-hover:scale-105 ${deletingId === item.publicId ? 'opacity-50' : ''}`}
+                  width={300}
+                  height={300}
                 />
               </button>
 
