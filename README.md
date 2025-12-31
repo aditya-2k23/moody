@@ -28,7 +28,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration.
 - **Smart Photo Gallery**: A beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
-- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini 3 Flash**.
+- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini 2.5 Flash**.
 - **Curated Reflective Placeholders**: Instant-loading, thoughtful prompts in the journal to inspire your daily writing.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
 - **Quote of the Day**: Motivational quotes to set a positive tone every time you visit.
@@ -39,7 +39,6 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Visual Memories v2.0**: Added support for uploading up to 4 photos per day with Cloudinary.
 - **Parallel Uploading**: Images are uploaded in parallel for significantly faster log times.
 - **Photo Viewer**: Interactive Modal with zoom, mouse dragging, and keyboard shortcuts (Arrows, Esc, +/-).
-- **Gemini 3 Upgrade**: Significant improvements in journal analysis quality and speed.
 - **Performance Optimization**: Replaced dynamic AI placeholders with a curated static pool to eliminate loading flickers and reduce API costs.
 - **Cloudinary Optimization**: Images are automatically resized and optimized for performance and lower data usage.
 
@@ -49,7 +48,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **React** 19+
 - **Firebase** (Auth, Firestore, and AI SDK)
 - **Cloudinary** (Image storage & transformation)
-- **Google Gemini 3 Flash**
+- **Google Gemini 2.5 Flash**
 - **Tailwind CSS**
 - **react-hot-toast**
 
