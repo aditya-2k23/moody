@@ -51,6 +51,6 @@ We welcome contributions! If you're interested in working on any of these featur
 
 1. Check the [Issues](https://github.com/aditya-2k23/moody/issues) tab to see if it's already being worked on.
 2. Open a discussion or issue to propose your implementation plan.
-3. Follow the guidelines in [CONTRIBUTING.md](./CONTRIBUTING.MD).
+3. Follow the guidelines in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Let's build something great together! 💜
