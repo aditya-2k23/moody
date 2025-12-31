@@ -7,3 +7,5 @@ logs/
 .vscode/
 *.ideas
 *.md
+*.txt
+.github/
