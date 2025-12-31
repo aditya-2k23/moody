@@ -99,18 +99,15 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   // Trigger auto-save with debounce (600ms)
   const triggerAutoSave = useCallback(() => {
-    // Clear any existing debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Only proceed if there's text to save
     if (!entry.trim()) {
       setCloudStatus("idle");
       return;
     }
 
-    // Show "saving" status while debounce timer is active
     setCloudStatus("saving");
     hasUnsavedChangesRef.current = true;
 
@@ -119,7 +116,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
       if (success) {
         setCloudStatus("saved");
         hasUnsavedChangesRef.current = false;
-        // Reset to idle after showing "saved" briefly
         setTimeout(() => setCloudStatus("idle"), 2000);
       } else {
         setCloudStatus("idle");
@@ -173,7 +169,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     setUploading(selectedImages.length > 0);
 
     try {
-      // Save journal text if present
       if (entry.trim()) {
         const docRef = doc(db, "users", currentUser.uid);
         await setDoc(docRef, {
@@ -186,9 +181,7 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         hasUnsavedChangesRef.current = false;
       }
 
-      // Upload images if present (parallel uploads for better performance)
       if (selectedImages.length > 0) {
-        // Upload all images in parallel
         const uploadPromises = selectedImages.map(async (file) => {
           const uploadResult = await uploadToCloudinary(file, currentUser.uid);
 
@@ -196,7 +189,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             return { success: false, fileName: file.name, error: "upload" };
           }
 
-          // Save memory to Firestore with publicId for deletion support
           const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url, uploadResult.publicId);
 
           if (!saveResult.success) {
@@ -217,14 +209,11 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           } else if (result.status === "fulfilled" && !result.value.success) {
             failedFiles.push(result.value.fileName);
           } else if (result.status === "rejected") {
-            // Promise rejected (unexpected error)
             failedFiles.push("unknown");
           }
         });
 
-        // Show individual errors for failed files
         if (failedFiles.length > 0 && failedFiles.length < selectedImages.length) {
-          // Some failed, some succeeded
           failedFiles.forEach((fileName) => {
             if (fileName !== "unknown") {
               toast.error(`Failed to upload: ${fileName}`);
@@ -232,15 +221,12 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           });
         }
 
-        // Handle the all-failures edge case
         if (uploadedCount === 0 && selectedImages.length > 0) {
           toast.error("All uploads failed. Please try again.");
           clearImages();
         } else if (uploadedCount > 0) {
-          // Invalidate cache so memories refresh
           invalidateMemoriesCache(currentUser.uid, year, month);
 
-          // Notify parent to refetch memories
           if (onMemoryAdded) {
             onMemoryAdded();
           }
@@ -264,7 +250,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     } finally {
       setSaving(false);
       setUploading(false);
-      // Show saved status, then reset after delay
       if (entry.trim()) {
         setCloudStatus("saved");
         setTimeout(() => setCloudStatus("idle"), 2500);
