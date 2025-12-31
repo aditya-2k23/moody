@@ -39,7 +39,7 @@ Use the GitHub **Fork** button to create your own copy.
 ### 2. Clone Your Fork
 
 ```bash
-git clone https://github.com/aditya-2k23/moody.git
+git clone https://github.com/YOUR_USERNAME/moody.git
 cd moody
 ```
 
