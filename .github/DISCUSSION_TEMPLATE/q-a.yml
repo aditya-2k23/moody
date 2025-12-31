@@ -1,0 +1,15 @@
+title: "Question: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about using or contributing to Moody?
+        Ask it here.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      placeholder: What would you like help with?
+    validations:
+      required: true
