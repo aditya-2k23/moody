@@ -2,6 +2,17 @@
 
 Moody is a **minimalistic** and modern mood-tracking web application built with Next.js, React, and Firebase. Designed for simplicity and ease of use, it allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback—all while maintaining a clutter-free, focused experience.
 
+## Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#️-tech-stack)
+- [Docker Support](#-docker-support)
+- [Getting Started](#-getting-started)
+- [How to Use](#-how-to-use)
+- [CI/CD & Docker Automation](#-cicd--docker-automation)
+- [License](#-license)
+- [Credits](#-credits)
+
 ## 🚀 Features
 
 - **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
@@ -34,7 +45,35 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Tailwind CSS**
 - **react-hot-toast**
 
+## 🐳 Docker Support
+
+A prebuilt Docker image is available for easier setup and consistent environments. This is ideal for contributors and quick local testing without needing to manage local Node.js versions.
+
+### Pull the image
+
+```sh
+docker pull temaroon/moody:latest
+```
+
+### Run the container
+
+You must provide the required environment variables. You can pass them individually or use an `.env` file.
+
+```sh
+docker run -d -p 3000:3000 --name moody --env-file .env temaroon/moody:latest
+```
+
+Once running, access the application at [http://localhost:3000](http://localhost:3000).
+
+### When to use Docker
+
+- **Consistent Environment**: Avoid "it works on my machine" issues by using the same environment as production.
+- **Quick Testing**: Spin up the entire application with a single command without installing dependencies locally.
+- **CI/CD Integration**: Easily integrate with automated testing and deployment pipelines.
+
 ## 📦 Getting Started
+
+If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 
 1. **Clone the repository:**
 
@@ -50,7 +89,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
    ```
 
 3. **Set up environment variables:**  
-   Copy `.env.example` to `.env` and fill in your credentials.
+   Copy [`.env.example`](./.env.example) to `.env` and fill in your credentials.
 
    ```env
    # Firebase Client
@@ -70,6 +109,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
    ```
 
 4. **Run the development server:**
+
    ```sh
    npm run dev
    ```
@@ -82,7 +122,20 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 4. **Relive Memories**: Tap on any image in your memories grid to open the full-screen viewer. Use Arrow keys to navigate through your month's photos.
 5. **Manage History**: Use the calendar to jump between months and view your past emotional trends.
 
-## 🙏 Credits
+## 🤖 CI/CD & Docker Automation
+
+Moody uses GitHub Actions to automate the build and push process for Docker images.
+
+- **Automatic Versioning**: The workflow triggers on every push to `main`.
+- **Image Tags**: Images are tagged with the version from `package.json` and the git commit SHA.
+- **Latest Tag**: The `latest` tag always points to the most recent successful build from the `main` branch.
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
+
+## 🫶 Credits
 
 - Built with 💜 by [Aditya](https://github.com/aditya-2k23)
 - Inspired by [Smoljames](https://www.youtube.com/@Smoljames) mood-tracking app [Broodl](https://github.com/jamezmca/broodl/)
+- Thanks to the open-source community for libraries and tools that made this possible!

@@ -80,6 +80,17 @@ npm run dev
    * Screenshots for UI-related updates
    * A linked issue, if applicable
 
+## 🤖 Automated Reviews & Checks
+
+To ensure high code quality and security, every Pull Request is automatically analyzed by:
+
+* **GitHub Copilot & CodeRabbit**: AI-powered code reviews and suggestions.
+* **GitGuardian**: Scans for exposed secrets and credentials.
+* **CodeQL**: Performs semantic code analysis to detect security vulnerabilities.
+* **Netlify**: Verifies that the deployment build succeeds.
+
+Please review and address any issues raised by these bots.
+
 ## Code Guidelines
 
 * Keep code readable and well-structured
@@ -93,6 +104,13 @@ npm run dev
 * Be respectful and constructive in discussions
 * Mental health is a sensitive domain; empathy matters
 * Feedback should be clear, kind, and actionable
+
+## 🤖 Docker Automation & Versioning
+
+This project uses GitHub Actions to automatically build and push Docker images to Docker Hub whenever changes are merged into the `main` branch.
+
+* **Version Management**: The Docker image version is tied directly to the `version` field in `package.json`.
+* **Contributor Requirement**: When submitting a Pull Request that introduces new features or fixes, please **increment the version** in `package.json` (following [SemVer](https://semver.org/)). This ensures that the new Docker image is correctly tagged and available for users.
 
 ## License
 
