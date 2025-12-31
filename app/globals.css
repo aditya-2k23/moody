@@ -179,3 +179,71 @@
 .dark .journal-textarea::-webkit-resizer {
   background: linear-gradient(135deg, transparent 50%, var(--color-resizer-dark) 50%, var(--color-resizer-dark) 60%, transparent 60%, transparent 75%, var(--color-resizer-dark) 75%, var(--color-resizer-dark) 85%, transparent 85%);
 }
+
+/* ========== AI Insights Section Animations ========== */
+
+/* Skeleton loading pulse with subtle opacity */
+.animate-insights-skeleton {
+  animation: insights-skeleton-pulse 2s ease-in-out infinite;
+}
+
+@keyframes insights-skeleton-pulse {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shimmer effect for loading state */
+.animate-insights-shimmer {
+  animation: insights-shimmer 1.5s infinite;
+}
+
+@keyframes insights-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Content fade-in animation */
+.animate-insights-content {
+  animation: insights-content-reveal 0.3s ease-out forwards;
+}
+
+@keyframes insights-content-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Badge entrance animation */
+.animate-insights-badge {
+  animation: insights-badge-pop 0.25s ease-out forwards;
+}
+
+@keyframes insights-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

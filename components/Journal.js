@@ -274,6 +274,7 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     }
   };
 
+  // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async () => {
     if (!entry.trim()) {
       toast.error("Journal entry cannot be empty.");
@@ -284,17 +285,13 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     const docRef = doc(db, "users", currentUser.uid, "insights", entry);
 
     try {
-      // Check cache first
       const cachedDoc = await getDoc(docRef);
       if (cachedDoc.exists()) {
         setInsights(cachedDoc.data());
         console.log("Loaded cached insights.");
       } else {
-        // Fetch new insights
         const result = await analyzeEntry(entry);
         setInsights(result);
-
-        // Cache the new insights
         await setDoc(docRef, result);
         console.log("New insights generated and cached.");
       }
@@ -314,23 +311,29 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
+          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
+            <i className="fa-solid fa-book"></i> Quick Journal
+          </h2>
 
-          {/* Cloud Save Status - single div, content changes based on state */}
+          {/* Cloud Save Status */}
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-500 ease-out ${cloudStatus === "idle"
               ? "opacity-0 scale-95 pointer-events-none"
               : "opacity-100 scale-100"
               }`}
           >
-            <i className={`fa-solid text-sm ${cloudStatus === "saving"
-              ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
-              : "fa-check text-green-500 dark:text-green-400"
-              }`}></i>
-            <span className={`text-xs font-medium ${cloudStatus === "saving"
-              ? "text-indigo-500 dark:text-indigo-300"
-              : "text-green-600 dark:text-green-400"
-              }`}>
+            <i
+              className={`fa-solid text-sm ${cloudStatus === "saving"
+                ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
+                : "fa-check text-green-500 dark:text-green-400"
+                }`}
+            ></i>
+            <span
+              className={`text-xs font-medium ${cloudStatus === "saving"
+                ? "text-indigo-500 dark:text-indigo-300"
+                : "text-green-600 dark:text-green-400"
+                }`}
+            >
               {cloudStatus === "saving" ? "Saving..." : "Saved"}
             </span>
           </div>
@@ -346,113 +349,52 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             onChange={(e) => {
               const newValue = e.target.value;
               setEntry(newValue);
-              // Keep base ref in sync when user types (not during voice input interim)
-              if (!interimTranscript) {
-                baseEntryRef.current = newValue;
-              }
+              syncBaseEntry(newValue);
               // Auto-expand textarea to fit content
               e.target.style.height = 'auto';
               e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
             }}
           />
 
-          {/* Listening indicator - subtle, positioned near textarea */}
+          {/* Listening indicator */}
           {isListening && (
             <div className="absolute top-2 right-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-50/90 dark:bg-red-500/20 backdrop-blur-sm transition-all duration-300 animate-fade-in">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
               </span>
-              <span className="text-xs text-red-500 dark:text-red-300 font-medium">Listening...</span>
+              <span className="text-xs text-red-500 dark:text-red-300 font-medium">
+                Listening...
+              </span>
             </div>
           )}
 
-          {/* Voice Input Button - enhanced visual feedback when listening */}
+          {/* Voice Input Button */}
           <button
             type="button"
-            onClick={toggleVoiceInput}
-            className={`absolute bottom-4 right-[60px] w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+            onClick={() => toggleVoiceInput(entry)}
+            className={`absolute bottom-9 right-[60px] w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
               ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
               : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
               }`}
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
-            <i className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""}`}></i>
+            <NewFeatureDot className="absolute top-[-2px] right-[-2px]" />
+            <i
+              className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
+                }`}
+            ></i>
           </button>
 
-          {/* Floating generic photo upload button */}
-          {imagePreviews.length === 0 && (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={saving || uploading}
-              className="absolute bottom-4 right-3.5 w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80"
-              title="Add photos"
-            >
-              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-red-500 rounded-full" />
-              <i className="fa-regular fa-image text-lg"></i>
-            </button>
-          )}
+          {/* Image Upload Component */}
+          <ImageUpload
+            selectedImages={selectedImages}
+            imagePreviews={imagePreviews}
+            onImagesChange={handleImagesChange}
+            disabled={saving || uploading}
+            className="bottom-9 right-3.5"
+          />
         </div>
-
-        {/* New feature hint */}
-        {imagePreviews.length === 0 && (
-          <p className="text-xs text-right text-indigo-500 dark:text-indigo-300 font-medium mt-1 flex items-center justify-end gap-1">
-            <i className="fa-solid fa-sparkles text-[10px]"></i>
-            <span>New! Add photos to your memories</span>
-          </p>
-        )}
-
-        {/* Image Previews */}
-        {imagePreviews.length > 0 && (
-          <div className="flex flex-wrap gap-3 mt-3">
-            {imagePreviews.map((preview, index) => {
-              // Security: Only render valid blob URLs to prevent XSS
-              const isSafeBlobUrl = typeof preview === 'string' && preview.startsWith('blob:');
-              if (!isSafeBlobUrl) return null;
-
-              return (
-                <div key={index} className="relative">
-                  <Image
-                    src={preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
-                    width={80}
-                    height={80}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
-                    title="Remove"
-                  >
-                    <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
-                  </button>
-                </div>
-              );
-            })}
-            {imagePreviews.length < MAX_IMAGES_PER_DAY && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-20 h-20 rounded-lg border-2 border-dashed border-indigo-300 dark:border-indigo-500 flex items-center justify-center text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors"
-                title="Add more photos"
-              >
-                <i className="fa-solid fa-plus text-lg"></i>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Hidden file input - accepts multiple */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleImageSelect}
-          accept="image/*"
-          multiple
-          className="hidden"
-        />
 
         <div className="flex justify-end items-center gap-2 mt-3">
           {/* Photo count indicator */}
@@ -484,69 +426,8 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         </div>
       </div>
 
-      {insights && (
-        <>
-          <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 font-bold text-gray-800 dark:text-gray-200 fugaz"><Image src="/ai.svg" alt="AI Icon" width={26} height={26} />AI Insights</h2>
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-            <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/40 dark:to-indigo-400/40 rounded-full blur-3xl" />
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-500/75 sm:bg-purple-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">🧩</span>
-                </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">emotional triggers</h3>
-              </div>
-
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">{insights.mood}</span>
-              </div>
-            </div>
-
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">What Influenced your Mood</h4>
-            {insights.summary}
-            {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {insights.triggers.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-block bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 dark:border-none shadow-sm hover:bg-indigo-200 transition-all duration-150"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-            <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-cyan-400/30 dark:to-sky-400/30 rounded-full blur-3xl" />
-            <div className="absolute bottom-1 right-12 w-28 h-28 bg-gradient-to-tr from-lime-400/50 to-green-500/40 dark:from-lime-400/30 dark:to-green-300/30 rounded-full blur-3xl" />
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/75 sm:bg-blue-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">💡</span>
-                </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">PERSONALIZED INSIGHT</h3>
-              </div>
-
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">{insights.mood}</span>
-              </div>
-            </div>
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{insights.headline || "Personalized Insight"}</h4>
-            <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed mb-4">{insights.insight}</p>
-
-            <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3">
-              <p className="text-sm text-lime-600 dark:text-lime-300">
-                <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
-              </p>
-            </div>
-          </div>
-        </>
-      )}
+      {/* AI Insights Section */}
+      <AIInsightsSection insights={insights} isLoading={loadingInsights} />
     </div>
   );
 }
