@@ -45,6 +45,8 @@ class Media {
     this.borderRadius = borderRadius;
     this.originalIndex = originalIndex;
     this.onClick = onClick;
+    this.fadeInRafId = null; // Track fade-in animation for cleanup
+    this.texture = null; // Store reference for disposal
     this.createShader();
     this.createMesh();
     this.onResize();
@@ -53,6 +55,7 @@ class Media {
     const texture = new Texture(this.gl, {
       generateMipmaps: true,
     });
+    this.texture = texture; // Store reference for disposal
     this.program = new Program(this.gl, {
       depthTest: false,
       depthWrite: false,
@@ -121,6 +124,9 @@ class Media {
       // Don't update uImageSizes or call fadeIn for failed images
     };
     img.onload = () => {
+      // Guard against destroyed Media (program may be null if destroy() was called)
+      if (!this.program) return;
+
       texture.image = img;
       this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
       // Fade in animation
@@ -131,16 +137,52 @@ class Media {
     const duration = 500; // ms
     const startTime = performance.now();
     const animate = () => {
+      // Check if destroyed
+      if (!this.program) return;
+
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       // Ease out quad
       const eased = 1 - (1 - progress) * (1 - progress);
       this.program.uniforms.uOpacity.value = eased;
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        this.fadeInRafId = requestAnimationFrame(animate);
+      } else {
+        this.fadeInRafId = null;
       }
     };
-    requestAnimationFrame(animate);
+    this.fadeInRafId = requestAnimationFrame(animate);
+  }
+  destroy() {
+    // Cancel ongoing fade-in animation
+    if (this.fadeInRafId) {
+      cancelAnimationFrame(this.fadeInRafId);
+      this.fadeInRafId = null;
+    }
+
+    // Remove mesh from scene
+    if (this.plane && this.plane.parent) {
+      this.plane.parent.removeChild(this.plane);
+    }
+
+    // Dispose WebGL resources
+    if (this.texture) {
+      // OGL textures don't have explicit dispose, but we can delete the WebGL texture
+      if (this.texture.texture) {
+        this.gl.deleteTexture(this.texture.texture);
+      }
+      this.texture = null;
+    }
+
+    if (this.program) {
+      // OGL programs - delete the WebGL program
+      if (this.program.program) {
+        this.gl.deleteProgram(this.program.program);
+      }
+      this.program = null;
+    }
+
+    this.plane = null;
   }
   createMesh() {
     this.plane = new Mesh(this.gl, {
@@ -510,9 +552,25 @@ class GalleryApp {
     window.removeEventListener("touchmove", this.boundOnTouchMove);
     window.removeEventListener("touchend", this.boundOnTouchUp);
 
+    // Dispose all Media instances (WebGL resources)
+    if (this.medias) {
+      this.medias.forEach((media) => media.destroy());
+      this.medias = null;
+    }
+
+    // Dispose shared geometry
+    if (this.planeGeometry) {
+      // OGL geometries don't have explicit dispose, but clear reference
+      this.planeGeometry = null;
+    }
+
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }
+
+    this.renderer = null;
+    this.scene = null;
+    this.camera = null;
   }
 }
 
