@@ -89,6 +89,12 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   // Compute display value with interim transcript
   const displayEntry = getDisplayValue(entry);
 
+  // Store onJournalSaved in a ref to keep dependency array stable
+  const onJournalSavedRef = useRef(onJournalSaved);
+  useEffect(() => {
+    onJournalSavedRef.current = onJournalSaved;
+  }, [onJournalSaved]);
+
   // ========== Auto-Save Logic (Text Only) ==========
   const saveJournalText = useCallback(async () => {
     if (!entry.trim() || !currentUser?.uid) return false;
@@ -110,13 +116,13 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       // Update last saved entry after successful save
       lastSavedEntryRef.current = entry;
       // Notify parent to update UI immediately
-      onJournalSaved?.(entry);
+      onJournalSavedRef.current?.(entry);
       return true;
     } catch (error) {
       console.error("Auto-save error:", error);
       return false;
     }
-  }, [entry, currentUser?.uid, year, month, day]);
+  }, [entry, currentUser, year, month, day]);
 
   // Debounce constants
   const TYPING_DEBOUNCE_MS = 800;
