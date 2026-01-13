@@ -65,8 +65,8 @@ export default function MemoriesCircularGallery({
       <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-indigo-50 dark:from-slate-900/55 to-transparent pointer-events-none z-10 rounded-2xl" />
 
       {/* Interaction hint */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-700 dark:text-gray-300 text-semibold flex items-center gap-1.5 opacity-60">
-        <i className="fa-solid fa-hand text-[10px]"></i>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-gray-700 dark:text-gray-300 text-semibold flex items-center gap-1.5 opacity-60">
+        <i className="fa-solid fa-hand text-[14px]"></i>
         <span>Drag to explore</span>
       </div>
     </div>

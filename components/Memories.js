@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PhotoModal from "./PhotoModal";
 import MemoriesCircularGallery from "./MemoriesCircularGallery";
 import gsap from "gsap";
@@ -41,7 +41,7 @@ function MemoriesSkeleton({ monthLabel }) {
 
 /**
  * Memories component - displays a grid of memory images with modal viewer and delete support
- * Shows skeleton during loading, fades in content with GSAP when loaded
+ * Shows skeleton during loading, fades in/out content with GSAP
  * @param {{items: Array, status: 'idle'|'loading'|'loaded', monthLabel: string, yearMonth: string, onDelete: function}} props
  */
 export default function Memories({ items = [], status = "idle", monthLabel = "", yearMonth = "", onDelete }) {
@@ -49,29 +49,63 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef(null);
 
+  // Track visibility for fade-out animation
+  const [isVisible, setIsVisible] = useState(false);
+  const prevHadItemsRef = useRef(false);
+
+  // Preserve items during fade-out so images don't disappear
+  const [displayItems, setDisplayItems] = useState([]);
+
   const openModal = (index) => {
     setSelectedIndex(index);
     setModalOpen(true);
   };
 
+  const hasItems = status === "loaded" && items?.length > 0;
+
+  // Handle fade-out when items disappear
+  useEffect(() => {
+    if (prevHadItemsRef.current && !hasItems && containerRef.current) {
+      // Fade out then hide (keep displayItems until animation completes)
+      gsap.to(containerRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.4,
+        ease: "power2.in",
+        onComplete: () => {
+          setIsVisible(false);
+          setDisplayItems([]); // Clear after fade completes
+        }
+      });
+    } else if (hasItems && !isVisible) {
+      // Update displayItems and show
+      setDisplayItems(items);
+      setIsVisible(true);
+    } else if (hasItems) {
+      // Update displayItems when items change while visible
+      setDisplayItems(items);
+    }
+    prevHadItemsRef.current = hasItems;
+  }, [hasItems, isVisible, items]);
+
   // Animate in when loaded with items
   useGSAP(() => {
-    if (status === "loaded" && items?.length > 0 && containerRef.current) {
+    if (hasItems && isVisible && containerRef.current) {
       gsap.fromTo(
         containerRef.current,
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
       );
     }
-  }, [status, items?.length]);
+  }, [hasItems, isVisible]);
 
   // Show skeleton while loading
   if (status === "loading") {
     return <MemoriesSkeleton monthLabel={monthLabel} />;
   }
 
-  // Don't render anything if idle or no items
-  if (status !== "loaded" || !items || items.length === 0) {
+  // Don't render anything if not visible and no items
+  if (!isVisible && !hasItems) {
     return null;
   }
 
@@ -89,10 +123,10 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
           <i className="fa-solid fa-images"></i> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
         </h2>
 
-        {/* Circular Gallery */}
+        {/* Circular Gallery - use displayItems to preserve during fade-out */}
         <div className="relative z-10">
           <MemoriesCircularGallery
-            images={items}
+            images={displayItems}
             onImageClick={openModal}
           />
         </div>
@@ -100,7 +134,7 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
 
       {modalOpen && (
         <PhotoModal
-          images={items}
+          images={displayItems}
           initialIndex={selectedIndex}
           onClose={() => setModalOpen(false)}
           yearMonth={yearMonth}

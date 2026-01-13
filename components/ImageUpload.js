@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
-const MAX_IMAGES_PER_DAY = 4;
-const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
+const MAX_IMAGES_PER_DAY = 5;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 /**
  * ImageUpload - Component for handling image selection and preview
@@ -54,15 +54,21 @@ export default function ImageUpload({
     const previews = [];
 
     for (const file of files) {
-      // Validate file size (7MB max)
+      // Validate file size (10MB max)
       if (file.size > MAX_FILE_SIZE) {
-        toast.error(`"${file.name}" exceeds 7MB limit`);
+        toast.error(`"${file.name}" exceeds 10MB limit`);
         continue;
       }
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
         toast.error(`"${file.name}" is not an image`);
+        continue;
+      }
+
+      // Reject GIF files
+      if (file.type === "image/gif") {
+        toast.error(`GIF files are not supported`);
         continue;
       }
 
@@ -165,7 +171,7 @@ export default function ImageUpload({
         type="file"
         ref={fileInputRef}
         onChange={handleImageSelect}
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/jpg"
         multiple
         className="hidden"
       />
