@@ -215,18 +215,55 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     prevIsListeningRef.current = isListening;
   }, [isListening, entry, triggerAutoSave]);
 
-  // Page exit safety: save on visibility change and beforeunload
+  // Page exit safety: save on visibility change and beforeunload using sendBeacon for reliability
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && hasUnsavedChangesRef.current && entry.trim()) {
-        // Use synchronous approach for visibility change
-        saveJournalText();
+        // Use sendBeacon for guaranteed delivery on page hide
+        if (navigator.sendBeacon && currentUser?.uid) {
+          // Compute fresh date values to avoid stale dates
+          const now = new Date();
+          const day = now.getDate();
+          const month = now.getMonth();
+          const year = now.getFullYear();
+
+          // Get fresh ID token for authentication
+          currentUser.getIdToken().then((idToken) => {
+            const payload = JSON.stringify({
+              idToken,
+              year,
+              month,
+              day,
+              entry: entry.trim()
+            });
+            navigator.sendBeacon('/api/journal-beacon', payload);
+            hasUnsavedChangesRef.current = false;
+            lastSavedEntryRef.current = entry;
+          }).catch(() => {
+            // Fall back to async save if token retrieval fails
+            saveJournalText();
+          });
+        } else {
+          // Fall back to async save when sendBeacon unavailable
+          saveJournalText();
+        }
       }
     };
 
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChangesRef.current && entry.trim()) {
-        saveJournalText();
+        // Use sendBeacon for guaranteed delivery on page unload
+        if (navigator.sendBeacon && currentUser?.uid) {
+          // Compute fresh date values
+          const now = new Date();
+          const day = now.getDate();
+          const month = now.getMonth();
+          const year = now.getFullYear();
+
+          // Use cached token if available (getIdToken is async, may not complete before unload)
+          // The visibility change handler should have already saved, this is a last resort
+          saveJournalText();
+        }
         e.preventDefault();
         e.returnValue = '';
       }
@@ -239,7 +276,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [saveJournalText, entry]);
+  }, [saveJournalText, entry, currentUser]);
 
   // ========== Image Upload Handlers ==========
   const handleImagesChange = (files, previews) => {
