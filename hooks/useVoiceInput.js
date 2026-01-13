@@ -159,18 +159,34 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
     }
 
     if (isListening) {
-      // Stop listening
-      recognitionRef.current.shouldRestart = false;
-      recognitionRef.current.stop();
-      setIsListening(false);
-      setInterimTranscript("");
-      // Clear voice timeout
+      // Stop listening - clear timeout first (safe even if recognitionRef is null)
       if (voiceTimeoutRef.current) {
         clearTimeout(voiceTimeoutRef.current);
         voiceTimeoutRef.current = null;
       }
+
+      // Guard against null recognitionRef
+      if (!recognitionRef.current) {
+        setIsListening(false);
+        setInterimTranscript("");
+        return;
+      }
+
+      recognitionRef.current.shouldRestart = false;
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Already stopped or unavailable, ignore
+      }
+      setIsListening(false);
+      setInterimTranscript("");
     } else {
-      // Start listening
+      // Start listening - guard against null recognitionRef
+      if (!recognitionRef.current) {
+        toast.error("Voice input is not available. Please refresh the page.");
+        return;
+      }
+
       baseEntryRef.current = currentEntry;
       lastProcessedIndexRef.current = -1;
       try {
@@ -181,8 +197,15 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
         // Set 5-minute timeout to auto-stop
         voiceTimeoutRef.current = setTimeout(() => {
           toast("Voice input stopped after 5 minutes", { icon: "⏱️" });
-          recognitionRef.current.shouldRestart = false;
-          recognitionRef.current.stop();
+          // Guard against null ref in timeout callback
+          if (recognitionRef.current) {
+            recognitionRef.current.shouldRestart = false;
+            try {
+              recognitionRef.current.stop();
+            } catch (e) {
+              // Already stopped, ignore
+            }
+          }
           setIsListening(false);
           setInterimTranscript("");
           voiceTimeoutRef.current = null;
