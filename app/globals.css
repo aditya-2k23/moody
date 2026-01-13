@@ -247,3 +247,20 @@
     transform: scale(1);
   }
 }
+
+/* ========== Circular Gallery Styles ========== */
+
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.circular-gallery:active {
+  cursor: grabbing;
+}
+
+.memories-circular-gallery canvas {
+  display: block;
+}
