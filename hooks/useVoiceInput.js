@@ -133,6 +133,11 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
     }
 
     return () => {
+      // Clear voice timeout to prevent memory leak
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
       if (recognitionRef.current) {
         recognitionRef.current.shouldRestart = false;
         try {
