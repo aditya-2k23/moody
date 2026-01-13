@@ -293,10 +293,12 @@ export default function DashboardContent() {
           currentUser={currentUser}
           onMemoryAdded={refetchMemories}
           onJournalSaved={(savedEntry) => {
-            // Update local data state so Calendar reflects the saved journal immediately
+            // Compute fresh date values to avoid stale dates if tab was open past midnight
+            const now = new Date();
             const day = now.getDate();
             const month = now.getMonth();
             const year = now.getFullYear();
+            // Update local data state so Calendar reflects the saved journal immediately
             setData((prevData) => {
               const newData = { ...prevData };
               if (!newData[year]) newData[year] = {};
