@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
 
 /**
  * Minimal API endpoint for navigator.sendBeacon journal saves.
