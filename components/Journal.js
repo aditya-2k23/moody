@@ -260,18 +260,9 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChangesRef.current && entry.trim()) {
-        // Use sendBeacon for guaranteed delivery on page unload
-        if (navigator.sendBeacon && currentUser?.uid) {
-          // Compute fresh date values
-          const now = new Date();
-          const day = now.getDate();
-          const month = now.getMonth();
-          const year = now.getFullYear();
-
-          // Use cached token if available (getIdToken is async, may not complete before unload)
-          // The visibility change handler should have already saved, this is a last resort
-          saveJournalText();
-        }
+        // Show browser's "are you sure?" prompt.
+        // The visibilitychange handler (which fires first on tab close) handles the actual save.
+        // Async saves here won't reliably complete before unload, so we just warn the user.
         e.preventDefault();
         e.returnValue = '';
       }
