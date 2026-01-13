@@ -137,7 +137,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
               }
 
               // Check if this day is today
-              let isToday = dayIndex === now.getDate();
+              let isToday = dayIndex === now.getDate() && numericMonth === currentMonth && selectedYear === currentYear;
 
               // Determine the background color based on mood data
               let backgroundColor = "transparent"; // Default color
