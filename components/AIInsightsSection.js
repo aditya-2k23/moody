@@ -51,8 +51,8 @@ export default function AIInsightsSection({ insights, isLoading }) {
   return (
     <div
       className={`transition-all duration-300 ease-out ${isVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-2"
+        ? "opacity-100 translate-y-0"
+        : "opacity-0 translate-y-2"
         }`}
     >
       {/* Section Header */}
@@ -102,12 +102,6 @@ export default function AIInsightsSection({ insights, isLoading }) {
             <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
               What Influenced your Mood
             </h4>
-
-            {insights.summary && (
-              <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed">
-                {insights.summary}
-              </p>
-            )}
 
             {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
