@@ -23,19 +23,17 @@ export default function ImageUpload({
   className = "",
 }) {
   const fileInputRef = useRef(null);
-  const previewUrlsRef = useRef([]);
-
-  // Keep ref in sync with imagePreviews for cleanup
-  useEffect(() => {
-    previewUrlsRef.current = imagePreviews;
-  }, [imagePreviews]);
+  // Track all created URLs for cleanup - updated immediately when URLs are created/removed
+  const previewUrlsRef = useRef(new Set());
 
   // Cleanup: revoke all object URLs on unmount to prevent memory leaks
   useEffect(() => {
+    const urlsRef = previewUrlsRef.current;
     return () => {
-      previewUrlsRef.current.forEach((url) => {
+      urlsRef.forEach((url) => {
         URL.revokeObjectURL(url);
       });
+      urlsRef.clear();
     };
   }, []);
 
@@ -73,7 +71,10 @@ export default function ImageUpload({
       }
 
       validFiles.push(file);
-      previews.push(URL.createObjectURL(file));
+      const previewUrl = URL.createObjectURL(file);
+      previews.push(previewUrl);
+      // Track URL immediately for cleanup
+      previewUrlsRef.current.add(previewUrl);
     }
 
     if (validFiles.length) {
@@ -87,8 +88,10 @@ export default function ImageUpload({
   };
 
   const removeImage = (index) => {
-    // Revoke the URL to free memory
-    URL.revokeObjectURL(imagePreviews[index]);
+    const urlToRemove = imagePreviews[index];
+    // Revoke the URL immediately and remove from tracking Set
+    URL.revokeObjectURL(urlToRemove);
+    previewUrlsRef.current.delete(urlToRemove);
 
     onImagesChange?.(
       selectedImages.filter((_, i) => i !== index),
@@ -128,7 +131,10 @@ export default function ImageUpload({
         <div className="flex flex-wrap gap-3 mt-3">
           {imagePreviews.map((preview, index) => {
             // Security: Only render valid blob URLs to prevent XSS
-            const isSafeBlobUrl = typeof preview === 'string' && preview.startsWith('blob:');
+            // Ensure URL follows standard blob format (blob:protocol://...) to block blob:javascript: etc.
+            const isSafeBlobUrl = typeof preview === 'string' &&
+              /^blob:(https?|file):\/\//.test(preview);
+
             if (!isSafeBlobUrl) return null;
 
             return (
