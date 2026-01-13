@@ -57,6 +57,7 @@ export default function MemoriesCircularGallery({
         autoRotate={true}
         autoRotateSpeed={1}
         onImageClick={handleImageClick}
+        disableWheel={true}
       />
 
       {/* Gradient fade edges for visual polish */}

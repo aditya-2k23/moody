@@ -198,6 +198,7 @@ class GalleryApp {
       autoRotate = false,
       autoRotateSpeed = 0.5,
       onImageClick,
+      disableWheel = false,
     } = {}
   ) {
     document.documentElement.classList.remove("no-js");
@@ -208,6 +209,7 @@ class GalleryApp {
     this.isInteracting = false;
     this.idleTimer = null;
     this.onImageClick = onImageClick;
+    this.disableWheel = disableWheel;
     this.onCheckDebounce = debounce(this.onCheck, 200);
     this.createRenderer();
     this.createCamera();
@@ -455,7 +457,9 @@ class GalleryApp {
     window.addEventListener("resize", this.boundOnResize);
 
     // Use container-scoped events for better control
-    this.container.addEventListener("wheel", this.boundOnWheel, { passive: false });
+    if (!this.disableWheel) {
+      this.container.addEventListener("wheel", this.boundOnWheel, { passive: false });
+    }
     this.container.addEventListener("mousedown", this.boundOnTouchDown);
     this.container.addEventListener("touchstart", this.boundOnTouchDown, { passive: true });
 
@@ -473,7 +477,9 @@ class GalleryApp {
 
     window.removeEventListener("resize", this.boundOnResize);
 
-    this.container.removeEventListener("wheel", this.boundOnWheel);
+    if (!this.disableWheel) {
+      this.container.removeEventListener("wheel", this.boundOnWheel);
+    }
     this.container.removeEventListener("mousedown", this.boundOnTouchDown);
     this.container.removeEventListener("touchstart", this.boundOnTouchDown);
 
@@ -512,6 +518,7 @@ export default function CircularGallery({
   autoRotate = false,
   autoRotateSpeed = 0.5,
   onImageClick,
+  disableWheel = false,
 }) {
   const containerRef = useRef(null);
   const appRef = useRef(null);
@@ -543,6 +550,7 @@ export default function CircularGallery({
       autoRotate,
       autoRotateSpeed,
       onImageClick: (index) => onImageClickRef.current?.(index),
+      disableWheel,
     });
 
     return () => {
