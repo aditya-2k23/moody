@@ -71,9 +71,6 @@ export default function AIInsightsSection({ insights, isLoading }) {
       <InsightCard
         isLoading={isLoading}
         showContent={showContent}
-        icon="🧩"
-        iconBg="bg-purple-500/75 sm:bg-purple-500/90"
-        title="emotional triggers"
         gradientPositions={{
           top: "top-0 left-10",
           topColors: "from-yellow-400/40 to-orange-400/30 dark:from-purple-400/40 dark:to-indigo-400/40"
@@ -124,9 +121,6 @@ export default function AIInsightsSection({ insights, isLoading }) {
       <InsightCard
         isLoading={isLoading}
         showContent={showContent}
-        icon="💡"
-        iconBg="bg-blue-500/75 sm:bg-blue-500/90"
-        title="personalized insight"
         className="mt-6"
         gradientPositions={{
           top: "top-0 left-10",
