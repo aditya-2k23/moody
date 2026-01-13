@@ -17,7 +17,7 @@ import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import NewFeatureDot from "./NewFeatureDot";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
-export default function Journal({ currentUser, onMemoryAdded }) {
+export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
   const { theme } = useTheme();
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,6 +32,15 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   // Track if entry has unsaved changes (for auto-save logic)
   const hasUnsavedChangesRef = useRef(false);
+
+  // Track last saved entry to prevent duplicate Firebase writes
+  const lastSavedEntryRef = useRef("");
+
+  // Track input source: "typing" | "voice"
+  const inputSourceRef = useRef("typing");
+
+  // Track previous isListening state to detect voice stop
+  const prevIsListeningRef = useRef(false);
 
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
@@ -71,7 +80,10 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     getDisplayValue
   } = useVoiceInput({
     initialValue: entry,
-    onTranscriptChange: (newEntry) => setEntry(newEntry),
+    onTranscriptChange: (newEntry) => {
+      inputSourceRef.current = "voice";
+      setEntry(newEntry);
+    },
   });
 
   // Compute display value with interim transcript
@@ -80,6 +92,11 @@ export default function Journal({ currentUser, onMemoryAdded }) {
   // ========== Auto-Save Logic (Text Only) ==========
   const saveJournalText = useCallback(async () => {
     if (!entry.trim() || !currentUser?.uid) return false;
+
+    // Prevent duplicate Firebase writes
+    if (entry === lastSavedEntryRef.current) {
+      return false;
+    }
 
     try {
       const docRef = doc(db, "users", currentUser.uid);
@@ -90,6 +107,10 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           }
         }
       }, { merge: true });
+      // Update last saved entry after successful save
+      lastSavedEntryRef.current = entry;
+      // Notify parent to update UI immediately
+      onJournalSaved?.(entry);
       return true;
     } catch (error) {
       console.error("Auto-save error:", error);
@@ -97,8 +118,12 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     }
   }, [entry, currentUser?.uid, year, month, day]);
 
-  // Trigger auto-save with debounce (600ms)
-  const triggerAutoSave = useCallback(() => {
+  // Debounce constants
+  const TYPING_DEBOUNCE_MS = 800;
+  const VOICE_DEBOUNCE_MS = 1500;
+
+  // Trigger auto-save with source-aware debounce
+  const triggerAutoSave = useCallback((immediate = false) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -108,10 +133,39 @@ export default function Journal({ currentUser, onMemoryAdded }) {
       return;
     }
 
-    setCloudStatus("saving");
+    // Skip autosave while voice is active (will save when voice stops)
+    if (isListening && !immediate) {
+      hasUnsavedChangesRef.current = true;
+      return;
+    }
+
+    // Skip if content hasn't changed
+    if (entry === lastSavedEntryRef.current) {
+      return;
+    }
+
     hasUnsavedChangesRef.current = true;
 
+    // Immediate save (used when voice stops or page exit)
+    if (immediate) {
+      setCloudStatus("saving");
+      saveJournalText().then((success) => {
+        if (success) {
+          setCloudStatus("saved");
+          hasUnsavedChangesRef.current = false;
+          setTimeout(() => setCloudStatus("idle"), 2000);
+        } else {
+          setCloudStatus("idle");
+        }
+      });
+      return;
+    }
+
+    // Don't show "saving" status during debounce wait, only when actually saving
+    const debounceTime = inputSourceRef.current === "voice" ? VOICE_DEBOUNCE_MS : TYPING_DEBOUNCE_MS;
+
     debounceTimerRef.current = setTimeout(async () => {
+      setCloudStatus("saving");
       const success = await saveJournalText();
       if (success) {
         setCloudStatus("saved");
@@ -120,8 +174,8 @@ export default function Journal({ currentUser, onMemoryAdded }) {
       } else {
         setCloudStatus("idle");
       }
-    }, 600);
-  }, [entry, saveJournalText]);
+    }, debounceTime);
+  }, [entry, saveJournalText, isListening]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -132,13 +186,60 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     };
   }, []);
 
-  // Trigger auto-save when entry changes
+  // Trigger auto-save when entry changes (only for typing, not voice)
   useEffect(() => {
     if (entry.trim()) {
-      triggerAutoSave();
+      if (isListening) {
+        // During voice input, just mark as having unsaved changes
+        // The save will happen when voice stops
+        hasUnsavedChangesRef.current = true;
+      } else {
+        triggerAutoSave();
+      }
+    }
+    // Reset input source to typing after processing
+    if (inputSourceRef.current === "voice" && !isListening) {
+      inputSourceRef.current = "typing";
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry]);
+
+  // Save immediately when voice input stops (isListening: true → false)
+  useEffect(() => {
+    if (prevIsListeningRef.current && !isListening) {
+      // Voice just stopped, trigger immediate save
+      if (entry.trim() && hasUnsavedChangesRef.current) {
+        triggerAutoSave(true);
+      }
+    }
+    prevIsListeningRef.current = isListening;
+  }, [isListening, entry, triggerAutoSave]);
+
+  // Page exit safety: save on visibility change and beforeunload
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && hasUnsavedChangesRef.current && entry.trim()) {
+        // Use synchronous approach for visibility change
+        saveJournalText();
+      }
+    };
+
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChangesRef.current && entry.trim()) {
+        saveJournalText();
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [saveJournalText, entry]);
 
   // ========== Image Upload Handlers ==========
   const handleImagesChange = (files, previews) => {
@@ -179,6 +280,9 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           }
         }, { merge: true });
         hasUnsavedChangesRef.current = false;
+        lastSavedEntryRef.current = entry;
+        // Notify parent to update UI immediately
+        onJournalSaved?.(entry);
       }
 
       if (selectedImages.length > 0) {

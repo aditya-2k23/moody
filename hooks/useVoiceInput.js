@@ -19,6 +19,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
   const baseEntryRef = useRef(initialValue);
   const lastProcessedIndexRef = useRef(-1);
 
+  // 5-minute voice timeout to limit mic usage
+  const VOICE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+  const voiceTimeoutRef = useRef(null);
+
   // Smart punctuation cleanup for voice-generated text only
   const cleanupVoiceText = useCallback((text) => {
     if (!text.trim()) return text;
@@ -150,23 +154,40 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
     }
 
     if (isListening) {
+      // Stop listening
       recognitionRef.current.shouldRestart = false;
       recognitionRef.current.stop();
       setIsListening(false);
       setInterimTranscript("");
+      // Clear voice timeout
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
     } else {
+      // Start listening
       baseEntryRef.current = currentEntry;
       lastProcessedIndexRef.current = -1;
       try {
         recognitionRef.current.shouldRestart = true;
         recognitionRef.current.start();
         setIsListening(true);
+
+        // Set 5-minute timeout to auto-stop
+        voiceTimeoutRef.current = setTimeout(() => {
+          toast("Voice input stopped after 5 minutes", { icon: "⏱️" });
+          recognitionRef.current.shouldRestart = false;
+          recognitionRef.current.stop();
+          setIsListening(false);
+          setInterimTranscript("");
+          voiceTimeoutRef.current = null;
+        }, VOICE_TIMEOUT_MS);
       } catch (e) {
         console.error("Failed to start speech recognition:", e);
         toast.error("Could not start voice input.");
       }
     }
-  }, [isListening]);
+  }, [isListening, VOICE_TIMEOUT_MS]);
 
   // Sync base entry ref when entry changes externally (e.g., user typing)
   const syncBaseEntry = useCallback((value) => {
