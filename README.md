@@ -36,7 +36,10 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 
 ### 🆕 Recent Features & Improvements
 
-- **Visual Memories v2.0**: Added support for uploading up to 4 photos per day with Cloudinary.
+- **🎤 Voice Input (Beta)**: Dictate your journal entries using the Web Speech API. Features smart punctuation, auto-capitalization, and a 5-minute listening limit to conserve resources.
+- **💾 Smart Autosave**: Journal entries are automatically saved to the cloud with intelligent debouncing for both typing and voice input. Includes safety measures to prevent data loss on page exit.
+- **✨ Enhanced Memories Animations**: Smooth fade-in/fade-out transitions with skeleton loaders for a polished loading experience.
+- **Visual Memories**: Added support for uploading up to 5 photos per day with Cloudinary.
 - **Parallel Uploading**: Images are uploaded in parallel for significantly faster log times.
 - **Photo Viewer**: Interactive Modal with zoom, mouse dragging, and keyboard shortcuts (Arrows, Esc, +/-).
 - **Performance Optimization**: Replaced dynamic AI placeholders with a curated static pool to eliminate loading flickers and reduce API costs.
@@ -124,7 +127,7 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 ## 📝 How to Use
 
 1. **Log Your Day**: Enter how you're feeling and write a short journal entry.
-2. **Add Photos**: Select up to 4 photos to capture the visual essence of your day.
+2. **Add Photos**: Select up to 5 photos to capture the visual essence of your day.
 3. **Get Insights**: Hit save to get AI analysis of your mood and triggers instantly.
 4. **Relive Memories**: Tap on any image in your memories grid to open the full-screen viewer. Use Arrow keys to navigate through your month's photos.
 5. **Manage History**: Use the calendar to jump between months and view your past emotional trends.

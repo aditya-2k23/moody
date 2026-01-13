@@ -4,40 +4,76 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Fonts */
+  --font-fugaz: "Fugaz One", sans-serif;
+
+  /* Colors */
+  --color-lavender: lavender;
+  --color-glow: rgba(254, 240, 138, 0.822);
+  --color-resizer: #818cf8;
+
+  /* Shadows */
+  --shadow-light: 3px 3px 1px 1px var(--color-lavender);
+  --shadow-light-hover: 0px 0px 1px 1px var(--color-lavender);
+
+  /* Dark Mode Colors */
+  --color-shadow-dark: rgb(51 65 85 / 0.8);
+  --color-shadow-dark-hover: rgb(51 65 85 / 0.2);
+  --color-glow-dark: rgba(254, 240, 138, 0.47);
+  --color-resizer-dark: #6366f1;
+}
+
 .fugaz {
-  font-family: "Fugaz One", sans-serif;
+  font-family: var(--font-fugaz);
   font-weight: 400;
   font-style: normal;
 }
 
+/* Text Gradients */
 .textGradient {
   @apply bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-400 bg-clip-text text-transparent;
 }
 
-/* Dark mode gradient override */
 .dark .textGradient {
   @apply bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-300 bg-clip-text text-transparent;
 }
 
+/* Shadows */
 .purpleShadow {
-  box-shadow: 3px 3px 1px 1px lavender;
+  box-shadow: var(--shadow-light);
 }
 
 .purpleShadow:hover {
   transform: translate(3px, 3px);
-  box-shadow: 0px 0px 1px 1px lavender;
+  box-shadow: var(--shadow-light-hover);
 }
 
 .dark .purpleShadow {
-  box-shadow: 3px 3px 1px 1px rgb(51 65 85 / 0.8);
+  box-shadow: 3px 3px 1px 1px var(--color-shadow-dark);
   backdrop-filter: blur(10px);
 }
 
 .dark .purpleShadow:hover {
   transform: translate(3px, 3px);
-  box-shadow: 0px 0px 1px 1px rgb(51 65 85 / 0.2);
+  box-shadow: 0px 0px 1px 1px var(--color-shadow-dark-hover);
 }
 
+/* Glow */
+.glow {
+  transition: box-shadow 0.2s ease-out;
+}
+
+.glow:hover {
+  box-shadow: 2px 1px 2px 2px var(--color-glow);
+}
+
+.dark .glow:hover {
+  box-shadow: 1px 1px 1px 1px var(--color-glow-dark);
+  backdrop-filter: blur(10px);
+}
+
+/* Animations */
 .sparkle {
   animation: sparkle 1.5s infinite ease-in-out;
 }
@@ -56,26 +92,54 @@
   }
 }
 
-/* Glow with a yellow color starting to pick out from the background */
-.glow {
-  transition: box-shadow 0.2s ease-out;
+.animation-delay-200 {
+  animation-delay: 200ms;
 }
 
-.glow:hover {
-  box-shadow: 2px 1px 2px 2px rgba(254, 240, 138, 0.822);
+.animation-delay-400 {
+  animation-delay: 400ms;
 }
 
-.dark .glow:hover {
-  box-shadow: 1px 1px 1px 1px rgba(254, 240, 138, 0.47);
-  backdrop-filter: blur(10px);
+.animation-delay-600 {
+  animation-delay: 600ms;
 }
 
-/* Dark mode base styles */
+@keyframes loading-bar {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 3s ease-out forwards;
+}
+
+/* Fade In Animation for listening indicator */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Dark Mode Overrides */
 .dark {
   color-scheme: dark;
 }
 
-/* Dark mode overrides */
 .dark .bg-white {
   @apply bg-slate-900;
 }
@@ -93,27 +157,14 @@
 }
 
 .dark .bg-slate-100 {
-  @apply bg-slate-800
+  @apply bg-slate-800;
 }
 
 .dark .hover\:bg-slate-100:hover {
   @apply hover:bg-slate-800;
 }
 
-/* Animation delay utilities */
-.animation-delay-200 {
-  animation-delay: 200ms;
-}
-
-.animation-delay-400 {
-  animation-delay: 400ms;
-}
-
-.animation-delay-600 {
-  animation-delay: 600ms;
-}
-
-/* Custom resize handle styling for journal textarea */
+/* Journal Textarea */
 .journal-textarea {
   resize: vertical;
   min-height: 6rem;
@@ -121,25 +172,95 @@
 }
 
 .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, #818cf8 50%, #818cf8 60%, transparent 60%, transparent 75%, #818cf8 75%, #818cf8 85%, transparent 85%);
+  background: linear-gradient(135deg, transparent 50%, var(--color-resizer) 50%, var(--color-resizer) 60%, transparent 60%, transparent 75%, var(--color-resizer) 75%, var(--color-resizer) 85%, transparent 85%);
   border-radius: 0 0 8px 0;
 }
 
 .dark .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, #6366f1/90 50%, #6366f1/90 60%, transparent 60%, transparent 75%, #6366f1/90 75%, #6366f1/90 85%, transparent 85%);
+  background: linear-gradient(135deg, transparent 50%, var(--color-resizer-dark) 50%, var(--color-resizer-dark) 60%, transparent 60%, transparent 75%, var(--color-resizer-dark) 75%, var(--color-resizer-dark) 85%, transparent 85%);
 }
 
-/* Loading bar animation for dashboard navigation */
-@keyframes loading-bar {
+/* ========== AI Insights Section Animations ========== */
+
+/* Skeleton loading pulse with subtle opacity */
+.animate-insights-skeleton {
+  animation: insights-skeleton-pulse 2s ease-in-out infinite;
+}
+
+@keyframes insights-skeleton-pulse {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shimmer effect for loading state */
+.animate-insights-shimmer {
+  animation: insights-shimmer 1.5s infinite;
+}
+
+@keyframes insights-shimmer {
   0% {
-    width: 0%;
+    transform: translateX(-100%);
   }
 
   100% {
-    width: 100%;
+    transform: translateX(100%);
   }
 }
 
-.animate-loading-bar {
-  animation: loading-bar 3s ease-out forwards;
+/* Content fade-in animation */
+.animate-insights-content {
+  animation: insights-content-reveal 0.3s ease-out forwards;
+}
+
+@keyframes insights-content-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Badge entrance animation */
+.animate-insights-badge {
+  animation: insights-badge-pop 0.25s ease-out forwards;
+}
+
+@keyframes insights-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========== Circular Gallery Styles ========== */
+
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.circular-gallery:active {
+  cursor: grabbing;
+}
+
+.memories-circular-gallery canvas {
+  display: block;
 }

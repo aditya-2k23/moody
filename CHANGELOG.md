@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.4.11] - 2026-01-13
+
+### 🚀 New Features
+
+- **🎤 Voice Input (Beta)**:
+
+  - Dictate journal entries using the **Web Speech API**.
+  - Smart punctuation: auto-capitalization and intelligent sentence endings.
+  - Supports continuous dictation with real-time interim transcripts.
+  - **5-minute listening limit** to conserve microphone resources.
+  - Seamlessly integrates with the journal textarea for hybrid typing + voice workflows.
+
+- **💾 Smart Autosave**:
+
+  - Journal entries are now **automatically saved** to the cloud.
+  - Intelligent debouncing with distinct timing for typing (2s) and voice input (triggered on stop).
+  - **Safety measures**: Autosave on visibility change and `beforeunload` to prevent data loss.
+  - Cloud sync status indicator shows real-time save state.
+
+- **✨ Enhanced Memories Animations**:
+  - Smooth **fade-in/fade-out transitions** when switching between months.
+  - Added **skeleton loaders** for a polished loading experience.
+  - Improved empty state handling with graceful animations.
+
+### 🔧 Improvements
+
+- **Visual Memories**: Now supports up to **5 photos** per journal entry (previously 4).
+- **Journal UX**: Immediate text updates in the display after saving (both manual and autosave).
+- **Performance**: Reduced flickering in cloud status indicator.
+
+### 🐛 Bug Fixes
+
+- Fixed duplicate Firebase writes by tracking the last saved entry hash.
+- Prevented autosave from triggering while voice input is actively listening.
+- Fixed edge case where autosave could fire with stale data on rapid input.
+
+---
+
 ## [2.2.3] - 2025-12-31
 
 ### 🚀 New Features

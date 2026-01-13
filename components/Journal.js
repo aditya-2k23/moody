@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -10,27 +10,45 @@ import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
-import { moods } from "@/utils";
 import Image from "next/image";
 import { useTheme } from "@/context/themeContext";
+import AIInsightsSection from "./AIInsightsSection";
+import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
+import NewFeatureDot from "./NewFeatureDot";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 
-export default function Journal({ currentUser, onMemoryAdded }) {
+export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
   const { theme } = useTheme();
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
 
+  // Cloud save status: 'idle' | 'saving' | 'saved'
+  const [cloudStatus, setCloudStatus] = useState("idle");
+
+  // Debounce timer ref for auto-save
+  const debounceTimerRef = useRef(null);
+
+  // Track if entry has unsaved changes (for auto-save logic)
+  const hasUnsavedChangesRef = useRef(false);
+
+  // Track last saved entry to prevent duplicate Firebase writes
+  const lastSavedEntryRef = useRef("");
+
+  // Track input source: "typing" | "voice"
+  const inputSourceRef = useRef("typing");
+
+  // Track previous isListening state to detect voice stop
+  const prevIsListeningRef = useRef(false);
+
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
 
-  // Image upload state - supports multiple files (max 4 per day)
+  // Image upload state
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null);
-  const MAX_IMAGES_PER_DAY = 4;
-  const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
 
   const now = new Date();
   const day = now.getDate();
@@ -39,23 +57,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   // Determine if we're in dark mode (SSR-safe)
   const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
-
-  // Ref to track preview URLs for cleanup (avoids stale closure in unmount effect)
-  const previewUrlsRef = useRef([]);
-
-  // Keep ref in sync with imagePreviews state
-  useEffect(() => {
-    previewUrlsRef.current = imagePreviews;
-  }, [imagePreviews]);
-
-  // Cleanup: revoke all object URLs on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      previewUrlsRef.current.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
-    };
-  }, []);
 
   useEffect(() => {
     if (theme === 'system') {
@@ -71,74 +72,241 @@ export default function Journal({ currentUser, onMemoryAdded }) {
 
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
-  const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+  // Voice input hook
+  const {
+    isListening,
+    toggleVoiceInput,
+    syncBaseEntry,
+    getDisplayValue
+  } = useVoiceInput({
+    initialValue: entry,
+    onTranscriptChange: (newEntry) => {
+      inputSourceRef.current = "voice";
+      setEntry(newEntry);
+    },
+  });
 
-    // Check if adding these would exceed the max
-    if (selectedImages.length + files.length > MAX_IMAGES_PER_DAY) {
-      toast.error(`Maximum ${MAX_IMAGES_PER_DAY} photos per day`);
-      e.target.value = "";
+  // Compute display value with interim transcript
+  const displayEntry = getDisplayValue(entry);
+
+  // Store onJournalSaved in a ref to keep dependency array stable
+  const onJournalSavedRef = useRef(onJournalSaved);
+  useEffect(() => {
+    onJournalSavedRef.current = onJournalSaved;
+  }, [onJournalSaved]);
+
+  // ========== Auto-Save Logic (Text Only) ==========
+  const saveJournalText = useCallback(async () => {
+    if (!entry.trim() || !currentUser?.uid) return false;
+
+    // Prevent duplicate Firebase writes
+    if (entry === lastSavedEntryRef.current) {
+      return false;
+    }
+
+    try {
+      const docRef = doc(db, "users", currentUser.uid);
+      await setDoc(docRef, {
+        [year]: {
+          [month]: {
+            [`journal_${day}`]: entry
+          }
+        }
+      }, { merge: true });
+      // Update last saved entry after successful save
+      lastSavedEntryRef.current = entry;
+      // Notify parent to update UI immediately
+      onJournalSavedRef.current?.(entry);
+      return true;
+    } catch (error) {
+      console.error("Auto-save error:", error);
+      return false;
+    }
+  }, [entry, currentUser, year, month, day]);
+
+  // Debounce constants
+  const TYPING_DEBOUNCE_MS = 800;
+  const VOICE_DEBOUNCE_MS = 1500;
+
+  // Trigger auto-save with source-aware debounce
+  const triggerAutoSave = useCallback((immediate = false) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (!entry.trim()) {
+      setCloudStatus("idle");
       return;
     }
 
-    const validFiles = [];
-    const previews = [];
-
-    for (const file of files) {
-      // Validate file size (7MB max)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`"${file.name}" exceeds 7MB limit`);
-        continue;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error(`"${file.name}" is not an image`);
-        continue;
-      }
-
-      validFiles.push(file);
-      previews.push(URL.createObjectURL(file));
+    // Skip autosave while voice is active (will save when voice stops)
+    if (isListening && !immediate) {
+      hasUnsavedChangesRef.current = true;
+      return;
     }
 
-    if (validFiles.length) {
-      setSelectedImages((prev) => [...prev, ...validFiles]);
-      setImagePreviews((prev) => [...prev, ...previews]);
+    // Skip if content hasn't changed
+    if (entry === lastSavedEntryRef.current) {
+      return;
     }
 
-    e.target.value = "";
-  };
+    hasUnsavedChangesRef.current = true;
 
-  const removeImage = (index) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => {
-      // Revoke the URL to free memory
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
+    // Immediate save (used when voice stops or page exit)
+    if (immediate) {
+      setCloudStatus("saving");
+      saveJournalText().then((success) => {
+        if (success) {
+          setCloudStatus("saved");
+          hasUnsavedChangesRef.current = false;
+          setTimeout(() => setCloudStatus("idle"), 2000);
+        } else {
+          setCloudStatus("idle");
+        }
+      });
+      return;
+    }
+
+    // Don't show "saving" status during debounce wait, only when actually saving
+    const debounceTime = inputSourceRef.current === "voice" ? VOICE_DEBOUNCE_MS : TYPING_DEBOUNCE_MS;
+
+    debounceTimerRef.current = setTimeout(async () => {
+      setCloudStatus("saving");
+      const success = await saveJournalText();
+      if (success) {
+        setCloudStatus("saved");
+        hasUnsavedChangesRef.current = false;
+        setTimeout(() => setCloudStatus("idle"), 2000);
+      } else {
+        setCloudStatus("idle");
+      }
+    }, debounceTime);
+  }, [entry, saveJournalText, isListening]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Trigger auto-save when entry changes (only for typing, not voice)
+  useEffect(() => {
+    if (entry.trim()) {
+      if (isListening) {
+        // During voice input, just mark as having unsaved changes
+        // The save will happen when voice stops
+        hasUnsavedChangesRef.current = true;
+      } else {
+        triggerAutoSave();
+      }
+    }
+    // Reset input source to typing after processing
+    if (inputSourceRef.current === "voice" && !isListening) {
+      inputSourceRef.current = "typing";
+    }
+    // This effect triggers ONLY on entry changes to initiate auto-save.
+    // Omitting triggerAutoSave prevents re-running on its internal dep changes.
+    // Omitting isListening prevents double-triggering (voice stop handled in separate effect).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry]);
+
+  // Save immediately when voice input stops (isListening: true → false)
+  useEffect(() => {
+    if (prevIsListeningRef.current && !isListening) {
+      // Voice just stopped, trigger immediate save
+      if (entry.trim() && hasUnsavedChangesRef.current) {
+        triggerAutoSave(true);
+      }
+    }
+    prevIsListeningRef.current = isListening;
+  }, [isListening, entry, triggerAutoSave]);
+
+  // Page exit safety: save on visibility change and beforeunload using sendBeacon for reliability
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && hasUnsavedChangesRef.current && entry.trim()) {
+        // Use sendBeacon for guaranteed delivery on page hide
+        if (navigator.sendBeacon && currentUser?.uid) {
+          // Compute fresh date values to avoid stale dates
+          const now = new Date();
+          const day = now.getDate();
+          const month = now.getMonth();
+          const year = now.getFullYear();
+
+          // Get fresh ID token for authentication
+          currentUser.getIdToken().then((idToken) => {
+            const payload = JSON.stringify({
+              idToken,
+              year,
+              month,
+              day,
+              entry: entry.trim()
+            });
+            navigator.sendBeacon('/api/journal-beacon', payload);
+            hasUnsavedChangesRef.current = false;
+            lastSavedEntryRef.current = entry;
+          }).catch(() => {
+            // Fall back to async save if token retrieval fails
+            saveJournalText();
+          });
+        } else {
+          // Fall back to async save when sendBeacon unavailable
+          saveJournalText();
+        }
+      }
+    };
+
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChangesRef.current && entry.trim()) {
+        // Show browser's "are you sure?" prompt.
+        // The visibilitychange handler (which fires first on tab close) handles the actual save.
+        // Async saves here won't reliably complete before unload, so we just warn the user.
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [saveJournalText, entry, currentUser]);
+
+  // ========== Image Upload Handlers ==========
+  const handleImagesChange = (files, previews) => {
+    setSelectedImages(files);
+    setImagePreviews(previews);
   };
 
   const clearImages = () => {
     imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     setSelectedImages([]);
     setImagePreviews([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
+  // ========== Save Handler ==========
   const handleSave = async () => {
     if (!entry.trim() && selectedImages.length === 0) {
       toast.error("Add a journal entry or photos.");
       return;
     }
 
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
     setSaving(true);
+    setCloudStatus("saving");
     setUploading(selectedImages.length > 0);
 
     try {
-      // Save journal text if present
       if (entry.trim()) {
         const docRef = doc(db, "users", currentUser.uid);
         await setDoc(docRef, {
@@ -148,11 +316,13 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             }
           }
         }, { merge: true });
+        hasUnsavedChangesRef.current = false;
+        lastSavedEntryRef.current = entry;
+        // Notify parent to update UI immediately
+        onJournalSaved?.(entry);
       }
 
-      // Upload images if present (parallel uploads for better performance)
       if (selectedImages.length > 0) {
-        // Upload all images in parallel
         const uploadPromises = selectedImages.map(async (file) => {
           const uploadResult = await uploadToCloudinary(file, currentUser.uid);
 
@@ -160,7 +330,6 @@ export default function Journal({ currentUser, onMemoryAdded }) {
             return { success: false, fileName: file.name, error: "upload" };
           }
 
-          // Save memory to Firestore with publicId for deletion support
           const saveResult = await saveMemory(currentUser.uid, day, uploadResult.url, uploadResult.publicId);
 
           if (!saveResult.success) {
@@ -181,14 +350,11 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           } else if (result.status === "fulfilled" && !result.value.success) {
             failedFiles.push(result.value.fileName);
           } else if (result.status === "rejected") {
-            // Promise rejected (unexpected error)
             failedFiles.push("unknown");
           }
         });
 
-        // Show individual errors for failed files
         if (failedFiles.length > 0 && failedFiles.length < selectedImages.length) {
-          // Some failed, some succeeded
           failedFiles.forEach((fileName) => {
             if (fileName !== "unknown") {
               toast.error(`Failed to upload: ${fileName}`);
@@ -196,15 +362,12 @@ export default function Journal({ currentUser, onMemoryAdded }) {
           });
         }
 
-        // Handle the all-failures edge case
         if (uploadedCount === 0 && selectedImages.length > 0) {
           toast.error("All uploads failed. Please try again.");
           clearImages();
         } else if (uploadedCount > 0) {
-          // Invalidate cache so memories refresh
           invalidateMemoriesCache(currentUser.uid, year, month);
 
-          // Notify parent to refetch memories
           if (onMemoryAdded) {
             onMemoryAdded();
           }
@@ -224,12 +387,20 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save. Please try again.");
+      setCloudStatus("idle");
     } finally {
       setSaving(false);
       setUploading(false);
+      if (entry.trim()) {
+        setCloudStatus("saved");
+        setTimeout(() => setCloudStatus("idle"), 2500);
+      } else {
+        setCloudStatus("idle");
+      }
     }
   };
 
+  // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async () => {
     if (!entry.trim()) {
       toast.error("Journal entry cannot be empty.");
@@ -240,17 +411,13 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     const docRef = doc(db, "users", currentUser.uid, "insights", entry);
 
     try {
-      // Check cache first
       const cachedDoc = await getDoc(docRef);
       if (cachedDoc.exists()) {
         setInsights(cachedDoc.data());
         console.log("Loaded cached insights.");
       } else {
-        // Fetch new insights
         const result = await analyzeEntry(entry);
         setInsights(result);
-
-        // Cache the new insights
         await setDoc(docRef, result);
         console.log("New insights generated and cached.");
       }
@@ -265,96 +432,95 @@ export default function Journal({ currentUser, onMemoryAdded }) {
     <div className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-        <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
 
-        <h2 className="text-xl md:text-2xl font-bold fugaz mb-4 flex items-center gap-2"><i className="fa-solid fa-book"></i> Quick Journal</h2>
+        {/* Header with Cloud Status Indicator */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
+            <i className="fa-solid fa-book"></i> Quick Journal
+          </h2>
+
+          {/* Cloud Save Status */}
+          <div
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-500 ease-out ${cloudStatus === "idle"
+              ? "opacity-0 scale-95 pointer-events-none"
+              : "opacity-100 scale-100"
+              }`}
+          >
+            <i
+              className={`fa-solid text-sm ${cloudStatus === "saving"
+                ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
+                : "fa-check text-green-500 dark:text-green-400"
+                }`}
+            ></i>
+            <span
+              className={`text-xs font-medium ${cloudStatus === "saving"
+                ? "text-indigo-500 dark:text-indigo-300"
+                : "text-green-600 dark:text-green-400"
+                }`}
+            >
+              {cloudStatus === "saving" ? "Saving..." : "Saved"}
+            </span>
+          </div>
+        </div>
+
         <div className="relative">
           <textarea
             name="journal"
             id="journal"
             className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
             placeholder={placeholder}
-            value={entry}
+            value={displayEntry}
             onChange={(e) => {
-              setEntry(e.target.value);
+              const newValue = e.target.value;
+              setEntry(newValue);
+              syncBaseEntry(newValue);
               // Auto-expand textarea to fit content
               e.target.style.height = 'auto';
               e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
             }}
           />
 
-          {/* Floating generic photo upload button */}
-          {imagePreviews.length === 0 && (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={saving || uploading}
-              className="absolute bottom-3.5 right-4 w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80"
-              title="Add photos"
-            >
-              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-red-500 rounded-full" />
-              <i className="fa-regular fa-image text-lg"></i>
-            </button>
+          {/* Listening indicator */}
+          {isListening && (
+            <div className="absolute top-2 right-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-50/90 dark:bg-red-500/20 backdrop-blur-sm transition-all duration-300 animate-fade-in">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+              <span className="text-xs text-red-500 dark:text-red-300 font-medium">
+                Listening...
+              </span>
+            </div>
           )}
+
+          {/* Voice Input Button */}
+          <button
+            type="button"
+            onClick={() => toggleVoiceInput(entry)}
+            className={`absolute bottom-9 right-[60px] w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+              ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
+              : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
+              }`}
+            title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
+          >
+            <NewFeatureDot className="absolute top-[-2px] right-[-2px]" />
+            <i
+              className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
+                }`}
+            ></i>
+          </button>
+
+          {/* Image Upload Component */}
+          <ImageUpload
+            selectedImages={selectedImages}
+            imagePreviews={imagePreviews}
+            onImagesChange={handleImagesChange}
+            disabled={saving || uploading}
+            className="bottom-9 right-3.5"
+          />
         </div>
-
-        {/* New feature hint */}
-        {imagePreviews.length === 0 && (
-          <p className="text-xs text-right text-indigo-500 dark:text-indigo-300 font-medium mt-1 flex items-center justify-end gap-1">
-            <i className="fa-solid fa-sparkles text-[10px]"></i>
-            <span>New! Add photos to your memories</span>
-          </p>
-        )}
-
-        {/* Image Previews */}
-        {imagePreviews.length > 0 && (
-          <div className="flex flex-wrap gap-3 mt-3">
-            {imagePreviews.map((preview, index) => {
-              // Security: Only render valid blob URLs to prevent XSS
-              const isSafeBlobUrl = typeof preview === 'string' && preview.startsWith('blob:');
-              if (!isSafeBlobUrl) return null;
-
-              return (
-                <div key={index} className="relative">
-                  <img
-                    src={preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded-lg border-2 border-indigo-300 dark:border-indigo-500 shadow-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-purple-600 transition-colors shadow-md"
-                    title="Remove"
-                  >
-                    <i className="fa-solid fa-xmark text-[10px] text-indigo-50"></i>
-                  </button>
-                </div>
-              );
-            })}
-            {imagePreviews.length < MAX_IMAGES_PER_DAY && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-20 h-20 rounded-lg border-2 border-dashed border-indigo-300 dark:border-indigo-500 flex items-center justify-center text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors"
-                title="Add more photos"
-              >
-                <i className="fa-solid fa-plus text-lg"></i>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Hidden file input - accepts multiple */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleImageSelect}
-          accept="image/*"
-          multiple
-          className="hidden"
-        />
 
         <div className="flex justify-end items-center gap-2 mt-3">
           {/* Photo count indicator */}
@@ -386,69 +552,8 @@ export default function Journal({ currentUser, onMemoryAdded }) {
         </div>
       </div>
 
-      {insights && (
-        <>
-          <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 font-bold text-gray-800 dark:text-gray-200 fugaz"><Image src="/ai.svg" alt="AI Icon" width={26} height={26} />AI Insights</h2>
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-            <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/40 dark:to-indigo-400/40 rounded-full blur-3xl" />
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-500/75 sm:bg-purple-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">🧩</span>
-                </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">emotional triggers</h3>
-              </div>
-
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">{insights.mood}</span>
-              </div>
-            </div>
-
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">What Influenced your Mood</h4>
-            {insights.summary}
-            {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {insights.triggers.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-block bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 dark:border-none shadow-sm hover:bg-indigo-200 transition-all duration-150"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-            <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-cyan-400/30 dark:to-sky-400/30 rounded-full blur-3xl" />
-            <div className="absolute bottom-1 right-12 w-28 h-28 bg-gradient-to-tr from-lime-400/50 to-green-500/40 dark:from-lime-400/30 dark:to-green-300/30 rounded-full blur-3xl" />
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/75 sm:bg-blue-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">💡</span>
-                </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">PERSONALIZED INSIGHT</h3>
-              </div>
-
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">{insights.mood}</span>
-              </div>
-            </div>
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{insights.headline || "Personalized Insight"}</h4>
-            <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed mb-4">{insights.insight}</p>
-
-            <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3">
-              <p className="text-sm text-lime-600 dark:text-lime-300">
-                <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
-              </p>
-            </div>
-          </div>
-        </>
-      )}
+      {/* AI Insights Section */}
+      <AIInsightsSection insights={insights} isLoading={loadingInsights} />
     </div>
   );
 }

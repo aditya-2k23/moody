@@ -292,6 +292,28 @@ export default function DashboardContent() {
         <Journal
           currentUser={currentUser}
           onMemoryAdded={refetchMemories}
+          onJournalSaved={(savedEntry) => {
+            // Compute fresh date values to avoid stale dates if tab was open past midnight
+            const now = new Date();
+            const day = now.getDate();
+            const month = now.getMonth();
+            const year = now.getFullYear();
+            // Update local data state so Calendar reflects the saved journal immediately
+            setData((prevData) => {
+              const newData = { ...prevData };
+              if (!newData[year]) newData[year] = {};
+              if (!newData[year][month]) newData[year][month] = {};
+              newData[year][month][`journal_${day}`] = savedEntry;
+              return newData;
+            });
+            setUserDataObj((prevData) => {
+              const newData = { ...prevData };
+              if (!newData[year]) newData[year] = {};
+              if (!newData[year][month]) newData[year][month] = {};
+              newData[year][month][`journal_${day}`] = savedEntry;
+              return newData;
+            });
+          }}
         />
 
         <Memories
