@@ -192,7 +192,7 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
         toast.error("Could not start voice input.");
       }
     }
-  }, [isListening, VOICE_TIMEOUT_MS]);
+  }, [isListening]);
 
   // Sync base entry ref when entry changes externally (e.g., user typing)
   const syncBaseEntry = useCallback((value) => {

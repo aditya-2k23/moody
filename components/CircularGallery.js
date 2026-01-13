@@ -224,7 +224,6 @@ class GalleryApp {
       disableWheel = false,
     } = {}
   ) {
-    document.documentElement.classList.remove("no-js");
     this.container = container;
     this.scrollSpeed = scrollSpeed;
     this.autoRotate = autoRotate;
