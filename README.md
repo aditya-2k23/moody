@@ -127,7 +127,7 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 ## 📝 How to Use
 
 1. **Log Your Day**: Enter how you're feeling and write a short journal entry.
-2. **Add Photos**: Select up to 4 photos to capture the visual essence of your day.
+2. **Add Photos**: Select up to 5 photos to capture the visual essence of your day.
 3. **Get Insights**: Hit save to get AI analysis of your mood and triggers instantly.
 4. **Relive Memories**: Tap on any image in your memories grid to open the full-screen viewer. Use Arrow keys to navigate through your month's photos.
 5. **Manage History**: Use the calendar to jump between months and view your past emotional trends.
