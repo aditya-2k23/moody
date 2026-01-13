@@ -9,9 +9,10 @@ import toast from "react-hot-toast";
  * @param {Object} options
  * @param {string} options.initialValue - Initial text value
  * @param {function} options.onTranscriptChange - Callback when transcript changes
+ * @param {string} options.lang - Speech recognition language (default: "en-US")
  * @returns {Object} Voice input state and controls
  */
-export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
+export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "en-US" }) {
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
 
@@ -75,7 +76,7 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange }) {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = "en-US";
+      recognition.lang = lang;
 
       recognition.onresult = (event) => {
         let finalTranscript = "";
