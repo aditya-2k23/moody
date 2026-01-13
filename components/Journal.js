@@ -207,6 +207,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     if (inputSourceRef.current === "voice" && !isListening) {
       inputSourceRef.current = "typing";
     }
+    // We intentionally omit triggerAutoSave/isListening to avoid re-running when only config changes.
+    // This effect is specifically for tracking entry content updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry]);
 
