@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.4.14] - 2026-01-14
+
+### 🔒 Security
+
+- **Patched React Server Components vulnerabilities**:
+  - Fixed CVE-2025-55182, CVE-2025-55183, CVE-2025-55184 (RSC security flaws).
+  - Upgraded `next` from 15.4.10 → **15.5.9**.
+  - Upgraded `react` and `react-dom` from ^19.0.0 → **19.2.3**.
+  - Upgraded `eslint-config-next` from 15.4.7 → **15.5.9**.
+
+---
+
 ## [2.4.13] - 2026-01-13
 
 ### 🚀 New Features
