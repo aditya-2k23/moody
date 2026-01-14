@@ -4,12 +4,13 @@ This document outlines the development plan and future vision for **Moody**. Our
 
 > **Note:** This roadmap is a living document and subject to change based on community feedback and project priorities.
 
-## 📍 Current Status (v2.0)
+## 📍 Current Status (v2.4)
 
 - [x] **User Authentication** (Firebase Auth)
 - [x] **Mood Logging** (Daily mood + Journaling)
-- [x] **Visual Memories** (Upload up to 4 photos/day via Cloudinary)
+- [x] **Visual Memories** (Upload up to 5 photos/day via Cloudinary)
 - [x] **AI Insights** (Gemini 2.5 Flash integration for mood analysis)
+- [x] **🎙️ Voice Input Support** (Beta transcription + Smart Autosave)
 - [x] **Dashboard** (Stats, streaks, and averages)
 - [x] **Interactive Gallery** (Zoom, pan, keyboard nav)
 - [x] **Docker Support** (Containerized deployment)
@@ -18,32 +19,51 @@ This document outlines the development plan and future vision for **Moody**. Our
 
 ### Q1 2026
 
-- [ ] **🎙️ Voice Input Support**
-  - Log your journal entries by speaking instead of typing.
-  - Automatic transcription and sentiment analysis.
+- [x] **🎙️ Voice Input Support**
 - [ ] **📊 Advanced Analytics**
   - Weekly and monthly mood graphs.
   - Correlation between specific triggers and moods over time.
 - [ ] **📱 Mobile Responsiveness Polish**
   - Better touch targets and gestures for mobile users.
   - PWA (Progressive Web App) installation support.
+- [ ] **✨ Premium Mode**
+  - Ad-free experience and exclusive themes.
 
 ### Q2 2026
 
 - [ ] **📥 Data Export**
   - Allow users to download their journal history and photos (JSON/PDF).
-- [ ] **🌑 Theme Customization**
-  - More accent colors and theme options beyond Light/Dark mode.
+- [ ] **🎵 Soothing Background Music**
+  - Option to play calming music while journaling.
 - [ ] **🔔 Reminders**
   - Optional browser notifications to log your mood.
+- [ ] **🤖 AI Chat Companion**
+  - Chat with an AI about your day and get personalized insights.
+
+### Q3 2026
+
+- [ ] **🌑 Theme Customization**
+  - More accent colors and theme options beyond Light/Dark mode.
+- [ ] **📅 Mood Prediction**
+  - Predict your mood based on past entries and trends.
+- [ ] **🖼️ Photo Enhancements**
+  - Basic photo editing tools (crop, rotate, filters).
+- [ ] **🌐 Multi-language Support**
+  - Support for additional languages beyond English.
+
+### Q4 2026
+
+- [ ] **🛡️ Data Ownership & Trust**
+  - Privacy dashboard and clear delete/export flows.
+- [ ] **📱 Mobile App Development**
+  - Native iOS and Android apps for better performance.
 
 ## 🔮 Future Goals (Long Term)
 
-- [ ] **Native Mobile App** (React Native)
-- [ ] **Multi-language Support** (i18n)
 - [ ] **Mood Calendar Sharing** (Opt-in for sharing with therapists or friends)
 - [ ] **Offline Mode** (Sync changes when back online)
 - [ ] **End-to-End Encryption** for journal entries
+- [ ] **Health Kit Integration** (Sync with Apple Health/Google Fit)
 
 ## 🤝 How to Contribute
 
