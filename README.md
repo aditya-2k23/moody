@@ -75,12 +75,6 @@ docker run -d -p 3000:3000 --name moody --env-file .env temaroon/moody:latest
 
 Once running, access the application at [http://localhost:3000](http://localhost:3000).
 
-### When to use Docker
-
-- **Consistent Environment**: Avoid "it works on my machine" issues by using the same environment as production.
-- **Quick Testing**: Spin up the entire application with a single command without installing dependencies locally.
-- **CI/CD Integration**: Easily integrate with automated testing and deployment pipelines.
-
 ## 📦 Getting Started
 
 If you prefer Docker, see the [Docker Support](#-docker-support) section above.
