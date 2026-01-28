@@ -14,7 +14,6 @@ import Image from "next/image";
 import { useTheme } from "@/context/themeContext";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
-import NewFeatureDot from "./NewFeatureDot";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
@@ -125,8 +124,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   }, [entry, currentUser, year, month, day]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 800;
-  const VOICE_DEBOUNCE_MS = 1500;
+  const TYPING_DEBOUNCE_MS = 1000;
+  const VOICE_DEBOUNCE_MS = 1600;
 
   // Trigger auto-save with source-aware debounce
   const triggerAutoSave = useCallback((immediate = false) => {
@@ -505,7 +504,6 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               }`}
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
-            <NewFeatureDot className="absolute top-[-2px] right-[-2px]" />
             <i
               className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
                 }`}
