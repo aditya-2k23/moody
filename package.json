@@ -1,6 +1,6 @@
 {
   "name": "moody",
-  "version": "2.4.14",
+  "version": "2.4.19",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
