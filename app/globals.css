@@ -201,12 +201,32 @@
 }
 
 .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, var(--color-resizer) 50%, var(--color-resizer) 60%, transparent 60%, transparent 75%, var(--color-resizer) 75%, var(--color-resizer) 85%, transparent 85%);
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--color-resizer) 50%,
+    var(--color-resizer) 60%,
+    transparent 60%,
+    transparent 75%,
+    var(--color-resizer) 75%,
+    var(--color-resizer) 85%,
+    transparent 85%
+  );
   border-radius: 0 0 8px 0;
 }
 
 .dark .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, var(--color-resizer-dark) 50%, var(--color-resizer-dark) 60%, transparent 60%, transparent 75%, var(--color-resizer-dark) 75%, var(--color-resizer-dark) 85%, transparent 85%);
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--color-resizer-dark) 50%,
+    var(--color-resizer-dark) 60%,
+    transparent 60%,
+    transparent 75%,
+    var(--color-resizer-dark) 75%,
+    var(--color-resizer-dark) 85%,
+    transparent 85%
+  );
 }
 
 /* ========== AI Insights Section Animations ========== */
