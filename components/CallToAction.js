@@ -11,7 +11,7 @@ export default function CallToAction() {
     return (
       <div className="max-w-[600px] mx-auto w-full">
         <Link href="/dashboard">
-          <Button text="Go to Dashboard" full dark />
+          <Button text="Go to Dashboard" full />
         </Link>
       </div>
     )

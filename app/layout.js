@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AuthProvider } from "@/context/authContext";
 import { ThemeProvider } from "@/context/themeContext";
 import Logout from "@/components/Logout";
-import Button from "@/components/Button";
+import Button, { BlobSvgFilter } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
 import ThemeApplicator from "@/components/ThemeApplicator";
 
@@ -54,6 +54,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <ThemeApplicator />
           <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 dark:text-slate-100 selection:bg-indigo-600 selection:text-white ${openSans.className}`}>
+            <BlobSvgFilter />
             {Header}
             {children}
             {Footer}

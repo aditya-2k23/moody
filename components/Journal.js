@@ -529,7 +529,6 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
           )}
 
           <Button
-            className="self-end px-4 py-2 font-semibold shadow-md rounded-xl flex items-center gap-2"
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
                 <Image src={aiIcon} alt="AI Icon" width={24} height={24} />
@@ -538,10 +537,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             }
             onClick={handleGenerateInsights}
             disabled={loadingInsights}
-            dark={false}
           />
           <Button
-            className="self-end px-4 py-2 font-semibold shadow-md"
             text={uploading ? "Uploading..." : saving ? "Saving..." : "Save"}
             dark
             onClick={handleSave}
