@@ -124,8 +124,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   }, [entry, currentUser, year, month, day]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 1000;
-  const VOICE_DEBOUNCE_MS = 1600;
+  const TYPING_DEBOUNCE_MS = 1700;
+  const VOICE_DEBOUNCE_MS = 2000;
 
   // Trigger auto-save with source-aware debounce
   const triggerAutoSave = useCallback((immediate = false) => {
