@@ -1,14 +1,22 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { moodTips } from '../utils';
 import ThemeToggle from './ThemeToggle';
 
+// Fallback tip for SSR (must be deterministic to avoid hydration mismatch)
+const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your productivity.";
+
 export default function Splashscreen({ message = "✨ Fetching your insights..." }) {
-  // Get a random tip on each render (mount)
-  const randomTip = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * moodTips.length);
-    return moodTips[randomIndex];
+  // Start with deterministic fallback for SSR, then pick random tip on client
+  const [randomTip, setRandomTip] = useState(DEFAULT_TIP);
+
+  useEffect(() => {
+    // Only runs on client after hydration - safe to use Math.random()
+    if (moodTips?.length) {
+      const randomIndex = Math.floor(Math.random() * moodTips.length);
+      setRandomTip(moodTips[randomIndex]);
+    }
   }, []);
 
   return (
