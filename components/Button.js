@@ -45,6 +45,7 @@ export default function Button({
       <button
         className={`${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
         onClick={handleClick}
+        type="button"
         disabled={disabled}
         aria-disabled={disabled}
       >
@@ -58,6 +59,7 @@ export default function Button({
     return (
       <button
         onClick={handleClick}
+        type="button"
         disabled={disabled}
         aria-disabled={disabled}
         className={`
@@ -80,6 +82,7 @@ export default function Button({
   return (
     <button
       onClick={handleClick}
+      type="button"
       disabled={disabled}
       aria-disabled={disabled}
       className={`blob-btn ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
