@@ -69,7 +69,7 @@ export default function Splashscreen({ message = "✨ Fetching your insights..."
         </div>
 
         {/* Loading message */}
-        <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base">
+        <p role="status" aria-live="polite" className="text-slate-500 dark:text-slate-400 text-sm sm:text-base">
           {message}
         </p>
 
