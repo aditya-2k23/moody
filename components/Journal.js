@@ -11,13 +11,13 @@ import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
 import Image from "next/image";
-import { useTheme } from "@/context/themeContext";
+import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
@@ -54,21 +54,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   const month = now.getMonth();
   const year = now.getFullYear();
 
-  // Determine if we're in dark mode (SSR-safe)
-  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
+  // Determine AI icon based on resolved theme (next-themes handles system preference)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      setIsDarkMode(mediaQuery.matches);
-      const handler = (e) => setIsDarkMode(e.matches);
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
-    } else {
-      setIsDarkMode(theme === 'dark');
-    }
-  }, [theme]);
-
+  const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   // Voice input hook
