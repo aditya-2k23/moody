@@ -114,6 +114,13 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
       recognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
 
+        // Benign errors should not block onend restart—just let the session end normally
+        if (event.error === "no-speech" || event.error === "aborted") {
+          setIsListening(false);
+          setInterimTranscript("");
+          return;
+        }
+
         // CRITICAL: Set error flag FIRST to prevent onend from restarting
         errorOccurredRef.current = true;
 
@@ -138,14 +145,6 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
         // Handle specific error types with user-friendly messages
         // Only show toast once per error (errorOccurredRef prevents duplicate handling)
         switch (event.error) {
-          case "no-speech":
-            // This is usually just a timeout, not a real error - don't show toast
-            break;
-
-          case "aborted":
-            // User or system aborted - no need to show error
-            break;
-
           case "audio-capture":
             // Microphone not available or not working
             toast.error(
@@ -313,6 +312,14 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
           clearTimeout(voiceTimeoutRef.current);
           voiceTimeoutRef.current = null;
         }
+
+        // Reset restart flag to prevent onend from trying to restart
+        if (recognitionRef.current) {
+          recognitionRef.current.shouldRestart = false;
+        }
+
+        // Clear interim transcript to keep state consistent
+        setInterimTranscript("");
 
         // Provide specific error messages based on exception
         if (e.name === "NotAllowedError") {
