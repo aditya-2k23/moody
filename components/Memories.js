@@ -149,5 +149,6 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
           onDelete={onDelete}
         />
       )}
-    </>);
+    </>
+  );
 }
