@@ -6,13 +6,18 @@
  * 
  * Props:
  * - text: Button text content (can be string or JSX)
- * - dark: If true, button has filled background
+ * - dark: If true, renders a filled indigo button with opacity hover (NO blob animation)
  * - full: If true, button takes full width
  * - onClick: Click handler function
- * - normal: If true (default), applies blob animation styles. If false, uses raw className
+ * - normal: If false, renders a raw button without ANY styling (only className applies)
  * - className: Additional CSS classes
- * - size: 'sm' | 'default' | 'lg' for button size variants
+ * - size: 'sm' | 'default' | 'lg' for button size variants (only applies to blob buttons)
  * - disabled: If true, button is disabled
+ * 
+ * Rendering Priority:
+ * 1. If normal=false → Raw button (no styles, full className control)
+ * 2. If dark=true → Filled button (indigo bg, opacity hover, NO blob effect)
+ * 3. Otherwise → Default blob animation button
  */
 export default function Button({
   text,
@@ -31,10 +36,18 @@ export default function Button({
     lg: "blob-btn--lg"
   }[size] || "";
 
+  // Prevent onClick when disabled (extra safeguard beyond HTML disabled)
+  const handleClick = disabled ? undefined : onClick;
+
   if (!normal) {
     // Raw button without blob styling
     return (
-      <button className={`${className}`} onClick={onClick} disabled={disabled}>
+      <button
+        className={`${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
+        onClick={handleClick}
+        disabled={disabled}
+        aria-disabled={disabled}
+      >
         <span className="fugaz whitespace-nowrap">{text}</span>
       </button>
     );
@@ -44,8 +57,9 @@ export default function Button({
   if (dark) {
     return (
       <button
-        onClick={onClick}
+        onClick={handleClick}
         disabled={disabled}
+        aria-disabled={disabled}
         className={`
           relative px-6 py-3 rounded-full font-semibold text-white
           bg-indigo-500 dark:bg-indigo-600
@@ -53,7 +67,7 @@ export default function Button({
           transition-all duration-200
           hover:opacity-80 dark:hover:opacity-70
           ${full ? "w-full grid place-items-center" : ""}
-          ${disabled ? "opacity-60 cursor-not-allowed" : ""}
+          ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""}
           ${className}
         `}
       >
@@ -65,9 +79,10 @@ export default function Button({
   // Default button with blob effect
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
-      className={`blob-btn ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed" : ""} ${className}`}
+      aria-disabled={disabled}
+      className={`blob-btn ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
     >
       <span className="fugaz whitespace-nowrap relative z-10">{text}</span>
 
