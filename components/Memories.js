@@ -77,6 +77,14 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
           setDisplayItems([]); // Clear after fade completes
         }
       });
+    } else if (prevHadItemsRef.current && !hasItems && !containerRef.current) {
+      // Edge case: previous had items but container not mounted (first load race)
+      // Synchronously hide without animation
+      setIsVisible(false);
+      setDisplayItems([]);
+    } else if (!prevHadItemsRef.current && !hasItems) {
+      // First load with no items - ensure hidden state
+      setIsVisible(false);
     } else if (hasItems && !isVisible) {
       // Update displayItems and show
       setDisplayItems(items);

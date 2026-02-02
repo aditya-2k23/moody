@@ -263,3 +263,27 @@ export const journalPlaceholders = [
   "If today had a color, what would it be? 🎨",
   "What do you need more of in your life? 💝"
 ];
+
+// Mood tips for splash screen - helpful wellness tips
+export const moodTips = [
+  "Expressing gratitude can boost your mood instantly.",
+  "Taking deep breaths activates your body's relaxation response.",
+  "A 10-minute walk can significantly improve your mood.",
+  "Drinking water helps maintain good energy levels.",
+  "Smiling, even when forced, can actually make you feel happier.",
+  "Writing down your thoughts can help process difficult emotions.",
+  "Listening to your favorite music can reduce stress by up to 65%.",
+  "Spending time in nature can lower cortisol levels.",
+  "Getting enough sleep is crucial for emotional regulation.",
+  "Acts of kindness release feel-good hormones in your brain.",
+  "Limiting screen time before bed improves sleep quality.",
+  "Mindfulness meditation can reshape your brain for positivity.",
+  "Sunlight exposure boosts serotonin and improves mood.",
+  "Connecting with loved ones strengthens emotional well-being.",
+  "Physical exercise releases endorphins, nature's mood boosters.",
+  "Decluttering your space can reduce anxiety and stress.",
+  "Eating regular meals helps stabilize your mood throughout the day.",
+  "Journaling about positive experiences increases happiness.",
+  "Taking breaks during work improves focus and reduces burnout.",
+  "Practicing self-compassion is more effective than self-criticism."
+];

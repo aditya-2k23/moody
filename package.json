@@ -1,6 +1,6 @@
 {
   "name": "moody",
-  "version": "2.4.14",
+  "version": "2.4.28",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -14,7 +14,9 @@
     "firebase": "^11.9.1",
     "firebase-admin": "^13.6.0",
     "gsap": "^3.14.2",
+    "lucide-react": "^0.563.0",
     "next": "^16.1.5",
+    "next-themes": "^0.4.6",
     "ogl": "^1.0.11",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

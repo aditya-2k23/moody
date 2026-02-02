@@ -24,6 +24,9 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   const VOICE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
   const voiceTimeoutRef = useRef(null);
 
+  // Error flag to prevent restart loops - this is checked in onend
+  const errorOccurredRef = useRef(false);
+
   // Smart punctuation cleanup for voice-generated text only
   const cleanupVoiceText = useCallback((text) => {
     if (!text.trim()) return text;
@@ -110,19 +113,102 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
 
       recognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
-        if (event.error !== "no-speech" && event.error !== "aborted") {
-          toast.error("Voice input error. Please try again.");
+
+        // Don't mutate UI state here; let onend exclusively control listening state
+        // to avoid mismatch when shouldRestart triggers recognition restart
+        if (event.error === "no-speech" || event.error === "aborted") {
+          return;
         }
+
+        // CRITICAL: Set error flag FIRST to prevent onend from restarting
+        errorOccurredRef.current = true;
+
+        // Clear the shouldRestart flag
+        if (recognitionRef.current) {
+          recognitionRef.current.shouldRestart = false;
+        }
+
+        // Clear the voice timeout
+        if (voiceTimeoutRef.current) {
+          clearTimeout(voiceTimeoutRef.current);
+          voiceTimeoutRef.current = null;
+        }
+
+        // Force abort the recognition to stop it immediately
+        try {
+          recognition.abort();
+        } catch (e) {
+          // Already stopped, ignore
+        }
+
+        // Handle specific error types with user-friendly messages
+        // Only show toast once per error (errorOccurredRef prevents duplicate handling)
+        switch (event.error) {
+          case "audio-capture":
+            // Microphone not available or not working
+            toast.error(
+              "Microphone not found or not working. Please check if your microphone is connected and working properly.",
+              { duration: 5000, id: "voice-error" }
+            );
+            break;
+
+          case "not-allowed":
+            // Permission denied - could be browser or system level
+            toast.error(
+              "Microphone access denied. Please allow microphone permissions in your browser settings and ensure your device settings allow microphone access.",
+              { duration: 6000, id: "voice-error" }
+            );
+            break;
+
+          case "network":
+            // Network error during speech recognition
+            toast.error(
+              "Network error during voice recognition. Please check your internet connection and try again.",
+              { duration: 5000, id: "voice-error" }
+            );
+            break;
+
+          case "service-not-allowed":
+            // Service not allowed by browser or system policy
+            toast.error(
+              "Voice input is blocked by your browser or system settings. Please check your privacy settings.",
+              { duration: 5000, id: "voice-error" }
+            );
+            break;
+
+          case "bad-grammar":
+          case "language-not-supported":
+            // Language or grammar issues - silently ignore, users can speak freely
+            break;
+
+          default:
+            // Unknown error - provide generic message with the error type for debugging
+            toast.error(
+              `Voice input error: ${event.error || "Unknown error"}. Please try again.`,
+              { duration: 4000, id: "voice-error" }
+            );
+        }
+
         setIsListening(false);
         setInterimTranscript("");
       };
 
       recognition.onend = () => {
+        // Check error flag FIRST - if an error occurred, never restart
+        if (errorOccurredRef.current) {
+          errorOccurredRef.current = false; // Reset for next time
+          setIsListening(false);
+          setInterimTranscript("");
+          return;
+        }
+
         if (recognitionRef.current?.shouldRestart) {
           try {
             recognition.start();
           } catch (e) {
-            // Already started, ignore
+            // Already started or error - stop completely
+            setIsListening(false);
+            setInterimTranscript("");
           }
         } else {
           setIsListening(false);
@@ -155,7 +241,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      toast.error("Voice input not supported in this browser.");
+      toast.error(
+        "Voice input is not supported in this browser. Please try using Chrome, Edge, or Safari.",
+        { duration: 5000, id: "voice-not-supported" }
+      );
       return;
     }
 
@@ -184,7 +273,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
     } else {
       // Start listening - guard against null recognitionRef
       if (!recognitionRef.current) {
-        toast.error("Voice input is not available. Please refresh the page.");
+        toast.error(
+          "Voice input is not available. Please refresh the page and try again.",
+          { duration: 4000, id: "voice-unavailable" }
+        );
         return;
       }
 
@@ -213,7 +305,45 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
         }, VOICE_TIMEOUT_MS);
       } catch (e) {
         console.error("Failed to start speech recognition:", e);
-        toast.error("Could not start voice input.");
+
+        // Clear the timeout since we failed to start
+        if (voiceTimeoutRef.current) {
+          clearTimeout(voiceTimeoutRef.current);
+          voiceTimeoutRef.current = null;
+        }
+
+        // Reset restart flag to prevent onend from trying to restart
+        if (recognitionRef.current) {
+          recognitionRef.current.shouldRestart = false;
+        }
+
+        // Clear interim transcript to keep state consistent
+        setInterimTranscript("");
+
+        // Provide specific error messages based on exception
+        if (e.name === "NotAllowedError") {
+          toast.error(
+            "Microphone access denied. Please allow microphone permissions in your browser and device settings.",
+            { duration: 5000, id: "voice-start-error" }
+          );
+        } else if (e.name === "NotFoundError") {
+          toast.error(
+            "No microphone found. Please connect a microphone and try again.",
+            { duration: 5000, id: "voice-start-error" }
+          );
+        } else if (e.name === "InvalidStateError") {
+          toast.error(
+            "Voice input is already active. Please wait a moment and try again.",
+            { duration: 4000, id: "voice-start-error" }
+          );
+        } else {
+          toast.error(
+            "Could not start voice input. Please check your microphone and try again.",
+            { duration: 4000, id: "voice-start-error" }
+          );
+        }
+
+        setIsListening(false);
       }
     }
   }, [isListening]);

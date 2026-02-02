@@ -118,6 +118,35 @@
   animation: loading-bar 3s ease-out forwards;
 }
 
+/* Floating animations for splash screen orbs */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+
+@keyframes float-medium {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 4s ease-in-out infinite;
+}
+
 /* Fade In Animation for listening indicator */
 @keyframes fade-in {
   from {
@@ -172,12 +201,32 @@
 }
 
 .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, var(--color-resizer) 50%, var(--color-resizer) 60%, transparent 60%, transparent 75%, var(--color-resizer) 75%, var(--color-resizer) 85%, transparent 85%);
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--color-resizer) 50%,
+    var(--color-resizer) 60%,
+    transparent 60%,
+    transparent 75%,
+    var(--color-resizer) 75%,
+    var(--color-resizer) 85%,
+    transparent 85%
+  );
   border-radius: 0 0 8px 0;
 }
 
 .dark .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg, transparent 50%, var(--color-resizer-dark) 50%, var(--color-resizer-dark) 60%, transparent 60%, transparent 75%, var(--color-resizer-dark) 75%, var(--color-resizer-dark) 85%, transparent 85%);
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--color-resizer-dark) 50%,
+    var(--color-resizer-dark) 60%,
+    transparent 60%,
+    transparent 75%,
+    var(--color-resizer-dark) 75%,
+    var(--color-resizer-dark) 85%,
+    transparent 85%
+  );
 }
 
 /* ========== AI Insights Section Animations ========== */
@@ -188,7 +237,6 @@
 }
 
 @keyframes insights-skeleton-pulse {
-
   0%,
   100% {
     opacity: 0.7;
@@ -263,4 +311,155 @@
 
 .memories-circular-gallery canvas {
   display: block;
+}
+
+/* ========== Blob Button Styles ========== */
+
+.blob-btn {
+  --blob-color: var(--color-blob, #6366f1);
+  --blob-border: var(--color-blob-border, #6366f1);
+  --blob-text: var(--color-blob-text, #6366f1);
+  --blob-text-hover: var(--color-blob-text-hover, #ffffff);
+  --blob-bg: var(--color-blob-bg, #ffffff);
+  --border-width: 2px;
+
+  z-index: 1;
+  position: relative;
+  padding: 12px 28px;
+  text-align: center;
+  color: var(--blob-text);
+  font-weight: 600;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  transition: color 0.4s ease;
+  cursor: pointer;
+  border-radius: 9999px;
+}
+
+.blob-btn::before {
+  content: "";
+  z-index: 1;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: var(--border-width) solid var(--blob-border);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.blob-btn::after {
+  content: "";
+  z-index: -2;
+  position: absolute;
+  left: 3px;
+  top: 4px;
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s 0.2s;
+  border-radius: 9999px;
+}
+
+.blob-btn:hover {
+  color: var(--blob-text-hover);
+}
+
+.blob-btn:hover::after {
+  transition: all 0.3s;
+  left: 0;
+  top: 0;
+}
+
+.blob-btn__inner {
+  z-index: -1;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--blob-bg);
+}
+
+.blob-btn__blobs {
+  position: relative;
+  display: block;
+  height: 100%;
+  filter: url("#goo");
+}
+
+.blob-btn__blob {
+  position: absolute;
+  top: var(--border-width);
+  width: 25%;
+  height: 100%;
+  background: var(--blob-color);
+  border-radius: 100%;
+  transform: translate3d(0, 150%, 0) scale(1.7);
+  transition: transform 0.45s;
+}
+
+@supports (filter: url("#goo")) {
+  .blob-btn__blob {
+    transform: translate3d(0, 150%, 0) scale(1.4);
+  }
+}
+
+.blob-btn__blob:nth-child(1) {
+  left: 0%;
+  transition-delay: 0s;
+}
+
+.blob-btn__blob:nth-child(2) {
+  left: 30%;
+  transition-delay: 0.08s;
+}
+
+.blob-btn__blob:nth-child(3) {
+  left: 60%;
+  transition-delay: 0.16s;
+}
+
+.blob-btn__blob:nth-child(4) {
+  left: 90%;
+  transition-delay: 0.24s;
+}
+
+.blob-btn:hover .blob-btn__blob {
+  transform: translateZ(0) scale(1.8);
+}
+
+@supports (filter: url("#goo")) {
+  .blob-btn:hover .blob-btn__blob {
+    transform: translateZ(0) scale(1.5);
+  }
+}
+
+/* Full width variant */
+.blob-btn--full {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* Size variants */
+.blob-btn--sm {
+  padding: 8px 20px;
+  font-size: 0.875rem;
+}
+
+.blob-btn--lg {
+  padding: 16px 36px;
+  font-size: 1.125rem;
+}
+
+/* Dark mode adjustments */
+.dark .blob-btn {
+  --blob-bg: rgb(24, 30, 41);
+  --blob-text: #fff;
+  --blob-color: #6366f1;
+  --border-width: 2px;
 }

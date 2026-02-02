@@ -11,14 +11,13 @@ import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
 import Image from "next/image";
-import { useTheme } from "@/context/themeContext";
+import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
-import NewFeatureDot from "./NewFeatureDot";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [entry, setEntry] = useState("");
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
@@ -55,21 +54,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   const month = now.getMonth();
   const year = now.getFullYear();
 
-  // Determine if we're in dark mode (SSR-safe)
-  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
+  // Determine AI icon based on resolved theme (next-themes handles system preference)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      setIsDarkMode(mediaQuery.matches);
-      const handler = (e) => setIsDarkMode(e.matches);
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
-    } else {
-      setIsDarkMode(theme === 'dark');
-    }
-  }, [theme]);
-
+  const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   // Voice input hook
@@ -125,8 +114,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   }, [entry, currentUser, year, month, day]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 800;
-  const VOICE_DEBOUNCE_MS = 1500;
+  const TYPING_DEBOUNCE_MS = 1700;
+  const VOICE_DEBOUNCE_MS = 2000;
 
   // Trigger auto-save with source-aware debounce
   const triggerAutoSave = useCallback((immediate = false) => {
@@ -505,7 +494,6 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               }`}
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
-            <NewFeatureDot className="absolute top-[-2px] right-[-2px]" />
             <i
               className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
                 }`}
@@ -531,7 +519,6 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
           )}
 
           <Button
-            className="self-end px-4 py-2 font-semibold shadow-md rounded-xl flex items-center gap-2"
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
                 <Image src={aiIcon} alt="AI Icon" width={24} height={24} />
@@ -540,10 +527,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             }
             onClick={handleGenerateInsights}
             disabled={loadingInsights}
-            dark={false}
           />
           <Button
-            className="self-end px-4 py-2 font-semibold shadow-md"
             text={uploading ? "Uploading..." : saving ? "Saving..." : "Save"}
             dark
             onClick={handleSave}

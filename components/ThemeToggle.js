@@ -1,40 +1,47 @@
 'use client';
 
-import { useTheme } from '@/context/themeContext';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const themes = [
-    { value: 'light', icon: '🌞', title: 'Light Mode' },
-    { value: 'dark', icon: '🌙', title: 'Dark Mode' },
-    { value: 'system', icon: '💻', title: 'System Default' }
-  ];
+  // Only render after mount to avoid hydration mismatch
+  useEffect(() => setMounted(true), []);
+
+  // Return placeholder with same dimensions to avoid layout shift
+  if (!mounted) {
+    return (
+      <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700" />
+    );
+  }
+
+  const isDark = resolvedTheme === 'dark';
+
+  const toggleTheme = () => {
+    setTheme(isDark ? 'light' : 'dark');
+  };
 
   return (
-    <div className="flex bg-slate-100/80 dark:bg-slate-800 rounded-full p-0.5 sm:p-1 gap-0.5 sm:gap-1 border border-indigo-300 dark:border-slate-700">
-      {themes.map((t) => {
-        const isActive =
-          theme === t.value ||
-          (theme === 'system' && t.value === 'light' && false);
+    <button
+      onClick={toggleTheme}
+      className="relative flex items-center justify-center p-2.5 rounded-full transition-all duration-300 ease-in-out bg-indigo-50 hover:bg-indigo-100/70 dark:bg-slate-800 dark:hover:bg-slate-700 border border-indigo-100 dark:border-slate-700 shadow-md hover:shadow-lg"
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+      title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+    >
+      <Sun
+        size={20}
+        strokeWidth={2.5}
+        className={`absolute transition-all duration-300 ease-in-out text-amber-500 ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}
+      />
 
-        return (
-          <button
-            key={t.value}
-            onClick={() => setTheme(t.value)}
-            className={`
-              w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-lg font-medium transition-all duration-200 flex items-center justify-center
-              ${isActive
-                ? 'bg-slate-200/85 dark:bg-slate-700 shadow-sm border border-indigo-200 dark:border-indigo-600'
-                : 'hover:bg-slate-200/50 dark:hover:bg-slate-700/50 border border-transparent hover:border-indigo-400 dark:hover:border-indigo-600'
-              }
-            `}
-            title={t.title}
-          >
-            {t.icon}
-          </button>
-        );
-      })}
-    </div>
+      <Moon
+        size={20}
+        strokeWidth={2.5}
+        className={`transition-all duration-300 ease-in-out text-indigo-400 ${isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}
+      />
+    </button>
   );
 }

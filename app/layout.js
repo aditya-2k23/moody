@@ -4,9 +4,8 @@ import Link from "next/link";
 import { AuthProvider } from "@/context/authContext";
 import { ThemeProvider } from "@/context/themeContext";
 import Logout from "@/components/Logout";
-import Button from "@/components/Button";
+import Button, { BlobSvgFilter } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
-import ThemeApplicator from "@/components/ThemeApplicator";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -29,7 +28,7 @@ export default function RootLayout({ children }) {
         <Logout />
       </div>
     </header>
-  )
+  );
 
   const Footer = (
     <footer className="p-4 sm:p-8 pt-2 sm:pt-0 flex justify-between text-sm md:text-base">
@@ -46,20 +45,20 @@ export default function RootLayout({ children }) {
   );
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
       </head>
-      <AuthProvider>
-        <ThemeProvider>
-          <ThemeApplicator />
-          <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 dark:text-slate-100 selection:bg-indigo-600 selection:text-white ${openSans.className}`}>
+      <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 dark:text-slate-100 selection:bg-indigo-600 selection:text-white ${openSans.className}`}>
+        <AuthProvider>
+          <ThemeProvider>
+            <BlobSvgFilter />
             {Header}
             {children}
             {Footer}
-          </body>
-        </ThemeProvider>
-      </AuthProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
