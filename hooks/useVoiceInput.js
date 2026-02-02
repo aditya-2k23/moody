@@ -114,10 +114,9 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
       recognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
 
-        // Benign errors should not block onend restart—just let the session end normally
+        // Don't mutate UI state here; let onend exclusively control listening state
+        // to avoid mismatch when shouldRestart triggers recognition restart
         if (event.error === "no-speech" || event.error === "aborted") {
-          setIsListening(false);
-          setInterimTranscript("");
           return;
         }
 
