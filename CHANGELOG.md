@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.4.28] - 2026-02-02
+
+### 🚀 New Visuals
+
+- **Animated "Blob" UI**: Introduced a new `Button` component with organic, "gooey" hover effects and size variants (`blob-btn`), enhancing interactivity.
+- **Enhanced Splash Screen**:
+  - Fullscreen loading experience with floating orb animations.
+  - Rotating wellness tips and smooth progress indicators.
+  - Replaced legacy loaders across the dashboard for a unified startup feel.
+- **Themes**: Migrated to `next-themes` for robust light/dark mode persistence and hydration-safe toggling.
+
+### 🔧 Improvements
+
+- **Voice Input Resilience**:
+  - Implemented robust error handling for benign speech errors (`no-speech`, `aborted`)—no longer blocks restart.
+  - Clearer, user-friendly toast messages for microphone permission issues.
+  - Safer state management to prevent UI sync issues during restarts.
+- **Journal UX**:
+  - More forgiving autosave debounce timings.
+  - Removed "new feature" indicators for a cleaner look.
+  - Updated standard buttons to use the new "blob" styles.
+- **Visual Polish**:
+  - Improved text resizer visibility in the journal.
+  - Refined `Memories` component to handle empty state visibility gracefully on first load.
+
+### 🧹 Chores
+
+- **Dependencies**: Bumped project version to `2.4.28`.
+- **Cleanup**: Removed unused imports and legacy theme context code.
+
 ## [2.4.14] - 2026-01-14
 
 ### 🔒 Security
@@ -24,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 New Features
 
 - **🎤 Voice Input (Beta)**:
-
   - Dictate journal entries using the **Web Speech API**.
   - Smart punctuation: auto-capitalization and intelligent sentence endings.
   - Supports continuous dictation with real-time interim transcripts.
@@ -32,7 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Seamlessly integrates with the journal textarea for hybrid typing + voice workflows.
 
 - **💾 Smart Autosave**:
-
   - Journal entries are now **automatically saved** to the cloud.
   - Intelligent debouncing with distinct timing for typing (2s) and voice input (triggered on stop).
   - **Safety measures**: Autosave on visibility change and `beforeunload` to prevent data loss.
