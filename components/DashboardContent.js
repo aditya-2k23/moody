@@ -50,6 +50,12 @@ export default function DashboardContent() {
   }
 
   function countValues() {
+    // Use fresh date on every call to avoid stale values if tab stays open overnight
+    const freshNow = new Date();
+    const today = new Date(freshNow.getFullYear(), freshNow.getMonth(), freshNow.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
     let total_number_of_days = 0;
     let lastMood = null;
     let lastDate = null;
@@ -65,8 +71,8 @@ export default function DashboardContent() {
             entryDates.push({ date: dateObj, mood: value });
           }
         }
+
     if (entryDates.length > 0) {
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       entryDates.sort((a, b) => b.date - a.date);
       const prevEntry = entryDates.find(e => e.date < today);
       if (prevEntry) {
@@ -78,13 +84,32 @@ export default function DashboardContent() {
       }
     }
 
-    let streak = 0;
     const entryDateSet = new Set(entryDates.map(e => e.date.toDateString()));
-    let current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const hasTodayEntry = entryDateSet.has(today.toDateString());
+    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
+
+    let streak = 0;
+
+    // Determine where to start counting the streak
+    // If today has an entry, start from today
+    // If today has no entry but yesterday does, streak is still "ongoing" — start from yesterday
+    let current;
+    if (hasTodayEntry) {
+      current = new Date(today);
+    } else if (hasYesterdayEntry) {
+      // Ongoing streak: user hasn't logged today yet, but logged yesterday
+      current = new Date(yesterday);
+    } else {
+      // No entry today or yesterday — streak is broken
+      return { streak: 0, lastMood, lastDate };
+    }
+
+    // Count consecutive days backwards
     while (entryDateSet.has(current.toDateString())) {
       streak++;
       current.setDate(current.getDate() - 1);
     }
+
     return { streak, lastMood, lastDate };
   }
 
@@ -140,9 +165,13 @@ export default function DashboardContent() {
   }, [currentUser, wasAuthenticated]);
 
   async function handleSetMood(mood) {
-    const day = now.getDate();
-    const month = now.getMonth();
-    const year = now.getFullYear();
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const freshNow = new Date();
+    const day = freshNow.getDate();
+    const month = freshNow.getMonth();
+    const year = freshNow.getFullYear();
+    const today = new Date(year, month, day);
+
     try {
       const newData = { ...userDataObj };
       if (!newData?.[year]) newData[year] = {};
@@ -163,7 +192,7 @@ export default function DashboardContent() {
           }
       const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
       let s = 0;
-      let current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let current = new Date(today);
       while (entryDateSet.has(current.toDateString())) {
         s++;
         current.setDate(current.getDate() - 1);
