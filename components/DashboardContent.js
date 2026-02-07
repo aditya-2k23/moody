@@ -332,8 +332,11 @@ export default function DashboardContent() {
         />
 
         <Calender
+          currentUser={currentUser}
           completeData={data}
           showJournalPopup
+          onUpdateEntry={handleUpdateDailyEntry}
+          onDeleteEntry={handleDeleteDailyEntry}
           onMonthChange={(year, month) => {
             setMemoriesYear(year);
             setMemoriesMonth(month);
