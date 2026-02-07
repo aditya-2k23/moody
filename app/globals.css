@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 :root {
   /* Fonts */
   --font-fugaz: "Fugaz One", sans-serif;
@@ -162,6 +168,145 @@
 
 .animate-fade-in {
   animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Theme reveal mask - Flower shape */
+.theme-reveal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: var(--theme-reveal-bg);
+  --petal-r: calc(var(--r) * 0.7);
+  --petal-offset: calc(var(--r) * 0.35);
+  -webkit-mask: 
+    /* Center circle */
+    radial-gradient(
+      circle at var(--x) var(--y),
+      transparent 0,
+      transparent calc(var(--r) * 0.5),
+      #000 calc(var(--r) * 0.5 + 1px)
+    ),
+    /* Petal 1 - Top */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 2 - Top Right */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
+          calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 3 - Bottom Right */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
+          calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 4 - Bottom */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 5 - Bottom Left */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
+          calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 6 - Top Left */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
+          calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      );
+  mask: 
+    /* Center circle */
+    radial-gradient(
+      circle at var(--x) var(--y),
+      transparent 0,
+      transparent calc(var(--r) * 0.5),
+      #000 calc(var(--r) * 0.5 + 1px)
+    ),
+    /* Petal 1 - Top */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 2 - Top Right */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
+          calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 3 - Bottom Right */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
+          calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 4 - Bottom */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 5 - Bottom Left */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
+          calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      ),
+    /* Petal 6 - Top Left */
+    radial-gradient(
+        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
+          calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)
+      );
+  -webkit-mask-composite: destination-out;
+  mask-composite: intersect;
+  animation: theme-reveal 650ms ease-in-out forwards;
+}
+
+.theme-reveal-light {
+  --theme-reveal-bg: #ffffff;
+}
+
+.theme-reveal-dark {
+  --theme-reveal-bg: #0f172a;
+}
+
+@keyframes theme-reveal {
+  from {
+    --r: 0px;
+  }
+  to {
+    --r: var(--max-r);
+  }
 }
 
 /* Dark Mode Overrides */
