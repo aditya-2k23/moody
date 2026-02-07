@@ -8,10 +8,12 @@ import Memories from "./Memories";
 import { useMemories } from "@/hooks/useMemories";
 import toast, { Toaster } from "react-hot-toast";
 import convertMood, { moods, months } from "@/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import Journal from "./Journal";
+import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
+import { RotateCcw } from "lucide-react";
 
 export default function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
@@ -25,6 +27,11 @@ export default function DashboardContent() {
 
   // Initial loading splash screen state (3 seconds)
   const [initialLoading, setInitialLoading] = useState(true);
+
+  // Debounced mood save state
+  const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
+  const moodDebounceTimerRef = useRef(null);
+  const MOOD_DEBOUNCE_MS = 2000; // 2 seconds
 
   // Memories state - track selected month/year for the calendar
   const [memoriesYear, setMemoriesYear] = useState(now.getFullYear());
@@ -164,7 +171,104 @@ export default function DashboardContent() {
     }
   }, [currentUser, wasAuthenticated]);
 
-  async function handleSetMood(mood) {
+  /**
+   * Immediately flush any pending mood to Firestore.
+   * Called on page exit or when we need to ensure data is saved.
+   */
+  const flushPendingMood = useCallback(async () => {
+    if (moodDebounceTimerRef.current) {
+      clearTimeout(moodDebounceTimerRef.current);
+      moodDebounceTimerRef.current = null;
+    }
+
+    const pending = pendingMoodRef.current;
+    if (!pending || !currentUser?.uid) return;
+
+    pendingMoodRef.current = null;
+
+    try {
+      const { year, month, day, mood, streak } = pending;
+      const docRef = doc(db, "users", currentUser.uid);
+
+      if (mood === null) {
+        // Deselected mood - delete the mood field for today
+        await deleteDailyEntry(currentUser.uid, { year, month, day });
+        await setDoc(docRef, { streak }, { merge: true });
+      } else {
+        await setDoc(docRef, {
+          [year]: {
+            [month]: {
+              [day]: mood
+            }
+          },
+          streak
+        }, { merge: true });
+      }
+    } catch (error) {
+      console.error("Error saving mood:", error.message);
+    }
+  }, [currentUser?.uid]);
+
+  /**
+   * Schedule a debounced save of the mood.
+   * Cancels any previous pending save and schedules a new one.
+   */
+  const debouncedSaveMood = useCallback((moodData) => {
+    pendingMoodRef.current = moodData;
+
+    if (moodDebounceTimerRef.current) {
+      clearTimeout(moodDebounceTimerRef.current);
+    }
+
+    moodDebounceTimerRef.current = setTimeout(() => {
+      flushPendingMood();
+    }, MOOD_DEBOUNCE_MS);
+  }, [flushPendingMood]);
+
+  // Save pending mood on page exit (beforeunload) or visibility change (tab switch/close)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Use sendBeacon for reliable save on page close
+      const pending = pendingMoodRef.current;
+      if (!pending || !currentUser?.uid) return;
+
+      // Clear pending so flush doesn't double-save
+      pendingMoodRef.current = null;
+      if (moodDebounceTimerRef.current) {
+        clearTimeout(moodDebounceTimerRef.current);
+        moodDebounceTimerRef.current = null;
+      }
+
+      // Note: sendBeacon can't be used with Firestore SDK directly,
+      // so we rely on the synchronous nature of beforeunload.
+      // For best effort, we trigger the async save and hope it completes.
+      // Most browsers give a small window for async operations.
+      flushPendingMood();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushPendingMood();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      // Flush on unmount
+      if (moodDebounceTimerRef.current) {
+        clearTimeout(moodDebounceTimerRef.current);
+      }
+      // Don't await here since cleanup is sync
+      flushPendingMood();
+    };
+  }, [currentUser?.uid, flushPendingMood]);
+
+  function handleSetMood(mood) {
     // Use fresh date to avoid stale values if tab was left open overnight
     const freshNow = new Date();
     const day = freshNow.getDate();
@@ -172,43 +276,247 @@ export default function DashboardContent() {
     const year = freshNow.getFullYear();
     const today = new Date(year, month, day);
 
-    try {
-      const newData = { ...userDataObj };
-      if (!newData?.[year]) newData[year] = {};
-      if (!newData?.[year]?.[month]) newData[year][month] = {};
-      newData[year][month][day] = mood;
-      setData(newData);
-      setUserDataObj(newData);
+    // Toggle logic: if clicking the same mood, deselect it
+    const currentMoodValue = data?.[year]?.[month]?.[day];
+    const isDeselecting = currentMoodValue === mood;
+    const newMoodValue = isDeselecting ? null : mood;
 
-      const entryDates = [];
-      for (let y in newData)
-        for (let m in newData[y])
-          for (let d in newData[y][m]) {
-            const value = newData[y][m][d];
-            if (typeof value === "number") {
-              const dateObj = new Date(Number(y), Number(m), Number(d));
-              entryDates.push(dateObj);
-            }
+    // Optimistic UI update
+    const newData = { ...userDataObj };
+    if (!newData?.[year]) newData[year] = {};
+    if (!newData?.[year]?.[month]) newData[year][month] = {};
+
+    if (newMoodValue === null) {
+      // Remove mood from local state
+      delete newData[year][month][day];
+    } else {
+      newData[year][month][day] = newMoodValue;
+    }
+
+    setData(newData);
+    setUserDataObj(newData);
+
+    // Calculate streak based on updated data
+    const entryDates = [];
+    for (let y in newData)
+      for (let m in newData[y])
+        for (let d in newData[y][m]) {
+          const value = newData[y][m][d];
+          if (typeof value === "number") {
+            const dateObj = new Date(Number(y), Number(m), Number(d));
+            entryDates.push(dateObj);
           }
-      const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
-      let s = 0;
-      let current = new Date(today);
+        }
+    const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
+
+    // Check if today/yesterday have entries for streak calculation
+    const hasTodayEntry = entryDateSet.has(today.toDateString());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
+
+    let streak = 0;
+    let current;
+    if (hasTodayEntry) {
+      current = new Date(today);
+    } else if (hasYesterdayEntry) {
+      current = new Date(yesterday);
+    } else {
+      // No streak
+      current = null;
+    }
+
+    if (current) {
       while (entryDateSet.has(current.toDateString())) {
-        s++;
+        streak++;
         current.setDate(current.getDate() - 1);
       }
-      const streak = s;
-      const docRef = doc(db, "users", currentUser.uid);
-      await setDoc(docRef, {
-        [year]: {
-          [month]: {
-            [day]: mood
+    }
+
+    // Schedule debounced save instead of immediate write
+    debouncedSaveMood({ year, month, day, mood: newMoodValue, streak });
+
+    // Show feedback toast
+    if (isDeselecting) {
+      toast("Mood cleared", { icon: <RotateCcw size={18} className="text-indigo-500" />, duration: 1500 });
+    }
+  }
+
+  function calculateStreakFromData(dataObj) {
+    // Keep this pure so we can recompute streak after optimistic edits/deletes.
+    // Streak is based only on mood entries (numeric day fields).
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const entryDates = [];
+    for (let year in dataObj)
+      for (let month in dataObj[year])
+        for (let day in dataObj[year][month]) {
+          const value = dataObj[year][month][day];
+          if (typeof value === "number") {
+            const dateObj = new Date(Number(year), Number(month), Number(day));
+            entryDates.push(dateObj);
           }
-        },
-        streak
-      }, { merge: true });
+        }
+
+    const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
+    const hasTodayEntry = entryDateSet.has(today.toDateString());
+    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
+
+    let current;
+    if (hasTodayEntry) current = new Date(today);
+    else if (hasYesterdayEntry) current = new Date(yesterday);
+    else return 0;
+
+    let streak = 0;
+    while (entryDateSet.has(current.toDateString())) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    }
+
+    return streak;
+  }
+
+  function upsertEntryInState(prev, { year, month, day, mood, journal }) {
+    const base = prev || {};
+    const prevYearObj = base?.[year] || {};
+    const prevMonthObj = prevYearObj?.[month] || {};
+
+    const nextMonthObj = { ...prevMonthObj };
+    if (typeof mood === "number") {
+      nextMonthObj[day] = mood;
+    }
+    if (typeof journal === "string") {
+      nextMonthObj[`journal_${day}`] = journal;
+    }
+
+    return {
+      ...base,
+      [year]: {
+        ...prevYearObj,
+        [month]: nextMonthObj,
+      },
+    };
+  }
+
+  function deleteEntryFromState(prev, { year, month, day }) {
+    const base = prev || {};
+    const prevYearObj = base?.[year];
+    const prevMonthObj = prevYearObj?.[month];
+    if (!prevMonthObj) return base;
+
+    const nextMonthObj = { ...prevMonthObj };
+    delete nextMonthObj[day];
+    delete nextMonthObj[`journal_${day}`];
+    delete nextMonthObj[`updatedAt_${day}`];
+
+    return {
+      ...base,
+      [year]: {
+        ...(prevYearObj || {}),
+        [month]: nextMonthObj,
+      },
+    };
+  }
+
+  /**
+   * Helper to remove a journal field from state while preserving mood.
+   */
+  function removeJournalFieldFromState(prev, { year, month, day }) {
+    if (!prev?.[year]?.[month]) return prev;
+    const next = { ...prev };
+    const monthObj = { ...next[year][month] };
+    delete monthObj[`journal_${day}`];
+    next[year] = { ...next[year], [month]: monthObj };
+    return next;
+  }
+
+  /**
+   * Helper to update both data and userDataObj with the same transformer.
+   */
+  function updateBothStates(transformer) {
+    setData(transformer);
+    setUserDataObj(transformer);
+  }
+
+  async function handleUpdateDailyEntry({ year, month, day, mood, journal }) {
+    if (!currentUser?.uid) throw new Error("Not authenticated");
+
+    const prevMood = data?.[year]?.[month]?.[day];
+    const prevJournal = data?.[year]?.[month]?.[`journal_${day}`];
+    const hadMood = typeof prevMood === "number";
+    const hadJournal = typeof prevJournal === "string";
+
+    // Optimistic UI update
+    updateBothStates((prev) => upsertEntryInState(prev, { year, month, day, mood, journal }));
+
+    try {
+      await updateDailyEntry(currentUser.uid, { year, month, day, mood, journal });
+
+      // Recompute streak after the change and persist it
+      const nextForStreak = upsertEntryInState(data || {}, { year, month, day, mood, journal });
+      const streak = calculateStreakFromData(nextForStreak);
+      const docRef = doc(db, "users", currentUser.uid);
+      await setDoc(docRef, { streak }, { merge: true });
     } catch (error) {
-      console.error("Error setting mood:", error.message);
+      // Rollback optimistic update using a shared rollback transformer
+      const rollbackTransformer = (prev) => {
+        let rolled = prev;
+        // Restore mood or delete if there was none
+        if (hadMood) {
+          rolled = upsertEntryInState(rolled, { year, month, day, mood: prevMood, journal: undefined });
+        } else {
+          rolled = deleteEntryFromState(rolled, { year, month, day });
+        }
+        // Restore journal or remove if there was none
+        if (hadJournal) {
+          rolled = upsertEntryInState(rolled, { year, month, day, mood: undefined, journal: prevJournal });
+        } else {
+          rolled = removeJournalFieldFromState(rolled, { year, month, day });
+        }
+        return rolled;
+      };
+
+      updateBothStates(rollbackTransformer);
+      throw error;
+    }
+  }
+
+  async function handleDeleteDailyEntry({ year, month, day }) {
+    if (!currentUser?.uid) throw new Error("Not authenticated");
+
+    const prevMood = data?.[year]?.[month]?.[day];
+    const prevJournal = data?.[year]?.[month]?.[`journal_${day}`];
+    const hadMood = typeof prevMood === "number";
+    const hadJournal = typeof prevJournal === "string";
+
+    // Optimistic UI update
+    updateBothStates((prev) => deleteEntryFromState(prev, { year, month, day }));
+
+    try {
+      await deleteDailyEntry(currentUser.uid, { year, month, day });
+
+      const nextForStreak = deleteEntryFromState(data || {}, { year, month, day });
+      const streak = calculateStreakFromData(nextForStreak);
+      const docRef = doc(db, "users", currentUser.uid);
+      await setDoc(docRef, { streak }, { merge: true });
+    } catch (error) {
+      // Rollback optimistic update using a shared rollback transformer
+      const rollbackTransformer = (prev) => {
+        let rolled = prev;
+        if (hadMood) {
+          rolled = upsertEntryInState(rolled, { year, month, day, mood: prevMood, journal: undefined });
+        }
+        if (hadJournal) {
+          rolled = upsertEntryInState(rolled, { year, month, day, mood: undefined, journal: prevJournal });
+        }
+        return rolled;
+      };
+
+      updateBothStates(rollbackTransformer);
+      throw error;
     }
   }
 
