@@ -308,20 +308,24 @@
 
 /* Floating animations for splash screen orbs */
 @keyframes float-slow {
+
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
   }
+
   50% {
     transform: translateY(-12px) rotate(3deg);
   }
 }
 
 @keyframes float-medium {
+
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
   }
+
   50% {
     transform: translateY(-8px) rotate(-2deg);
   }
@@ -525,6 +529,7 @@
 }
 
 @keyframes insights-skeleton-pulse {
+
   0%,
   100% {
     opacity: 0.7;
