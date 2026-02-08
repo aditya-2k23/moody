@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { AlertTriangle, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import convertMood, { moods } from "@/utils";
-
-const moodKeys = Object.keys(moods);
+import RadialMoodMenu from "./RadialMoodMenu";
+import NewFeatureDot from "./NewFeatureDot";
 
 export default function JournalModal({
   isOpen,
@@ -58,6 +58,16 @@ export default function JournalModal({
     const journalChanged = draftJournal !== (journal || "");
     return moodChanged || journalChanged;
   }, [isEditing, draftMood, mood, draftJournal, journal]);
+
+  // Mood options for radial menu (derived once)
+  const moodOptions = useMemo(
+    () => Object.entries(moods).map(([label, emoji]) => ({ label, emoji })),
+    []
+  );
+
+  // Draft mood display values (for edit-mode radial trigger)
+  const draftMoodLabel = typeof draftMood === "number" ? convertMood(draftMood) : null;
+  const draftMoodEmoji = draftMoodLabel ? moods[draftMoodLabel] : null;
 
   // Handle close with unsaved changes check
   const handleClose = useCallback(() => {
@@ -213,36 +223,43 @@ export default function JournalModal({
               <span className="font-semibold">You felt:</span>
               {!isEditing ? (
                 selectedMoodLabel ? (
-                  <span className="inline-flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 ml-1">
                     <span className="text-xl leading-none">{selectedMoodEmoji}</span>
                     <span className="capitalize">{selectedMoodLabel}</span>
                   </span>
                 ) : (
-                  <span className="text-gray-500 dark:text-gray-400 italic">Not logged</span>
+                  <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
                 )
               ) : (
-                <select
-                  className="flex-1 max-w-[180px] px-3 py-1.5 rounded-lg bg-indigo-50/80 dark:bg-slate-800/70 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-indigo-500/70 text-sm"
-                  value={typeof draftMood === "number" ? String(draftMood) : ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      setDraftMood(null);
-                      return;
-                    }
-                    const val = Number(value);
-                    setDraftMood(Number.isFinite(val) ? val : null);
-                  }}
-                >
-                  {draftMood === null && (
-                    <option value="">Select mood</option>
-                  )}
-                  {moodKeys.map((key, idx) => (
-                    <option key={key} value={String(idx + 1)}>
-                      {moods[key]} {key}
-                    </option>
-                  ))}
-                </select>
+                <span className="inline-flex items-center gap-2 ml-1">
+                  <span className="relative">
+                    <RadialMoodMenu
+                      moods={moodOptions}
+                      currentMoodEmoji={draftMoodEmoji}
+                      currentMoodLabel={draftMoodLabel}
+                      onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
+                      disabled={saving}
+                    />
+                    <NewFeatureDot className="-right-[0.1]" />
+                  </span>
+                  <span className="inline-flex flex-col leading-tight">
+                    {draftMoodLabel ? (
+                      <>
+                        <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
+                          {draftMoodLabel}
+                        </span>
+
+                        <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
+                          hover to change
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
+                        pick a mood
+                      </span>
+                    )}
+                  </span>
+                </span>
               )}
             </div>
 
