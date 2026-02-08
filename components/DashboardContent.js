@@ -109,7 +109,7 @@ export default function DashboardContent() {
       current = new Date(yesterday);
     } else {
       // No entry today or yesterday — streak is broken
-      return { streak: 0, lastMood, lastDate };
+      return { streak: 0, lastMood, lastDate, hasLoggedToday: hasTodayEntry };
     }
 
     // Count consecutive days backwards
@@ -118,7 +118,7 @@ export default function DashboardContent() {
       current.setDate(current.getDate() - 1);
     }
 
-    return { streak, lastMood, lastDate };
+    return { streak, lastMood, lastDate, hasLoggedToday: hasTodayEntry };
   }
 
   useEffect(() => {
@@ -543,9 +543,9 @@ export default function DashboardContent() {
       <Toaster position="top-center" />
 
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
-        <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
+        <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
+          <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
 
           {Object.keys(statuses).map((status, statusIndex) => {
             if (status === "lastMood") {
@@ -561,13 +561,21 @@ export default function DashboardContent() {
                 </div>
               );
             }
-            if (status === "lastDate") return null;
+            if (status === "lastDate" || status === "hasLoggedToday") return null;
+            if (status === "streak") {
+              return (
+                <StreakIndicator
+                  key={statusIndex}
+                  streak={statuses.streak}
+                  hasLoggedToday={statuses.hasLoggedToday}
+                />
+              );
+            }
             return (
               <div key={statusIndex} className="flex flex-col items-center gap-1 sm:gap-2">
                 <p className='font-bold dark:font-semibold capitalize text-xs sm:text-base'>{status.replaceAll('_', ' ')}</p>
                 <p className='fugaz text-base sm:text-xl truncate dark:text-white text-indigo-500'>
                   {statuses[status]}
-                  {status === "streak" ? "🔥" : ""}
                 </p>
               </div>
             );
