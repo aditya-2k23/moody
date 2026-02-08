@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { analyzeEntry } from "@/utils/analyzeJournal";
+import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
@@ -390,28 +390,21 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   };
 
   // ========== Generate Insights Handler ==========
-  const handleGenerateInsights = async () => {
+  const handleGenerateInsights = async (forceRegenerate = false) => {
     if (!entry.trim()) {
       toast.error("Journal entry cannot be empty.");
       return;
     }
 
     setLoadingInsights(true);
-    const docRef = doc(db, "users", currentUser.uid, "insights", entry);
 
     try {
-      const cachedDoc = await getDoc(docRef);
-      if (cachedDoc.exists()) {
-        setInsights(cachedDoc.data());
-        console.log("Loaded cached insights.");
-      } else {
-        const result = await analyzeEntry(entry);
-        setInsights(result);
-        await setDoc(docRef, result);
-        console.log("New insights generated and cached.");
-      }
+      // Call server action with Redis cache-first logic
+      const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
+      setInsights(result);
     } catch (error) {
-      toast.error(error.message);
+      console.error("Error generating insights:", error);
+      toast.error(error.message || "Failed to generate insights.");
     } finally {
       setLoadingInsights(false);
     }
@@ -525,7 +518,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
-            onClick={handleGenerateInsights}
+            onClick={() => handleGenerateInsights()}
             disabled={loadingInsights}
           />
           <Button

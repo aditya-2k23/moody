@@ -1,6 +1,6 @@
 {
   "name": "moody",
-  "version": "2.4.31",
+  "version": "2.4.32",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
+    "@upstash/redis": "^1.36.2",
     "cloudinary": "^2.8.0",
     "firebase": "^11.9.1",
     "firebase-admin": "^13.6.0",
