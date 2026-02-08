@@ -361,131 +361,96 @@
   background: var(--theme-reveal-bg);
   --petal-r: calc(var(--r) * 0.7);
   --petal-offset: calc(var(--r) * 0.35);
-  -webkit-mask: 
+  -webkit-mask:
     /* Center circle */
-    radial-gradient(
-      circle at var(--x) var(--y),
+    radial-gradient(circle at var(--x) var(--y),
       transparent 0,
       transparent calc(var(--r) * 0.5),
-      #000 calc(var(--r) * 0.5 + 1px)
-    ),
+      #000 calc(var(--r) * 0.5 + 1px)),
     /* Petal 1 - Top */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 2 - Top Right */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-          calc(var(--y) - var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 3 - Bottom Right */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-          calc(var(--y) + var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 4 - Bottom */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 5 - Bottom Left */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-          calc(var(--y) + var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 6 - Top Left */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-          calc(var(--y) - var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      );
-  mask: 
+    radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px));
+  mask:
     /* Center circle */
-    radial-gradient(
-      circle at var(--x) var(--y),
+    radial-gradient(circle at var(--x) var(--y),
       transparent 0,
       transparent calc(var(--r) * 0.5),
-      #000 calc(var(--r) * 0.5 + 1px)
-    ),
+      #000 calc(var(--r) * 0.5 + 1px)),
     /* Petal 1 - Top */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 2 - Top Right */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-          calc(var(--y) - var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 3 - Bottom Right */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-          calc(var(--y) + var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 4 - Bottom */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 5 - Bottom Left */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-          calc(var(--y) + var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      ),
+    radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px)),
     /* Petal 6 - Top Left */
-    radial-gradient(
-        ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-          calc(var(--y) - var(--petal-offset) * 0.5),
-        transparent 0,
-        transparent var(--petal-r),
-        #000 calc(var(--petal-r) + 1px)
-      );
+    radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+      transparent 0,
+      transparent var(--petal-r),
+      #000 calc(var(--petal-r) + 1px));
   -webkit-mask-composite: destination-out;
   mask-composite: intersect;
   animation: theme-reveal 650ms ease-in-out forwards;
 }
 
 .theme-reveal-light {
-  --theme-reveal-bg: #ffffff;
+  --theme-reveal-bg: #f6f8ff;
 }
 
 .theme-reveal-dark {
-  --theme-reveal-bg: #0f172a;
+  --theme-reveal-bg: #141414;
 }
 
 @keyframes theme-reveal {
   from {
     --r: 0px;
   }
+
   to {
     --r: var(--max-r);
   }
@@ -528,32 +493,28 @@
 }
 
 .journal-textarea::-webkit-resizer {
-  background: linear-gradient(
-    135deg,
-    transparent 50%,
-    var(--color-resizer) 50%,
-    var(--color-resizer) 60%,
-    transparent 60%,
-    transparent 75%,
-    var(--color-resizer) 75%,
-    var(--color-resizer) 85%,
-    transparent 85%
-  );
+  background: linear-gradient(135deg,
+      transparent 50%,
+      var(--color-resizer) 50%,
+      var(--color-resizer) 60%,
+      transparent 60%,
+      transparent 75%,
+      var(--color-resizer) 75%,
+      var(--color-resizer) 85%,
+      transparent 85%);
   border-radius: 0 0 8px 0;
 }
 
 .dark .journal-textarea::-webkit-resizer {
-  background: linear-gradient(
-    135deg,
-    transparent 50%,
-    var(--color-resizer-dark) 50%,
-    var(--color-resizer-dark) 60%,
-    transparent 60%,
-    transparent 75%,
-    var(--color-resizer-dark) 75%,
-    var(--color-resizer-dark) 85%,
-    transparent 85%
-  );
+  background: linear-gradient(135deg,
+      transparent 50%,
+      var(--color-resizer-dark) 50%,
+      var(--color-resizer-dark) 60%,
+      transparent 60%,
+      transparent 75%,
+      var(--color-resizer-dark) 75%,
+      var(--color-resizer-dark) 85%,
+      transparent 85%);
 }
 
 /* ========== AI Insights Section Animations ========== */
