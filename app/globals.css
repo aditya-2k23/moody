@@ -110,6 +110,188 @@
   animation-delay: 600ms;
 }
 
+/* ========== Streak Indicator Animations ========== */
+
+/* Tooltip fade in animation */
+.animate-tooltip-fade-in {
+  animation: tooltip-fade-in 0.2s ease-out forwards;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Streak number celebration animation */
+.animate-streak-number {
+  animation: streak-number-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes streak-number-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.3);
+  }
+
+  60% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Fire emoji celebration animation */
+.animate-streak-fire {
+  animation: streak-fire-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes streak-fire-bounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  25% {
+    transform: scale(1.4) rotate(-10deg);
+  }
+
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Overall streak container celebration */
+.animate-streak-celebrate {
+  animation: streak-celebrate 0.5s ease-out forwards;
+}
+
+@keyframes streak-celebrate {
+  0% {
+    filter: grayscale(100%);
+  }
+
+  100% {
+    filter: grayscale(0%);
+  }
+}
+
+/* Sparkle animations */
+.animate-sparkle-1 {
+  animation: sparkle-float-1 0.8s ease-out forwards;
+}
+
+.animate-sparkle-2 {
+  animation: sparkle-float-2 0.9s ease-out 0.1s forwards;
+}
+
+.animate-sparkle-3 {
+  animation: sparkle-float-3 0.7s ease-out 0.2s forwards;
+}
+
+@keyframes sparkle-float-1 {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-8px, -12px) scale(1.4);
+  }
+
+  60% {
+    opacity: 0.8;
+    transform: translate(-14px, -22px) scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-20px, -30px) scale(0.8);
+  }
+}
+
+@keyframes sparkle-float-2 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.5);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-30%, -15px) scale(1.5);
+  }
+
+  60% {
+    opacity: 0.8;
+    transform: translate(-38%, -28px) scale(1.3);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-47%, -40px) scale(0.8);
+  }
+}
+
+@keyframes sparkle-float-3 {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(10px, -10px) scale(1.4);
+  }
+
+  60% {
+    opacity: 0.8;
+    transform: translate(18px, -18px) scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(25px, -25px) scale(0.8);
+  }
+}
+
+/* Glow effect animation */
+.animate-streak-glow {
+  animation: streak-glow 1s ease-out forwards;
+}
+
+@keyframes streak-glow {
+  0% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 @keyframes loading-bar {
   0% {
     width: 0%;

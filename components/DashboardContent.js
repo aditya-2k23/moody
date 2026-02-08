@@ -14,6 +14,7 @@ import { doc, setDoc } from "firebase/firestore";
 import Journal from "./Journal";
 import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
 import { RotateCcw } from "lucide-react";
+import StreakIndicator from "./StreakIndicator";
 
 export default function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
