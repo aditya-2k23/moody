@@ -56,7 +56,9 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // Determine AI icon based on resolved theme (next-themes handles system preference)
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
