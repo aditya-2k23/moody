@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
 import toast from "react-hot-toast";
 import { AlertTriangle, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import JournalModal from "./JournalModal";
 
 const monthsArr = Object.keys(months);
 
@@ -128,255 +129,36 @@ export default function Calender({
       <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/20 to-orange-300/20 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-0 right-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/30 to-orange-400/30 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
-      {showJournalPopup && selectedDay && (
-        <div className="relative mb-0 md:mb-2 px-4 py-3 md:py-4 bg-indigo-50 dark:bg-slate-700/70 rounded-lg border border-indigo-200 dark:border-none">
-          <button
-            className="absolute top-2 right-2 text-indigo-500/70 dark:text-indigo-200/80 hover:text-indigo-700 dark:hover:text-indigo-200 outline-none duration-150 hover:scale-110 disabled:opacity-50"
-            onClick={() => {
-              if (saving || deleting) return;
-              setSelectedDay(null);
-              setSelectedJournal("");
-              setSelectedMood(null);
-              setIsEditing(false);
-              setConfirmDelete(false);
-            }}
-            disabled={saving || deleting}
-            title="Close"
-            aria-label="Close journal entry"
-          >
-            <X size={18} />
-          </button>
-
-          <h3 className="font-bold text-indigo-600 dark:text-indigo-200/95 mb-1">{selectedDay} {selectedMonth}, {selectedYear}</h3>
-
-          <p className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-3 flex items-center gap-2">
-            <span className="font-semibold">Mood:</span>
-            {selectedMoodLabel ? (
-              <span className="inline-flex items-center gap-1">
-                <span className="text-lg leading-none">{selectedMoodEmoji}</span>
-                <span className="capitalize">{selectedMoodLabel}</span>
-              </span>
-            ) : (
-              <span className="text-gray-500 dark:text-gray-300">Not logged</span>
-            )}
-          </p>
-
-          {!isEditing ? (
-            <>
-              {selectedJournal ? (
-                <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">{selectedJournal}</p>
-              ) : (
-                <p className="text-gray-500 dark:text-gray-300 italic">No journal entry for this day.</p>
-              )}
-
-              {hasSelectedEntry && (
-                <div className="flex items-center justify-end gap-2 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (saving || deleting) return;
-                      setIsEditing(true);
-                      setDraftJournal(selectedJournal || "");
-                      setDraftMood(selectedMood);
-                    }}
-                    disabled={!isAuthed || saving || deleting}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 dark:bg-slate-800/60 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-white/80 dark:hover:bg-slate-800/80 transition disabled:opacity-50"
-                    title="Edit"
-                  >
-                    <Pencil size={16} />
-                    Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (saving || deleting) return;
-                      setConfirmDelete(true);
-                    }}
-                    disabled={!isAuthed || saving || deleting}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-300 font-semibold hover:bg-red-500/15 transition disabled:opacity-50"
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="grid gap-3">
-                <label className="grid gap-1">
-                  <span className="text-xs font-semibold text-indigo-700/80 dark:text-indigo-200/80">Mood</span>
-                  <select
-                    className="w-full px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-indigo-500/70"
-                    value={typeof draftMood === "number" ? String(draftMood) : ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        setDraftMood(null);
-                        return;
-                      }
-                      const val = Number(value);
-                      setDraftMood(Number.isFinite(val) ? val : null);
-                    }}
-                  >
-                    {draftMood === null && (
-                      <option value="">Select mood</option>
-                    )}
-                    {moodKeys.map((key, idx) => (
-                      <option key={key} value={String(idx + 1)}>
-                        {moods[key]} {key}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="grid gap-1">
-                  <span className="text-xs font-semibold text-indigo-700/80 dark:text-indigo-200/80">Journal</span>
-                  <textarea
-                    className="w-full min-h-24 md:min-h-28 p-3 text-gray-700 dark:text-gray-100 bg-white/70 dark:bg-slate-800/70 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/70 whitespace-pre-line"
-                    value={draftJournal}
-                    onChange={(e) => setDraftJournal(e.target.value)}
-                    disabled={saving}
-                  />
-                </label>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!isAuthed) {
-                      toast.error("Not authenticated");
-                      return;
-                    }
-                    if (!onUpdateEntry) return;
-                    if (!selectedDay) return;
-                    if (saving) return;
-
-                    const hasMood = typeof draftMood === "number";
-                    const hasJournal = typeof draftJournal === "string" && draftJournal.trim().length > 0;
-
-                    if (!hasMood && !hasJournal) {
-                      toast.error("Nothing to save — use Delete instead.");
-                      return;
-                    }
-
-                    setSaving(true);
-                    const opYear = selectedYear;
-                    const opMonth = numericMonth;
-                    const opDay = selectedDay;
-
-                    // Optimistically update local popup state immediately.
-                    setSelectedJournal(draftJournal);
-                    setSelectedMood(draftMood);
-
-                    try {
-                      await onUpdateEntry({
-                        year: opYear,
-                        month: opMonth,
-                        day: opDay,
-                        mood: draftMood,
-                        journal: draftJournal,
-                      });
-                      toast.success("Journal updated");
-                      setIsEditing(false);
-                    } catch (err) {
-                      toast.error("Failed to update entry. Please try again.");
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
-                >
-                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Save
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (saving) return;
-                    setIsEditing(false);
-                    setDraftJournal("");
-                    setDraftMood(null);
-                  }}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 dark:bg-slate-800/60 text-gray-700 dark:text-gray-100 font-semibold hover:bg-white/80 dark:hover:bg-slate-800/80 transition disabled:opacity-60"
-                >
-                  <X size={16} />
-                  Cancel
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Delete confirmation modal */}
-      {confirmDelete && selectedDay && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4" onClick={() => {
-          if (deleting) return;
-          setConfirmDelete(false);
-        }}>
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-indigo-100 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-300">
-                <AlertTriangle size={20} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Delete entry?</h3>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">Delete mood & journal for this day? This cannot be undone.</p>
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                disabled={deleting}
-                className="px-4 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 text-gray-800 dark:text-gray-100 font-semibold hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!isAuthed) {
-                    toast.error("Not authenticated");
-                    return;
-                  }
-                  if (!onDeleteEntry) return;
-                  if (deleting) return;
-
-                  setDeleting(true);
-                  const opYear = selectedYear;
-                  const opMonth = numericMonth;
-                  const opDay = selectedDay;
-
-                  try {
-                    await onDeleteEntry({ year: opYear, month: opMonth, day: opDay });
-                    toast.success("Entry deleted");
-                    setConfirmDelete(false);
-                    setIsEditing(false);
-                    setSelectedDay(null);
-                    setSelectedJournal("");
-                    setSelectedMood(null);
-                  } catch (err) {
-                    toast.error("Failed to delete entry. Please try again.");
-                  } finally {
-                    setDeleting(false);
-                  }
-                }}
-                disabled={deleting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60"
-              >
-                {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Journal Modal */}
+      {showJournalPopup && (
+        <JournalModal
+          isOpen={!!selectedDay}
+          day={selectedDay}
+          month={numericMonth}
+          monthName={selectedMonth}
+          year={selectedYear}
+          mood={selectedMood}
+          journal={selectedJournal}
+          isAuthed={isAuthed}
+          onSave={async ({ year, month, day, mood, journal }) => {
+            if (!onUpdateEntry) return;
+            // Update local state optimistically
+            setSelectedJournal(journal);
+            setSelectedMood(mood);
+            await onUpdateEntry({ year, month, day, mood, journal });
+          }}
+          onDelete={async ({ year, month, day }) => {
+            if (!onDeleteEntry) return;
+            await onDeleteEntry({ year, month, day });
+          }}
+          onClose={() => {
+            setSelectedDay(null);
+            setSelectedJournal("");
+            setSelectedMood(null);
+            setIsEditing(false);
+            setConfirmDelete(false);
+          }}
+        />
       )}
 
       <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl pt-4">
