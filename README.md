@@ -23,35 +23,32 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 
 ## 🚀 Features
 
-- **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
 - **Mood Tracking**: Log your daily mood with a single click and view your mood history on a calendar.
-- **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration.
-- **Smart Photo Gallery**: A beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
+- **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
+- **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
-- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini 2.5 Flash**.
-- **Curated Reflective Placeholders**: Instant-loading, thoughtful prompts in the journal to inspire your daily writing.
+- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini 2.5 Flash** — powered by server-side Redis caching for instant repeat lookups.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
-- **Quote of the Day**: Motivational quotes to set a positive tone every time you visit.
-- **Modern UI**: Clean, responsive design with glassmorphism, animated gradients, and dark mode support.
 
-### 🆕 Recent Features & Improvements
+### 🆕 Recent Features & Improvements (v2.5.0)
 
+- **🤖 AI Insights with Redis Cache**: Journal insights are now generated server-side via Next.js Server Actions and cached in Upstash Redis with content-hash keys and a 7-day TTL — eliminating redundant API calls.
+- **📝 Journal Modal with Edit & Delete**: Click any calendar day to view, edit, or delete journal entries and mood in a sleek modal with unsaved changes detection.
+- **🎯 Radial Mood Menu**: GTA-style radial mood selector for intuitive mood selection when editing past entries.
+- **🔥 Streak Indicator**: Dynamic streak display with celebratory animations, grayscale inactive state, and tooltip hints.
+- **🎨 Theme Reveal Animation**: Beautiful flower-shaped mask animation on theme toggle, with reduced motion support.
 - **🎤 Voice Input (Beta)**: Dictate your journal entries using the Web Speech API. Features smart punctuation, auto-capitalization, and a 5-minute listening limit to conserve resources.
-- **💾 Smart Autosave**: Journal entries are automatically saved to the cloud with intelligent debouncing for both typing and voice input. Includes safety measures to prevent data loss on page exit.
 - **✨ Enhanced Memories Animations**: Smooth fade-in/fade-out transitions with skeleton loaders for a polished loading experience.
-- **Visual Memories**: Added support for uploading up to 5 photos per day with Cloudinary.
-- **Parallel Uploading**: Images are uploaded in parallel for significantly faster log times.
-- **Photo Viewer**: Interactive Modal with zoom, mouse dragging, and keyboard shortcuts (Arrows, Esc, +/-).
-- **Performance Optimization**: Replaced dynamic AI placeholders with a curated static pool to eliminate loading flickers and reduce API costs.
-- **Cloudinary Optimization**: Images are automatically resized and optimized for performance and lower data usage.
 
 ## 🛠️ Tech Stack
 
 - **Next.js** (App Router)
 - **React** 19+
-- **Firebase** (Auth, Firestore, and AI SDK)
+- **Firebase** (Auth & Firestore)
 - **Cloudinary** (Image storage & transformation)
-- **Google Gemini 2.5 Flash**
+- **Google Gemini 2.5 Flash** (AI Insights)
+- **Upstash Redis** (Server-side caching)
+- **lucide-react** (Icons)
 - **Tailwind CSS**
 - **react-hot-toast**
 
@@ -110,6 +107,13 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 
    # Firebase Admin (v2.0+)
    FIREBASE_SERVICE_ACCOUNT_KEY='{"project_id": "...", ...}'
+
+   # AI Insights (v2.5.0+)
+   GEMINI_API_KEY=...
+
+   # Redis Caching (v2.5.0+)
+   UPSTASH_REDIS_REST_URL=...
+   UPSTASH_REDIS_REST_TOKEN=...
    ```
 
 4. **Run the development server:**
