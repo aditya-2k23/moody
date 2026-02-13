@@ -50,11 +50,6 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const now = new Date();
-  const day = now.getDate();
-  const month = now.getMonth();
-  const year = now.getFullYear();
-
   // Determine AI icon based on resolved theme (next-themes handles system preference)
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -243,9 +238,14 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               day,
               entry: entry.trim()
             });
-            navigator.sendBeacon('/api/journal-beacon', payload);
-            hasUnsavedChangesRef.current = false;
-            lastSavedEntryRef.current = entry;
+            const queued = navigator.sendBeacon('/api/journal-beacon', payload);
+            if (queued) {
+              hasUnsavedChangesRef.current = false;
+              lastSavedEntryRef.current = entry;
+            } else {
+              // Fallback if beacon fails to enqueue
+              saveJournalText();
+            }
           }).catch(() => {
             // Fall back to async save if token retrieval fails
             saveJournalText();
