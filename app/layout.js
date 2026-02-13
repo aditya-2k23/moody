@@ -36,10 +36,10 @@ export default function RootLayout({ children }) {
       <p className={`text-indigo-500 dark:text-indigo-400 fugaz cursor-default`}>Created with 💜 by Aditya</p>
       <div className="flex gap-4">
         <Link href="https://www.github.com/aditya-2k23/moody" target="_blank" rel="noopener noreferrer" title="Adi's GitHub">
-          <Button text={<><Github className="md:mr-1" size={18} /> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
+          <Button text={<><Github size={18} /> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
         <Link href="https://www.linkedin.com/in/aditya-2k23" target="_blank" rel="noopener noreferrer" title="Adi's LinkedIn">
-          <Button text={<><Linkedin className="md:mr-1" size={18} /> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
+          <Button text={<><Linkedin size={18} /> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
       </div>
     </footer>
