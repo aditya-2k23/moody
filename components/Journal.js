@@ -96,6 +96,12 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       return false;
     }
 
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
     try {
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, {
@@ -114,7 +120,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       console.error("Auto-save error:", error);
       return false;
     }
-  }, [entry, currentUser, year, month, day]);
+  }, [entry, currentUser]);
 
   // Debounce constants
   const TYPING_DEBOUNCE_MS = 1700;
@@ -297,6 +303,12 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     setSaving(true);
     setCloudStatus("saving");
     setUploading(selectedImages.length > 0);
+
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
 
     try {
       if (entry.trim()) {
@@ -495,7 +507,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
             {isListening ? (
-              <Square className={isListening ? "animate-pulse" : ""} size={18} />
+              <Square className="animate-pulse" size={18} />
             ) : (
               <Mic size={18} />
             )}
