@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { analyzeEntry } from "@/utils/analyzeJournal";
+import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { Book, CloudUpload, Check, Mic, Square } from "lucide-react";
 
 export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
   const { resolvedTheme } = useTheme();
@@ -49,14 +50,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const now = new Date();
-  const day = now.getDate();
-  const month = now.getMonth();
-  const year = now.getFullYear();
-
   // Determine AI icon based on resolved theme (next-themes handles system preference)
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
@@ -93,6 +91,12 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       return false;
     }
 
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
     try {
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, {
@@ -111,7 +115,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       console.error("Auto-save error:", error);
       return false;
     }
-  }, [entry, currentUser, year, month, day]);
+  }, [entry, currentUser]);
 
   // Debounce constants
   const TYPING_DEBOUNCE_MS = 1700;
@@ -234,9 +238,14 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               day,
               entry: entry.trim()
             });
-            navigator.sendBeacon('/api/journal-beacon', payload);
-            hasUnsavedChangesRef.current = false;
-            lastSavedEntryRef.current = entry;
+            const queued = navigator.sendBeacon('/api/journal-beacon', payload);
+            if (queued) {
+              hasUnsavedChangesRef.current = false;
+              lastSavedEntryRef.current = entry;
+            } else {
+              // Fallback if beacon fails to enqueue
+              saveJournalText();
+            }
           }).catch(() => {
             // Fall back to async save if token retrieval fails
             saveJournalText();
@@ -294,6 +303,12 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     setSaving(true);
     setCloudStatus("saving");
     setUploading(selectedImages.length > 0);
+
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
 
     try {
       if (entry.trim()) {
@@ -390,28 +405,26 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   };
 
   // ========== Generate Insights Handler ==========
-  const handleGenerateInsights = async () => {
+  const handleGenerateInsights = async (forceRegenerate = false) => {
+    if (!currentUser || !currentUser.uid) {
+      toast.error("Please log in to generate insights.");
+      return;
+    }
+
     if (!entry.trim()) {
       toast.error("Journal entry cannot be empty.");
       return;
     }
 
     setLoadingInsights(true);
-    const docRef = doc(db, "users", currentUser.uid, "insights", entry);
 
     try {
-      const cachedDoc = await getDoc(docRef);
-      if (cachedDoc.exists()) {
-        setInsights(cachedDoc.data());
-        console.log("Loaded cached insights.");
-      } else {
-        const result = await analyzeEntry(entry);
-        setInsights(result);
-        await setDoc(docRef, result);
-        console.log("New insights generated and cached.");
-      }
+      // Call server action with Redis cache-first logic
+      const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
+      setInsights(result);
     } catch (error) {
-      toast.error(error.message);
+      console.error("Error generating insights:", error);
+      toast.error(error.message || "Failed to generate insights.");
     } finally {
       setLoadingInsights(false);
     }
@@ -427,7 +440,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
-            <i className="fa-solid fa-book"></i> Quick Journal
+            <Book size={24} /> Quick Journal
           </h2>
 
           {/* Cloud Save Status */}
@@ -437,12 +450,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               : "opacity-100 scale-100"
               }`}
           >
-            <i
-              className={`fa-solid text-sm ${cloudStatus === "saving"
-                ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
-                : "fa-check text-green-500 dark:text-green-400"
-                }`}
-            ></i>
+            {cloudStatus === "saving" ? (
+              <CloudUpload className="text-indigo-400 dark:text-indigo-300 animate-pulse" size={14} />
+            ) : (
+              <Check className="text-green-500 dark:text-green-400" size={14} />
+            )}
             <span
               className={`text-xs font-medium ${cloudStatus === "saving"
                 ? "text-indigo-500 dark:text-indigo-300"
@@ -494,10 +506,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               }`}
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
-            <i
-              className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
-                }`}
-            ></i>
+            {isListening ? (
+              <Square className="animate-pulse" size={18} />
+            ) : (
+              <Mic size={18} />
+            )}
           </button>
 
           {/* Image Upload Component */}
@@ -525,7 +538,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
-            onClick={handleGenerateInsights}
+            onClick={() => handleGenerateInsights()}
             disabled={loadingInsights}
           />
           <Button

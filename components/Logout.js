@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/authContext";
 import Button from "./Button";
+import { LogOut } from "lucide-react";
 
 export default function Logout() {
   const { logOut, currentUser } = useAuth();
@@ -17,7 +18,7 @@ export default function Logout() {
       <Button
         text={<>
           Log Out
-          <i className="ml-1 sm:ml-2 fa-solid fa-right-from-bracket"></i>
+          <LogOut className="ml-1 sm:ml-2" size={16} />
         </>}
         onClick={logOut}
         className="dark:!text-slate-200 !text-slate-700 dark:hover:!text-white hover:!text-white !py-2 !px-5"

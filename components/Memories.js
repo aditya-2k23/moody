@@ -5,6 +5,7 @@ import PhotoModal from "./PhotoModal";
 import MemoriesCircularGallery from "./MemoriesCircularGallery";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { Images } from "lucide-react";
 
 // Register GSAP plugin
 gsap.registerPlugin(useGSAP);
@@ -19,7 +20,7 @@ function MemoriesSkeleton({ monthLabel }) {
       <div className="absolute bottom-0 left-0 w-32 h-28 bg-gradient-to-tr from-yellow-400/30 to-orange-400/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
       <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2 relative z-10">
-        <i className="fa-solid fa-images"></i> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
+        <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
       </h2>
 
       {/* Skeleton gallery placeholder */}
@@ -128,7 +129,7 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
         <div className="absolute bottom-0 left-0 w-32 h-28 bg-gradient-to-tr from-yellow-400/30 to-orange-400/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
         <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2 relative z-10">
-          <i className="fa-solid fa-images"></i> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
+          <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
         </h2>
 
         {/* Circular Gallery - use displayItems to preserve during fade-out */}

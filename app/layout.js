@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/context/themeContext";
 import Logout from "@/components/Logout";
 import Button, { BlobSvgFilter } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Github, Linkedin } from "lucide-react";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -35,10 +36,10 @@ export default function RootLayout({ children }) {
       <p className={`text-indigo-500 dark:text-indigo-400 fugaz cursor-default`}>Created with 💜 by Aditya</p>
       <div className="flex gap-4">
         <Link href="https://www.github.com/aditya-2k23/moody" target="_blank" rel="noopener noreferrer" title="Adi's GitHub">
-          <Button text={<><i className="fa-brands fa-github md:mr-1"></i> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
+          <Button text={<><Github size={18} /> GitHub</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
         <Link href="https://www.linkedin.com/in/aditya-2k23" target="_blank" rel="noopener noreferrer" title="Adi's LinkedIn">
-          <Button text={<><i className="fa-brands fa-linkedin md:mr-1"></i> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
+          <Button text={<><Linkedin size={18} /> LinkedIn</>} normal={false} className="text-slate-600 hover:text-indigo-500 dark:hover:text-white duration-200" />
         </Link>
       </div>
     </footer>
@@ -46,9 +47,6 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
-      </head>
       <body className={`w-full max-w-[1000px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 dark:text-slate-100 selection:bg-indigo-600 selection:text-white ${openSans.className}`}>
         <AuthProvider>
           <ThemeProvider>

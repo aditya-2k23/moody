@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { moods } from "@/utils";
+import { Check } from "lucide-react";
 
 /**
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
@@ -61,7 +62,7 @@ export default function AIInsightsSection({ insights, isLoading }) {
         AI Insights
         {showContent && insights && (
           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/40 dark:text-green-300 animate-insights-badge">
-            <i className="fa-solid fa-check mr-1 text-[10px]"></i>
+            <Check className="mr-1" size={10} />
             Analysis Complete
           </span>
         )}

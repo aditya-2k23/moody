@@ -1,12 +1,22 @@
 "use client";
 
-import { baseRating, gradients, demoData, months, dayList } from "@/utils";
-import { useState } from "react";
+import convertMood, { baseRating, gradients, months, dayList } from "@/utils";
+import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
+import JournalModal from "./JournalModal";
+import { Calendar, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 
 const monthsArr = Object.keys(months);
 
-export default function Calender({ demo, completeData, showJournalPopup = false, onMonthChange }) {
+export default function Calender({
+  demo,
+  currentUser,
+  completeData,
+  showJournalPopup = false,
+  onMonthChange,
+  onUpdateEntry,
+  onDeleteEntry,
+}) {
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
@@ -15,9 +25,25 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
+  const [selectedMood, setSelectedMood] = useState(null);
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
-  const data = completeData?.[selectedYear]?.[numericMonth] || {};
+  const data = useMemo(() => {
+    return completeData?.[selectedYear]?.[numericMonth] || {};
+  }, [completeData, selectedYear, numericMonth]);
+
+  const isAuthed = !!currentUser?.uid;
+
+  // Keep popup state in sync with the source of truth (completeData).
+  useEffect(() => {
+    if (!selectedDay) return;
+
+    const journal = data?.[`journal_${selectedDay}`] || "";
+    const mood = typeof data?.[selectedDay] === "number" ? data[selectedDay] : null;
+
+    setSelectedJournal(journal);
+    setSelectedMood(mood);
+  }, [data, selectedDay]);
 
   // Check if we're at the current month (can't go forward)
   const isAtCurrentMonth = selectedYear === currentYear && numericMonth === currentMonth;
@@ -55,6 +81,11 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
       setSelectedMonth(monthsArr[newMonthIndex]);
     }
 
+    // Clear any open popup state when navigating months
+    setSelectedDay(null);
+    setSelectedJournal("");
+    setSelectedMood(null);
+
     // Notify parent of month change
     if (onMonthChange) {
       onMonthChange(newYear, newMonthIndex);
@@ -76,27 +107,53 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
       <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/20 to-orange-300/20 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-0 right-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/30 to-orange-400/30 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
-      {showJournalPopup && selectedDay && (
-        <div className="relative mb-0 md:mb-2 px-4 py-3 md:py-4 bg-indigo-50 dark:bg-slate-700/70 rounded-lg border border-indigo-200 dark:border-none">
-          <button
-            className="absolute top-1 right-3 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-300/80 text-2xl font-bold outline-none duration-150 hover:scale-125"
-            onClick={() => { setSelectedDay(null); setSelectedJournal(""); }}
-            title="Close"
-            aria-label="Close journal entry"
-          >
-            &times;
-          </button>
-          <h3 className="font-bold text-indigo-600 dark:text-indigo-300/95 mb-2">Journal for {selectedDay} {selectedMonth}, {selectedYear}</h3>
-          {selectedJournal ? (
-            <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">{selectedJournal}</p>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400 italic">No journal entry for this day.</p>
-          )}
-        </div>
+      {/* Journal Modal */}
+      {showJournalPopup && (
+        <JournalModal
+          isOpen={!!selectedDay}
+          day={selectedDay}
+          month={numericMonth}
+          monthName={selectedMonth}
+          year={selectedYear}
+          mood={selectedMood}
+          journal={selectedJournal}
+          isAuthed={isAuthed}
+          onSave={async ({ year, month, day, mood, journal }) => {
+            if (!onUpdateEntry) return;
+
+            // Capture previous values for rollback
+            const previousJournal = selectedJournal;
+            const previousMood = selectedMood;
+
+            try {
+              // Update local state optimistically
+              setSelectedJournal(journal);
+              setSelectedMood(mood);
+
+              // Await the save operation
+              await onUpdateEntry({ year, month, day, mood, journal });
+            } catch (error) {
+              // Rollback on error
+              setSelectedJournal(previousJournal);
+              setSelectedMood(previousMood);
+              throw error; // Re-throw so the modal can display the error
+            }
+          }}
+          onDelete={async ({ year, month, day }) => {
+            if (!onDeleteEntry) return;
+            await onDeleteEntry({ year, month, day });
+          }}
+          onClose={() => {
+            setSelectedDay(null);
+            setSelectedJournal("");
+            setSelectedMood(null);
+          }}
+        />
       )}
+
       <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl pt-4">
         <Button
-          text={<i className="fa-solid fa-circle-chevron-left"></i>}
+          text={<ChevronLeft size={24} />}
           normal={false}
           className="mr-auto text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 duration-200 hover:scale-110"
           onClick={() => handleIncrementMonth(-1)}
@@ -104,7 +161,7 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
         <p className="fugaz col-span-3 whitespace-nowrap textGradient text-center capitalize">{selectedMonth}, {selectedYear}</p>
         <Button
           className={`ml-auto duration-200 ${isAtCurrentMonth ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 hover:scale-110'}`}
-          text={<i className="fa-solid fa-circle-chevron-right"></i>}
+          text={<ChevronRight size={24} />}
           normal={false}
           onClick={() => handleIncrementMonth(+1)}
         />
@@ -203,17 +260,19 @@ export default function Calender({ demo, completeData, showJournalPopup = false,
                   key={dayOfWeekIndex}
                   onClick={() => {
                     if (isFutureDay) return; // Block click on future dates
+
                     setSelectedDay(dayIndex);
                     setSelectedJournal(data[`journal_${dayIndex}`] || "");
+                    setSelectedMood(typeof data?.[dayIndex] === "number" ? data[dayIndex] : null);
                   }}
                   title={isFutureDay ? "Future date" : (data[`journal_${dayIndex}`] ? "View journal entry" : undefined)}
                 >
                   <p className="font-bold">{dayIndex}</p>
                   {isToday && (
-                    <span title="Today"><i className="fa-solid fa-calendar-days"></i></span>
+                    <span title="Today"><Calendar size={16} /></span>
                   )}
                   {data[`journal_${dayIndex}`] && (
-                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><i className="fa-solid fa-note-sticky"></i></span>
+                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><StickyNote size={16} /></span>
                   )}
                 </div>
               )
