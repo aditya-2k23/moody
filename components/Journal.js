@@ -394,7 +394,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async (forceRegenerate = false) => {
-    if (!currentUser?.uid) {
+    if (!currentUser || !currentUser.uid) {
       toast.error("Please log in to generate insights.");
       return;
     }
