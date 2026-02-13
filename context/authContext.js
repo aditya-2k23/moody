@@ -46,7 +46,6 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        console.log("Fetching User Data...");
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
 

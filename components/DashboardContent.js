@@ -57,70 +57,6 @@ export default function DashboardContent() {
     return `${hours}H ${minutes}M ${seconds}S`;
   }
 
-  function countValues() {
-    // Use fresh date on every call to avoid stale values if tab stays open overnight
-    const freshNow = new Date();
-    const today = new Date(freshNow.getFullYear(), freshNow.getMonth(), freshNow.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    let total_number_of_days = 0;
-    let lastMood = null;
-    let lastDate = null;
-
-    const entryDates = [];
-    for (let year in data)
-      for (let month in data[year])
-        for (let day in data[year][month]) {
-          const value = data[year][month][day];
-          if (typeof value === "number") {
-            total_number_of_days++;
-            const dateObj = new Date(Number(year), Number(month), Number(day));
-            entryDates.push({ date: dateObj, mood: value });
-          }
-        }
-
-    if (entryDates.length > 0) {
-      entryDates.sort((a, b) => b.date - a.date);
-      const prevEntry = entryDates.find(e => e.date < today);
-      if (prevEntry) {
-        lastMood = prevEntry.mood;
-        lastDate = prevEntry.date;
-      } else {
-        lastMood = entryDates[0].mood;
-        lastDate = entryDates[0].date;
-      }
-    }
-
-    const entryDateSet = new Set(entryDates.map(e => e.date.toDateString()));
-    const hasTodayEntry = entryDateSet.has(today.toDateString());
-    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
-
-    let streak = 0;
-
-    // Determine where to start counting the streak
-    // If today has an entry, start from today
-    // If today has no entry but yesterday does, streak is still "ongoing" — start from yesterday
-    let current;
-    if (hasTodayEntry) {
-      current = new Date(today);
-    } else if (hasYesterdayEntry) {
-      // Ongoing streak: user hasn't logged today yet, but logged yesterday
-      current = new Date(yesterday);
-    } else {
-      // No entry today or yesterday — streak is broken
-      return { streak: 0, lastMood, lastDate, hasLoggedToday: hasTodayEntry };
-    }
-
-    // Count consecutive days backwards
-    while (entryDateSet.has(current.toDateString())) {
-      streak++;
-      current.setDate(current.getDate() - 1);
-    }
-
-    return { streak, lastMood, lastDate, hasLoggedToday: hasTodayEntry };
-  }
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining(getTimeRemaining());
@@ -192,8 +128,14 @@ export default function DashboardContent() {
       const docRef = doc(db, "users", currentUser.uid);
 
       if (mood === null) {
-        // Deselected mood - delete the mood field for today
-        await deleteDailyEntry(currentUser.uid, { year, month, day });
+        // Deselected mood - delete ONLY the mood field for today (preserve journal)
+        await setDoc(docRef, {
+          [year]: {
+            [month]: {
+              [day]: deleteField()
+            }
+          }
+        }, { merge: true });
         await setDoc(docRef, { streak }, { merge: true });
       } else {
         await setDoc(docRef, {
@@ -229,7 +171,7 @@ export default function DashboardContent() {
   // Save pending mood on page exit (beforeunload) or visibility change (tab switch/close)
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Use sendBeacon for reliable save on page close
+      // Use sendBeacon for reliable save on page close as async Firestore writes are dropped
       const pending = pendingMoodRef.current;
       if (!pending || !currentUser?.uid) return;
 
@@ -240,11 +182,13 @@ export default function DashboardContent() {
         moodDebounceTimerRef.current = null;
       }
 
-      // Note: sendBeacon can't be used with Firestore SDK directly,
-      // so we rely on the synchronous nature of beforeunload.
-      // For best effort, we trigger the async save and hope it completes.
-      // Most browsers give a small window for async operations.
-      flushPendingMood();
+      // Best-effort fallback: send beacon to lightweight endpoint
+      // NOTE: Pure async Firestore writes are often lost on hard closes.
+      const blob = new Blob(
+        [JSON.stringify({ uid: currentUser.uid, ...pending })],
+        { type: "application/json" }
+      );
+      navigator.sendBeacon("/api/journal-beacon", blob);
     };
 
     const handleVisibilityChange = () => {
@@ -268,80 +212,6 @@ export default function DashboardContent() {
       flushPendingMood();
     };
   }, [currentUser?.uid, flushPendingMood]);
-
-  function handleSetMood(mood) {
-    // Use fresh date to avoid stale values if tab was left open overnight
-    const freshNow = new Date();
-    const day = freshNow.getDate();
-    const month = freshNow.getMonth();
-    const year = freshNow.getFullYear();
-    const today = new Date(year, month, day);
-
-    // Toggle logic: if clicking the same mood, deselect it
-    const currentMoodValue = data?.[year]?.[month]?.[day];
-    const isDeselecting = currentMoodValue === mood;
-    const newMoodValue = isDeselecting ? null : mood;
-
-    // Optimistic UI update
-    const newData = { ...userDataObj };
-    if (!newData?.[year]) newData[year] = {};
-    if (!newData?.[year]?.[month]) newData[year][month] = {};
-
-    if (newMoodValue === null) {
-      // Remove mood from local state
-      delete newData[year][month][day];
-    } else {
-      newData[year][month][day] = newMoodValue;
-    }
-
-    setData(newData);
-    setUserDataObj(newData);
-
-    // Calculate streak based on updated data
-    const entryDates = [];
-    for (let y in newData)
-      for (let m in newData[y])
-        for (let d in newData[y][m]) {
-          const value = newData[y][m][d];
-          if (typeof value === "number") {
-            const dateObj = new Date(Number(y), Number(m), Number(d));
-            entryDates.push(dateObj);
-          }
-        }
-    const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
-
-    // Check if today/yesterday have entries for streak calculation
-    const hasTodayEntry = entryDateSet.has(today.toDateString());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
-
-    let streak = 0;
-    let current;
-    if (hasTodayEntry) {
-      current = new Date(today);
-    } else if (hasYesterdayEntry) {
-      current = new Date(yesterday);
-    } else {
-      // No streak
-      current = null;
-    }
-
-    if (current) {
-      while (entryDateSet.has(current.toDateString())) {
-        streak++;
-        current.setDate(current.getDate() - 1);
-      }
-    }
-
-    // Schedule debounced save instead of immediate write
-    debouncedSaveMood({ year, month, day, mood: newMoodValue, streak });
-
-    // Show feedback toast
-    if (isDeselecting) {
-      toast("Mood cleared", { icon: <RotateCcw size={18} className="text-indigo-500" />, duration: 1500 });
-    }
-  }
 
   function calculateStreakFromData(dataObj) {
     // Keep this pure so we can recompute streak after optimistic edits/deletes.
@@ -378,6 +248,46 @@ export default function DashboardContent() {
     }
 
     return streak;
+  }
+
+  function handleSetMood(mood) {
+    // Use fresh date to avoid stale values if tab was left open overnight
+    const freshNow = new Date();
+    const day = freshNow.getDate();
+    const month = freshNow.getMonth();
+    const year = freshNow.getFullYear();
+
+    // Toggle logic: if clicking the same mood, deselect it
+    const currentMoodValue = data?.[year]?.[month]?.[day];
+    const isDeselecting = currentMoodValue === mood;
+    const newMoodValue = isDeselecting ? null : mood;
+
+    // Optimistic UI update
+    const newData = { ...userDataObj };
+    // Create new objects for nested levels to preserve immutability
+    newData[year] = { ...(userDataObj?.[year] || {}) };
+    newData[year][month] = { ...(userDataObj?.[year]?.[month] || {}) };
+
+    if (newMoodValue === null) {
+      // Remove mood from local state
+      delete newData[year][month][day];
+    } else {
+      newData[year][month][day] = newMoodValue;
+    }
+
+    setData(newData);
+    setUserDataObj(newData);
+
+    // Calculate streak based on updated data using shared helper
+    const streak = calculateStreakFromData(newData);
+
+    // Schedule debounced save instead of immediate write
+    debouncedSaveMood({ year, month, day, mood: newMoodValue, streak });
+
+    // Show feedback toast
+    if (isDeselecting) {
+      toast("Mood cleared", { icon: <RotateCcw size={18} className="text-indigo-500" />, duration: 1500 });
+    }
   }
 
   function upsertEntryInState(prev, { year, month, day, mood, journal }) {
@@ -451,13 +361,14 @@ export default function DashboardContent() {
     const hadJournal = typeof prevJournal === "string";
 
     // Optimistic UI update
-    updateBothStates((prev) => upsertEntryInState(prev, { year, month, day, mood, journal }));
+    // Compute the new state first so we can reuse it for streak calculation
+    const nextForStreak = upsertEntryInState(data || {}, { year, month, day, mood, journal });
+    updateBothStates(() => nextForStreak);
 
     try {
       await updateDailyEntry(currentUser.uid, { year, month, day, mood, journal });
 
-      // Recompute streak after the change and persist it
-      const nextForStreak = upsertEntryInState(data || {}, { year, month, day, mood, journal });
+      // Recompute streak from the consistent next state
       const streak = calculateStreakFromData(nextForStreak);
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, { streak }, { merge: true });
@@ -494,12 +405,14 @@ export default function DashboardContent() {
     const hadJournal = typeof prevJournal === "string";
 
     // Optimistic UI update
-    updateBothStates((prev) => deleteEntryFromState(prev, { year, month, day }));
+    // Compute the new state first so we can reuse it for streak calculation
+    const nextForStreak = deleteEntryFromState(data || {}, { year, month, day });
+    updateBothStates(() => nextForStreak);
 
     try {
       await deleteDailyEntry(currentUser.uid, { year, month, day });
 
-      const nextForStreak = deleteEntryFromState(data || {}, { year, month, day });
+      // Calculate streak from the consistent next state
       const streak = calculateStreakFromData(nextForStreak);
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, { streak }, { merge: true });
@@ -527,6 +440,52 @@ export default function DashboardContent() {
     todaysMood = data[now.getFullYear()][now.getMonth()][now.getDate()] || null;
   }
 
+  // Memoize stats computation to avoid recomputing on every timer tick
+  // Must be called before early returns to satisfy React's rules of hooks
+  const memoizedCounts = useMemo(() => {
+    // Use fresh date on every call to avoid stale values if tab stays open overnight
+    const freshNow = new Date();
+    const today = new Date(freshNow.getFullYear(), freshNow.getMonth(), freshNow.getDate());
+
+    let lastMood = null;
+    let lastDate = null;
+    let hasLoggedToday = false;
+
+    // Collect entries for UI stats (lastMood, hasLoggedToday)
+    const entryDates = [];
+    for (let year in data)
+      for (let month in data[year])
+        for (let day in data[year][month]) {
+          const value = data[year][month][day];
+          if (typeof value === "number") {
+            const dateObj = new Date(Number(year), Number(month), Number(day));
+            entryDates.push({ date: dateObj, mood: value });
+          }
+        }
+
+    if (entryDates.length > 0) {
+      entryDates.sort((a, b) => b.date - a.date);
+
+      // Determine hasLoggedToday
+      hasLoggedToday = entryDates.some((e) => e.date.getTime() === today.getTime());
+
+      // Determine lastMood (previous entry if logged today)
+      const prevEntry = entryDates.find((e) => e.date < today);
+      if (prevEntry) {
+        lastMood = prevEntry.mood;
+        lastDate = prevEntry.date;
+      } else {
+        lastMood = entryDates[0].mood;
+        lastDate = entryDates[0].date;
+      }
+    }
+
+    // Delegate streak calculation to shared pure function
+    const streak = calculateStreakFromData(data || {});
+
+    return { streak, lastMood, lastDate, hasLoggedToday };
+  }, [data]);
+
   if (loading) return <Splashscreen />;
   if (!currentUser) return <Login initialRegister={shouldRegister} />;
 
@@ -534,7 +493,7 @@ export default function DashboardContent() {
   if (initialLoading) return <Splashscreen />;
 
   const statuses = {
-    ...countValues(),
+    ...memoizedCounts,
     time_remaining: timeRemaining,
   };
 
@@ -623,14 +582,7 @@ export default function DashboardContent() {
             const month = now.getMonth();
             const year = now.getFullYear();
             // Update local data state so Calendar reflects the saved journal immediately
-            setData((prevData) => {
-              const newData = { ...prevData };
-              if (!newData[year]) newData[year] = {};
-              if (!newData[year][month]) newData[year][month] = {};
-              newData[year][month][`journal_${day}`] = savedEntry;
-              return newData;
-            });
-            setUserDataObj((prevData) => {
+            updateBothStates((prevData) => {
               const newData = { ...prevData };
               if (!newData[year]) newData[year] = {};
               if (!newData[year][month]) newData[year][month] = {};
