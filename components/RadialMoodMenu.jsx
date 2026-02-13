@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import "./RadialMoodMenu.css";
 
 /**
- * RadialMoodMenu – GTA-5-style weapon-wheel for mood selection.
+ * RadialMoodMenu – GTA-style weapon-wheel for mood selection.
  *
  * @param {Array<{emoji:string, label:string}>} moods   – mood options
  * @param {string|null} currentMoodEmoji                 – emoji shown in the center trigger
@@ -22,7 +22,8 @@ export default function RadialMoodMenu({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const hoverTimerRef = useRef(null);
-  const total = moods.length;
+  const safeMoods = moods || [];
+  const total = safeMoods.length;
 
   /* ── Delayed hover open (lets the tooltip show first) ── */
   const handleMouseEnter = useCallback(() => {
@@ -75,6 +76,8 @@ export default function RadialMoodMenu({
 
   const hasMood = !!currentMoodEmoji;
 
+  if (total === 0) return null;
+
   return (
     <div
       ref={containerRef}
@@ -105,7 +108,7 @@ export default function RadialMoodMenu({
 
       {/* ── Radial mood items ── */}
       <div role="menu" style={{ display: "contents" }}>
-        {moods.map((mood, index) => (
+        {safeMoods.map((mood, index) => (
           <div
             key={mood.label}
             className="radial-mood-item"
