@@ -214,7 +214,7 @@ export default function DashboardContent() {
   }, [currentUser?.uid, flushPendingMood]);
 
   function calculateStreakFromData(dataObj) {
-    // Keep this pure so we can recompute streak after optimistic edits/deletes.
+    // Keep this pure so we can recompute streak after edits/deletes.
     // Streak is based only on mood entries (numeric day fields).
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -262,7 +262,6 @@ export default function DashboardContent() {
     const isDeselecting = currentMoodValue === mood;
     const newMoodValue = isDeselecting ? null : mood;
 
-    // Optimistic UI update
     const newData = { ...userDataObj };
     // Create new objects for nested levels to preserve immutability
     newData[year] = { ...(userDataObj?.[year] || {}) };
@@ -360,7 +359,6 @@ export default function DashboardContent() {
     const hadMood = typeof prevMood === "number";
     const hadJournal = typeof prevJournal === "string";
 
-    // Optimistic UI update
     // Compute the new state first so we can reuse it for streak calculation
     const nextForStreak = upsertEntryInState(data || {}, { year, month, day, mood, journal });
     updateBothStates(() => nextForStreak);
@@ -373,7 +371,7 @@ export default function DashboardContent() {
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, { streak }, { merge: true });
     } catch (error) {
-      // Rollback optimistic update using a shared rollback transformer
+      // Rollback update using a shared rollback transformer
       const rollbackTransformer = (prev) => {
         let rolled = prev;
         // Restore mood or delete if there was none
@@ -404,7 +402,6 @@ export default function DashboardContent() {
     const hadMood = typeof prevMood === "number";
     const hadJournal = typeof prevJournal === "string";
 
-    // Optimistic UI update
     // Compute the new state first so we can reuse it for streak calculation
     const nextForStreak = deleteEntryFromState(data || {}, { year, month, day });
     updateBothStates(() => nextForStreak);
@@ -417,7 +414,7 @@ export default function DashboardContent() {
       const docRef = doc(db, "users", currentUser.uid);
       await setDoc(docRef, { streak }, { merge: true });
     } catch (error) {
-      // Rollback optimistic update using a shared rollback transformer
+      // Rollback update using a shared rollback transformer
       const rollbackTransformer = (prev) => {
         let rolled = prev;
         if (hadMood) {
@@ -584,8 +581,8 @@ export default function DashboardContent() {
             // Update local data state so Calendar reflects the saved journal immediately
             updateBothStates((prevData) => {
               const newData = { ...prevData };
-              if (!newData[year]) newData[year] = {};
-              if (!newData[year][month]) newData[year][month] = {};
+              newData[year] = { ...(prevData?.[year] || {}) };
+              newData[year][month] = { ...(prevData?.[year]?.[month] || {}) };
               newData[year][month][`journal_${day}`] = savedEntry;
               return newData;
             });
