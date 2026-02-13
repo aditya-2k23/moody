@@ -8,12 +8,12 @@ import Memories from "./Memories";
 import { useMemories } from "@/hooks/useMemories";
 import toast, { Toaster } from "react-hot-toast";
 import convertMood, { moods, months } from "@/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, deleteField } from "firebase/firestore";
 import Journal from "./Journal";
 import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
-import { RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
 
 export default function DashboardContent() {
@@ -566,9 +566,9 @@ export default function DashboardContent() {
 
           <button
             onClick={() => setShowAllMoods((prev) => !prev)}
-            className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px]"
+            className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px] flex items-center justify-center"
           >
-            {showAllMoods ? <i className="fas fa-chevron-up"></i> : <i className="fas fa-chevron-down"></i>}
+            {showAllMoods ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
           </button>
         </div>
 

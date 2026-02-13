@@ -1,11 +1,10 @@
 "use client";
 
-import convertMood, { baseRating, gradients, months, dayList, moods } from "@/utils";
+import convertMood, { baseRating, gradients, months, dayList } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
-import toast from "react-hot-toast";
-import { AlertTriangle, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
 import JournalModal from "./JournalModal";
+import { Calendar, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 
 const monthsArr = Object.keys(months);
 
@@ -148,15 +147,13 @@ export default function Calender({
             setSelectedDay(null);
             setSelectedJournal("");
             setSelectedMood(null);
-            setIsEditing(false);
-            setConfirmDelete(false);
           }}
         />
       )}
 
       <div className="grid grid-cols-5 gap-4 text-lg sm:text-xl md:text-2xl pt-4">
         <Button
-          text={<i className="fa-solid fa-circle-chevron-left"></i>}
+          text={<ChevronLeft size={24} />}
           normal={false}
           className="mr-auto text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 duration-200 hover:scale-110"
           onClick={() => handleIncrementMonth(-1)}
@@ -164,7 +161,7 @@ export default function Calender({
         <p className="fugaz col-span-3 whitespace-nowrap textGradient text-center capitalize">{selectedMonth}, {selectedYear}</p>
         <Button
           className={`ml-auto duration-200 ${isAtCurrentMonth ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-indigo-500 dark:text-indigo-400/70 hover:opacity-80 hover:scale-110'}`}
-          text={<i className="fa-solid fa-circle-chevron-right"></i>}
+          text={<ChevronRight size={24} />}
           normal={false}
           onClick={() => handleIncrementMonth(+1)}
         />
@@ -263,24 +260,19 @@ export default function Calender({
                   key={dayOfWeekIndex}
                   onClick={() => {
                     if (isFutureDay) return; // Block click on future dates
-                    if (saving || deleting) return;
 
                     setSelectedDay(dayIndex);
                     setSelectedJournal(data[`journal_${dayIndex}`] || "");
                     setSelectedMood(typeof data?.[dayIndex] === "number" ? data[dayIndex] : null);
-
-                    // Avoid stale UI when switching dates rapidly
-                    setIsEditing(false);
-                    setConfirmDelete(false);
                   }}
                   title={isFutureDay ? "Future date" : (data[`journal_${dayIndex}`] ? "View journal entry" : undefined)}
                 >
                   <p className="font-bold">{dayIndex}</p>
                   {isToday && (
-                    <span title="Today"><i className="fa-solid fa-calendar-days"></i></span>
+                    <span title="Today"><Calendar size={16} /></span>
                   )}
                   {data[`journal_${dayIndex}`] && (
-                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><i className="fa-solid fa-note-sticky"></i></span>
+                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><StickyNote size={16} /></span>
                   )}
                 </div>
               )

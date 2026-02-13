@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { deleteMemory } from "@/utils/deleteMemory";
 import toast from "react-hot-toast";
+import { X, Loader2, Trash2, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * PhotoModal - Full-screen image viewer with zoom, navigation, and delete
@@ -173,7 +174,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
         className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
         title="Close (Esc)"
       >
-        <i className="fa-solid fa-xmark"></i>
+        <X size={24} />
       </button>
 
       {/* Delete button */}
@@ -184,9 +185,9 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
         title="Delete memory"
       >
         {deleting ? (
-          <i className="fa-solid fa-spinner fa-spin mr-1.5"></i>
+          <Loader2 className="mr-1.5 animate-spin" size={14} />
         ) : (
-          <i className="fa-solid fa-trash-can text-sm mr-1.5"></i>
+          <Trash2 className="mr-1.5" size={14} />
         )}
         Delete
       </button>
@@ -195,7 +196,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
       {confirmDelete && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-slate-800 rounded-2xl p-6 max-w-sm mx-4 text-center shadow-2xl">
-            <i className="fa-solid fa-trash-can text-4xl text-indigo-400 mb-4"></i>
+            <Trash2 className="mx-auto text-indigo-400 mb-4" size={40} />
             <h3 className="text-white text-lg font-bold mb-2">Delete this memory?</h3>
             <p className="text-gray-400 text-sm mb-6">This action cannot be undone.</p>
             <div className="flex gap-3 justify-center">
@@ -229,7 +230,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
           className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/20 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
           title="Zoom out (-)"
         >
-          <i className="fa-solid fa-minus text-sm"></i>
+          <Minus size={14} />
         </button>
         <button
           onClick={resetZoom}
@@ -244,7 +245,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
           className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/20 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
           title="Zoom in (+)"
         >
-          <i className="fa-solid fa-plus text-sm"></i>
+          <Plus size={14} />
         </button>
       </div>
 
@@ -255,7 +256,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
           className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 rounded-full flex items-center justify-center text-white text-xl transition-colors"
           title="Previous (←)"
         >
-          <i className="fa-solid fa-chevron-left"></i>
+          <ChevronLeft size={20} />
         </button>
       )}
 
@@ -266,7 +267,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
           className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10 rounded-full flex items-center justify-center text-white text-xl transition-colors"
           title="Next (→)"
         >
-          <i className="fa-solid fa-chevron-right"></i>
+          <ChevronRight size={20} />
         </button>
       )}
 

@@ -3,6 +3,7 @@
 import { useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { getOptimizedUrl } from "@/utils/cloudinary";
+import { Hand } from "lucide-react";
 
 // Dynamic import to avoid SSR issues with WebGL
 const CircularGallery = dynamic(() => import("./CircularGallery"), {
@@ -66,7 +67,7 @@ export default function MemoriesCircularGallery({
 
       {/* Interaction hint */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-gray-700 dark:text-gray-300 font-semibold flex items-center gap-1.5 opacity-60">
-        <i className="fa-solid fa-hand text-[14px]"></i>
+        <Hand size={14} />
         <span>Drag to explore</span>
       </div>
     </div>

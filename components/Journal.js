@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { Book, CloudUpload, Check, Mic, Square } from "lucide-react";
 
 export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
   const { resolvedTheme } = useTheme();
@@ -422,7 +423,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
-            <i className="fa-solid fa-book"></i> Quick Journal
+            <Book size={24} /> Quick Journal
           </h2>
 
           {/* Cloud Save Status */}
@@ -432,12 +433,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               : "opacity-100 scale-100"
               }`}
           >
-            <i
-              className={`fa-solid text-sm ${cloudStatus === "saving"
-                ? "fa-cloud-arrow-up text-indigo-400 dark:text-indigo-300 animate-pulse"
-                : "fa-check text-green-500 dark:text-green-400"
-                }`}
-            ></i>
+            {cloudStatus === "saving" ? (
+              <CloudUpload className="text-indigo-400 dark:text-indigo-300 animate-pulse" size={14} />
+            ) : (
+              <Check className="text-green-500 dark:text-green-400" size={14} />
+            )}
             <span
               className={`text-xs font-medium ${cloudStatus === "saving"
                 ? "text-indigo-500 dark:text-indigo-300"
@@ -489,10 +489,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
               }`}
             title={isListening ? "Stop Voice Typing" : "Start Voice Typing"}
           >
-            <i
-              className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"} text-lg ${isListening ? "animate-pulse" : ""
-                }`}
-            ></i>
+            {isListening ? (
+              <Square className={isListening ? "animate-pulse" : ""} size={18} />
+            ) : (
+              <Mic size={18} />
+            )}
           </button>
 
           {/* Image Upload Component */}

@@ -49,7 +49,7 @@ export default function Button({
         disabled={disabled}
         aria-disabled={disabled}
       >
-        <span className="fugaz whitespace-nowrap">{text}</span>
+        <span className="fugaz whitespace-nowrap flex items-center gap-1">{text}</span>
       </button>
     );
   }
@@ -73,7 +73,7 @@ export default function Button({
           ${className}
         `}
       >
-        <span className="fugaz whitespace-nowrap">{text}</span>
+        <span className="fugaz whitespace-nowrap flex items-center gap-1">{text}</span>
       </button>
     );
   }
@@ -87,7 +87,7 @@ export default function Button({
       aria-disabled={disabled}
       className={`blob-btn ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
     >
-      <span className="fugaz whitespace-nowrap relative z-10">{text}</span>
+      <span className="fugaz whitespace-nowrap relative z-10 flex items-center gap-1">{text}</span>
 
       {/* Inner container for blob animation */}
       <span className="blob-btn__inner">
