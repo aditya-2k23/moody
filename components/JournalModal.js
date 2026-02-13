@@ -40,7 +40,7 @@ export default function JournalModal({
       setConfirmDelete(false);
       setConfirmDiscard(false);
     }
-  }, [isOpen, day, journal, mood]);
+  }, [isOpen, day, month, year, journal, mood]);
 
   const selectedMoodLabel = typeof mood === "number" ? convertMood(mood) : null;
   const selectedMoodEmoji = selectedMoodLabel ? moods[selectedMoodLabel] : null;
@@ -240,7 +240,7 @@ export default function JournalModal({
                       onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
                       disabled={saving}
                     />
-                    <NewFeatureDot className="-right-[0.1]" />
+                    <NewFeatureDot className="-right-[-3px]" />
                   </span>
                   <span className="inline-flex flex-col leading-tight">
                     {draftMoodLabel ? (

@@ -28,39 +28,23 @@ export default function Calender({
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftJournal, setDraftJournal] = useState("");
-  const [draftMood, setDraftMood] = useState(null);
-
-  const [saving, setSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
   const numericMonth = monthsArr.indexOf(selectedMonth);
-  const data = completeData?.[selectedYear]?.[numericMonth] || {};
+  const data = useMemo(() => {
+    return completeData?.[selectedYear]?.[numericMonth] || {};
+  }, [completeData, selectedYear, numericMonth]);
 
   const isAuthed = !!currentUser?.uid;
 
-  const moodKeys = useMemo(() => Object.keys(moods), []);
-
-  const hasSelectedEntry = useMemo(() => {
-    if (!selectedDay) return false;
-    const hasMood = typeof selectedMood === "number";
-    const hasJournal = typeof selectedJournal === "string" && selectedJournal.trim().length > 0;
-    return hasMood || hasJournal;
-  }, [selectedDay, selectedMood, selectedJournal]);
-
-  // Keep popup state in sync with the source of truth (completeData) when not editing.
+  // Keep popup state in sync with the source of truth (completeData).
   useEffect(() => {
     if (!selectedDay) return;
-    if (isEditing) return;
 
     const journal = data?.[`journal_${selectedDay}`] || "";
     const mood = typeof data?.[selectedDay] === "number" ? data[selectedDay] : null;
 
     setSelectedJournal(journal);
     setSelectedMood(mood);
-  }, [data, selectedDay, isEditing]);
+  }, [data, selectedDay]);
 
   // Check if we're at the current month (can't go forward)
   const isAtCurrentMonth = selectedYear === currentYear && numericMonth === currentMonth;
@@ -98,12 +82,10 @@ export default function Calender({
       setSelectedMonth(monthsArr[newMonthIndex]);
     }
 
-    // Clear any open popup/edit state when navigating months
+    // Clear any open popup state when navigating months
     setSelectedDay(null);
     setSelectedJournal("");
     setSelectedMood(null);
-    setIsEditing(false);
-    setConfirmDelete(false);
 
     // Notify parent of month change
     if (onMonthChange) {
@@ -117,9 +99,6 @@ export default function Calender({
 
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = (Math.floor(daysToDisplay / 7)) + (daysToDisplay % 7 ? 1 : 0);
-
-  const selectedMoodLabel = typeof selectedMood === "number" ? convertMood(selectedMood) : null;
-  const selectedMoodEmoji = selectedMoodLabel ? moods[selectedMoodLabel] : null;
 
   return (
     <div className="flex flex-col gap-2 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 pb-3 md:pb-2 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
@@ -142,10 +121,24 @@ export default function Calender({
           isAuthed={isAuthed}
           onSave={async ({ year, month, day, mood, journal }) => {
             if (!onUpdateEntry) return;
-            // Update local state optimistically
-            setSelectedJournal(journal);
-            setSelectedMood(mood);
-            await onUpdateEntry({ year, month, day, mood, journal });
+
+            // Capture previous values for rollback
+            const previousJournal = selectedJournal;
+            const previousMood = selectedMood;
+
+            try {
+              // Update local state optimistically
+              setSelectedJournal(journal);
+              setSelectedMood(mood);
+
+              // Await the save operation
+              await onUpdateEntry({ year, month, day, mood, journal });
+            } catch (error) {
+              // Rollback on error
+              setSelectedJournal(previousJournal);
+              setSelectedMood(previousMood);
+              throw error; // Re-throw so the modal can display the error
+            }
           }}
           onDelete={async ({ year, month, day }) => {
             if (!onDeleteEntry) return;
