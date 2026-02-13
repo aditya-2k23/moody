@@ -104,23 +104,28 @@ export default function RadialMoodMenu({
       </button>
 
       {/* ── Radial mood items ── */}
-      {moods.map((mood, index) => (
-        <div
-          key={mood.label}
-          className="radial-mood-item"
-          style={{ "--i": index }}
-        >
-          <button
-            className="radial-mood-item-inner"
-            onClick={() => handleSelect(mood, index)}
-            title={mood.label}
-            aria-label={`Select mood: ${mood.label}`}
-            tabIndex={isOpen ? 0 : -1}
+      <div role="menu" style={{ display: "contents" }}>
+        {moods.map((mood, index) => (
+          <div
+            key={mood.label}
+            className="radial-mood-item"
+            style={{ "--i": index }}
+            role="none"
           >
-            {mood.emoji}
-          </button>
-        </div>
-      ))}
+            <button
+              className="radial-mood-item-inner"
+              onClick={() => handleSelect(mood, index)}
+              title={mood.label}
+              aria-label={`Select mood: ${mood.label}`}
+              tabIndex={isOpen ? 0 : -1}
+              role="menuitemradio"
+              aria-checked={currentMoodLabel === mood.label}
+            >
+              {mood.emoji}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
