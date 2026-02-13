@@ -8,7 +8,7 @@ Follow this document strictly before writing or modifying code.
 
 ## 🧠 Project Overview
 
-**Moody** is a personal AI-powered mood tracking web application.
+**Moody** is a personal AI-powered mood-tracking — web application.
 
 Core goals:
 
@@ -34,7 +34,7 @@ Users log:
 - **Auth**: Firebase Authentication
 - **Database**: Firestore
 - **Media**: Cloudinary
-- **AI**: Google Gemini (via Firebase / server routes)
+- **AI**: Google Gemini (@google/generative-ai SDK)
 - **Language**: JavaScript
 
 Do NOT:
