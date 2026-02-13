@@ -6,9 +6,32 @@ import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
-// Initialize Gemini for server-side usage
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+// Cache for the Gemini model instance
+let cachedModel = null;
+
+/**
+ * Lazily initialize and return the Gemini model.
+ * Validates GEMINI_API_KEY at request time, not module load time.
+ */
+function getGeminiModel() {
+  if (cachedModel) {
+    return cachedModel;
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey || apiKey.trim() === "") {
+    const errorMsg = "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
+      "Please set it to your Google Gemini API key.";
+    console.error(errorMsg);
+    throw new Error("AI service is not configured. Please contact support.");
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  cachedModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  return cachedModel;
+}
 
 /**
  * Generate SHA-256 hash of journal text for cache key.
@@ -20,11 +43,16 @@ function hashText(text) {
 /**
  * Generate cache key for insights.
  * Format: insight:{userId}:{YYYY-MM-DD}:{hash}
+ * Uses local date to align with Firestore's client-local daily entry logic.
  */
 function generateCacheKey(userId, journalText) {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const localDate = `${year}-${month}-${day}`;
   const contentHash = hashText(journalText);
-  return `insight:${userId}:${today}:${contentHash}`;
+  return `insight:${userId}:${localDate}:${contentHash}`;
 }
 
 /**
@@ -101,28 +129,26 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   }
 
   const cacheKey = generateCacheKey(userId, journalText);
-  console.log("[Insights] Cache key:", cacheKey, "| forceRegenerate:", forceRegenerate);
 
   // ===== PHASE 1: CACHE READ (EARLY RETURN) =====
   // If forceRegenerate is false, check cache and return immediately if found
   if (!forceRegenerate) {
-    const cached = await redis.get(cacheKey);
+    try {
+      const cached = await redis.get(cacheKey);
 
-    if (cached !== null && cached !== undefined) {
-      console.log("[Insights] ✅ Cache HIT - returning cached insight, NO AI call");
-      return cached;
+      if (cached && typeof cached === "object" && cached.mood) {
+        return cached;
+      }
+    } catch (error) {
+      console.error("[Insights] Cache read error (proceeding to AI generation):", error);
+      // Fall through to AI generation
     }
-
-    console.log("[Insights] ❌ Cache MISS - no cached value found");
-  } else {
-    console.log("[Insights] ⚠️ Force regenerate - skipping cache read");
   }
 
   // ===== PHASE 2: AI GENERATION (ONLY REACHED ON MISS OR FORCE) =====
-  console.log("[Insights] 🤖 Calling AI API...");
-
   let insight;
   try {
+    const model = getGeminiModel();
     const prompt = buildPrompt(journalText);
     const result = await model.generateContent(prompt);
     let text = result.response.text();
@@ -140,7 +166,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
     // User-friendly error messages
     if (error.message?.includes("429") || error.message?.includes("quota")) {
-      throw new Error("AI is busy right now. Please try again in a minute.");
+      throw new Error("AI Rate Limit. Please try again in after sometime.");
     }
     if (error.message?.includes("403") || error.message?.includes("Forbidden")) {
       throw new Error("AI service unavailable. Please try again later.");
@@ -152,8 +178,11 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   }
 
   // ===== PHASE 3: CACHE WRITE =====
-  await redis.set(cacheKey, insight, { ex: CACHE_TTL_SECONDS });
-  console.log("[Insights] 💾 Cached in Redis with TTL:", CACHE_TTL_SECONDS, "seconds");
+  try {
+    await redis.set(cacheKey, insight, { ex: CACHE_TTL_SECONDS });
+  } catch (error) {
+    console.error("[Insights] ⚠️ Cache write error (returning AI result anyway):", error);
+  }
 
   return insight;
 }
