@@ -16,6 +16,43 @@ import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
 import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
 
+function calculateStreakFromData(dataObj) {
+  // Keep this pure so we can recompute streak after optimistic edits/deletes.
+  // Streak is based only on mood entries (numeric day fields).
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const entryDates = [];
+  for (let year in dataObj)
+    for (let month in dataObj[year])
+      for (let day in dataObj[year][month]) {
+        const value = dataObj[year][month][day];
+        if (typeof value === "number") {
+          const dateObj = new Date(Number(year), Number(month), Number(day));
+          entryDates.push(dateObj);
+        }
+      }
+
+  const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
+  const hasTodayEntry = entryDateSet.has(today.toDateString());
+  const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
+
+  let current;
+  if (hasTodayEntry) current = new Date(today);
+  else if (hasYesterdayEntry) current = new Date(yesterday);
+  else return 0;
+
+  let streak = 0;
+  while (entryDateSet.has(current.toDateString())) {
+    streak++;
+    current.setDate(current.getDate() - 1);
+  }
+
+  return streak;
+}
+
 export default function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const searchParams = useSearchParams();
@@ -33,6 +70,30 @@ export default function DashboardContent() {
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
   const moodDebounceTimerRef = useRef(null);
   const MOOD_DEBOUNCE_MS = 2000; // 2 seconds
+
+  // Cached ID token for synchronous beacon requests
+  const cachedIdTokenRef = useRef(null);
+
+  // Keep ID token fresh
+  useEffect(() => {
+    if (!currentUser) {
+      cachedIdTokenRef.current = null;
+      return;
+    }
+
+    const refreshToken = async () => {
+      try {
+        cachedIdTokenRef.current = await currentUser.getIdToken();
+      } catch (error) {
+        console.error("Failed to refresh token for beacon:", error);
+      }
+    };
+
+    refreshToken();
+    // Refresh every 10 minutes (Firebase tokens last 1 hour)
+    const intervalId = setInterval(refreshToken, 10 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, [currentUser]);
 
   // Memories state - track selected month/year for the calendar
   const [memoriesYear, setMemoriesYear] = useState(now.getFullYear());
@@ -185,7 +246,11 @@ export default function DashboardContent() {
       // Best-effort fallback: send beacon to lightweight endpoint
       // NOTE: Pure async Firestore writes are often lost on hard closes.
       const blob = new Blob(
-        [JSON.stringify({ uid: currentUser.uid, ...pending })],
+        [JSON.stringify({
+          uid: currentUser.uid,
+          idToken: cachedIdTokenRef.current,
+          ...pending
+        })],
         { type: "application/json" }
       );
       navigator.sendBeacon("/api/journal-beacon", blob);
@@ -212,43 +277,6 @@ export default function DashboardContent() {
       flushPendingMood();
     };
   }, [currentUser?.uid, flushPendingMood]);
-
-  function calculateStreakFromData(dataObj) {
-    // Keep this pure so we can recompute streak after edits/deletes.
-    // Streak is based only on mood entries (numeric day fields).
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const entryDates = [];
-    for (let year in dataObj)
-      for (let month in dataObj[year])
-        for (let day in dataObj[year][month]) {
-          const value = dataObj[year][month][day];
-          if (typeof value === "number") {
-            const dateObj = new Date(Number(year), Number(month), Number(day));
-            entryDates.push(dateObj);
-          }
-        }
-
-    const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
-    const hasTodayEntry = entryDateSet.has(today.toDateString());
-    const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
-
-    let current;
-    if (hasTodayEntry) current = new Date(today);
-    else if (hasYesterdayEntry) current = new Date(yesterday);
-    else return 0;
-
-    let streak = 0;
-    while (entryDateSet.has(current.toDateString())) {
-      streak++;
-      current.setDate(current.getDate() - 1);
-    }
-
-    return streak;
-  }
 
   function handleSetMood(mood) {
     // Use fresh date to avoid stale values if tab was left open overnight
@@ -437,12 +465,14 @@ export default function DashboardContent() {
     todaysMood = data[now.getFullYear()][now.getMonth()][now.getDate()] || null;
   }
 
+  // Pre-calculate dependency for useMemo
+  const todayDateString = now.toDateString();
+
   // Memoize stats computation to avoid recomputing on every timer tick
   // Must be called before early returns to satisfy React's rules of hooks
   const memoizedCounts = useMemo(() => {
-    // Use fresh date on every call to avoid stale values if tab stays open overnight
-    const freshNow = new Date();
-    const today = new Date(freshNow.getFullYear(), freshNow.getMonth(), freshNow.getDate());
+    // Use the dependency to anchor computation to the current day
+    const today = new Date(todayDateString);
 
     let lastMood = null;
     let lastDate = null;
@@ -481,7 +511,7 @@ export default function DashboardContent() {
     const streak = calculateStreakFromData(data || {});
 
     return { streak, lastMood, lastDate, hasLoggedToday };
-  }, [data]);
+  }, [data, todayDateString]);
 
   if (loading) return <Splashscreen />;
   if (!currentUser) return <Login initialRegister={shouldRegister} />;
