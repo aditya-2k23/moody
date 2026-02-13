@@ -1,5 +1,5 @@
 import { db } from "@/firebase";
-import { deleteField, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { deleteField, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 
 /**
  * Update a specific day's mood + journal entry.
@@ -43,15 +43,9 @@ export async function deleteDailyEntry(uid, { year, month, day }) {
 
   const docRef = doc(db, "users", uid);
 
-  const payload = {
-    [year]: {
-      [month]: {
-        [day]: deleteField(),
-        [`journal_${day}`]: deleteField(),
-        [`updatedAt_${day}`]: deleteField(),
-      },
-    },
-  };
-
-  await setDoc(docRef, payload, { merge: true });
+  await updateDoc(docRef, {
+    [`${year}.${month}.${day}`]: deleteField(),
+    [`${year}.${month}.journal_${day}`]: deleteField(),
+    [`${year}.${month}.updatedAt_${day}`]: deleteField()
+  });
 }
