@@ -97,6 +97,7 @@ export default function RadialMoodMenu({
             : "No mood set. Click to choose a mood."
         }
         aria-expanded={isOpen}
+        aria-haspopup="true"
         disabled={disabled}
       >
         <span className="radial-trigger-emoji">{currentMoodEmoji || "+"}</span>

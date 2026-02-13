@@ -20,13 +20,8 @@ export default function Login({ initialRegister = false }) {
 
     try {
       if (isRegister) {
-        console.log("Signing up with a new user!");
-        console.log("Email:", email);
-        console.log("Password:", password);
-
         await signUp(email, password);
       } else {
-        console.log("Logging in with existing user!");
         await signIn(email, password);
         toast.success("Successfully logged in!");
       }

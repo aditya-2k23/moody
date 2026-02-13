@@ -50,6 +50,13 @@
     background 0.25s ease;
 }
 
+.radial-trigger:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.8);
+  outline-offset: 2px;
+  border-color: rgba(99, 102, 241, 1);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+}
+
 .radial-trigger:hover,
 .radial-mood-menu.active .radial-trigger {
   transform: scale(1.08);
@@ -138,6 +145,14 @@
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
+}
+
+.radial-mood-item-inner:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.8);
+  outline-offset: 2px;
+  border-color: rgba(99, 102, 241, 1);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+  background: rgba(238, 242, 255, 1);
 }
 
 .radial-mood-item-inner:hover {

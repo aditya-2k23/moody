@@ -394,6 +394,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async (forceRegenerate = false) => {
+    if (!currentUser?.uid) {
+      toast.error("Please log in to generate insights.");
+      return;
+    }
+
     if (!entry.trim()) {
       toast.error("Journal entry cannot be empty.");
       return;

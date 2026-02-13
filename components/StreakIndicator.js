@@ -22,20 +22,26 @@ export default function StreakIndicator({ streak, hasLoggedToday }) {
   // Animation triggers every time user transitions from not-logged to logged
   useEffect(() => {
     const prevLogged = prevHasLoggedTodayRef.current;
+    // Always update the ref so transitions are tracked accurately
+    prevHasLoggedTodayRef.current = hasLoggedToday;
+
+    let timer;
 
     // Trigger animation when transitioning from not-logged to logged
     if (!prevLogged && hasLoggedToday) {
       setShouldAnimate(true);
 
       // Reset animation state after animation completes
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setShouldAnimate(false);
       }, 1000); // Match animation duration
-
-      return () => clearTimeout(timer);
     }
 
-    prevHasLoggedTodayRef.current = hasLoggedToday;
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [hasLoggedToday]);
 
   return (

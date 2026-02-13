@@ -556,7 +556,7 @@ export default function DashboardContent() {
                   '--outline-color': 'rgb(79 70 229)'
                 }}
                 className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
-                  ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
+                ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
               >
                 <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
                 <p className="fugaz text-xs sm:text-sm md:text-base">{mood}</p>
