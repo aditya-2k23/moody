@@ -159,20 +159,29 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
     }
 
-    insight = JSON.parse(text);
-    console.log("[Insights] 🤖 AI response received and parsed");
+    const parsed = JSON.parse(text);
+
+    if (!validateInsight(parsed)) {
+      throw new Error("Validation Failed");
+    }
+
+    insight = parsed;
+    console.log("[Insights] 🤖 AI response received, parsed, and validated");
   } catch (error) {
     console.error("[Insights] AI generation error:", error.message);
 
     // User-friendly error messages
     if (error.message?.includes("429") || error.message?.includes("quota")) {
-      throw new Error("AI Rate Limit. Please try again in after sometime.");
+      throw new Error("AI Rate Limit. Please try again after some time");
     }
     if (error.message?.includes("403") || error.message?.includes("Forbidden")) {
       throw new Error("AI service unavailable. Please try again later.");
     }
     if (error.message?.includes("JSON")) {
       throw new Error("Failed to parse AI response. Please try again.");
+    }
+    if (error.message?.includes("Validation Failed")) {
+      throw new Error("AI response validation failed. Please try again.");
     }
     throw new Error("Something went wrong. Please try again.");
   }
@@ -185,4 +194,22 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   }
 
   return insight;
+}
+
+function validateInsight(data) {
+  if (!data || typeof data !== "object") return false;
+
+  const requiredFields = ["mood", "triggers", "insight", "pro_tip", "headline"];
+
+  for (const field of requiredFields) {
+    if (!(field in data)) return false;
+  }
+
+  if (typeof data.mood !== "string") return false;
+  if (!Array.isArray(data.triggers)) return false;
+  if (typeof data.insight !== "string") return false;
+  if (typeof data.pro_tip !== "string") return false;
+  if (typeof data.headline !== "string") return false;
+
+  return true;
 }
