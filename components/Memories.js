@@ -5,7 +5,7 @@ import PhotoModal from "./PhotoModal";
 import MemoriesCircularGallery from "./MemoriesCircularGallery";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Images } from "lucide-react";
+import { Images, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Register GSAP plugin
 gsap.registerPlugin(useGSAP);
@@ -45,7 +45,7 @@ function MemoriesSkeleton({ monthLabel }) {
  * Shows skeleton during loading, fades in/out content with GSAP
  * @param {{items: Array, status: 'idle'|'loading'|'loaded', monthLabel: string, yearMonth: string, onDelete: function}} props
  */
-export default function Memories({ items = [], status = "idle", monthLabel = "", yearMonth = "", onDelete }) {
+export default function Memories({ items = [], status = "idle", monthLabel = "", yearMonth = "", onDelete, onMonthChange, canGoForward = true }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef(null);
@@ -128,9 +128,35 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
         <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-28 bg-gradient-to-tr from-yellow-400/30 to-orange-400/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
-        <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2 relative z-10">
-          <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
-        </h2>
+        <div className="flex items-center justify-between relative z-10">
+          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
+            <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
+          </h2>
+          {onMonthChange && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onMonthChange(-1)}
+                className="p-1.5 rounded-lg hover:bg-purple-200/60 dark:hover:bg-slate-600/60 transition-colors text-gray-600 dark:text-gray-300"
+                aria-label="Previous month"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onMonthChange(1)}
+                className={`p-1.5 rounded-lg transition-colors ${canGoForward
+                    ? "hover:bg-purple-200/60 dark:hover:bg-slate-600/60 text-gray-600 dark:text-gray-300"
+                    : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                  }`}
+                disabled={!canGoForward}
+                aria-label="Next month"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Circular Gallery - use displayItems to preserve during fade-out */}
         <div className="relative z-10">
