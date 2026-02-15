@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+const AI_TIMEOUT_MS = 25_000; // 25s timeout for Gemini API (well within Netlify's function limit)
 
 // Cache for the Gemini model instance
 let cachedModel = null;
@@ -150,7 +151,20 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   try {
     const model = getGeminiModel();
     const prompt = buildPrompt(journalText);
-    const result = await model.generateContent(prompt);
+
+    // Abort controller to prevent Netlify 504 Gateway Timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+    let result;
+    try {
+      result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+      }, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+
     let text = result.response.text();
 
     // Clean up response
@@ -180,6 +194,9 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     }
     if (error.message?.includes("not configured")) {
       return { success: false, error: "AI service is not configured. Please contact support." };
+    }
+    if (error.name === "AbortError" || error.message?.includes("abort")) {
+      return { success: false, error: "AI request timed out. Please try again." };
     }
     if (error.message?.includes("JSON")) {
       return { success: false, error: "Failed to parse AI response. Please try again." };
