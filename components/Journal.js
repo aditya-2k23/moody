@@ -420,11 +420,18 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
     try {
       // Call server action with Redis cache-first logic
+      // Returns { success, data/error } to avoid Next.js production error sanitization
       const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
-      setInsights(result);
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to generate insights.");
+        return;
+      }
+
+      setInsights(result.data);
     } catch (error) {
       console.error("Error generating insights:", error);
-      toast.error(error.message || "Failed to generate insights.");
+      toast.error("Failed to generate insights. Please try again.");
     } finally {
       setLoadingInsights(false);
     }

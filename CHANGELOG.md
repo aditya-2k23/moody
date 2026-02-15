@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 New Features
 
 - **🤖 AI-Powered Journal Insights (Server Action + Redis Cache)**:
-  - Introduced a new server-side action (`app/actions/insights.js`) for generating structured AI insights using **Google Gemini 2.5 Flash**.
+  - Introduced a new server-side action (`app/actions/insights.js`) for generating structured AI insights using **Google Gemini Flash 3 Preview**.
   - Implements a **Redis cache-first strategy** (Upstash Redis) with content-hash-based keys and a 7-day TTL, drastically reducing redundant AI API calls.
   - Support for `forceRegenerate` to bypass cache when needed.
   - Structured JSON output: mood detection, emotional triggers, empathetic insight, pro tip, and headline.
