@@ -246,11 +246,14 @@ export default function Calender({
                 (selectedYear === currentYear && numericMonth > currentMonth) ||
                 (selectedYear > currentYear);
 
+              const hasJournal = !!data[`journal_${dayIndex}`];
+
               return (
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
-                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg truncate
+                    text-xs sm:text-sm border border-solid p-1.5 sm:p-2 rounded-lg
+                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between
                     ${isFutureDay ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
                     ${isSelected && !isFutureDay ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
@@ -265,14 +268,28 @@ export default function Calender({
                     setSelectedJournal(data[`journal_${dayIndex}`] || "");
                     setSelectedMood(typeof data?.[dayIndex] === "number" ? data[dayIndex] : null);
                   }}
-                  title={isFutureDay ? "Future date" : (data[`journal_${dayIndex}`] ? "View journal entry" : undefined)}
+                  title={isFutureDay ? "Future date" : (hasJournal ? "View journal entry" : undefined)}
                 >
                   <p className="font-bold">{dayIndex}</p>
+
+                  {/* Desktop: icon indicators */}
                   {isToday && (
-                    <span title="Today"><Calendar size={16} /></span>
+                    <span className="hidden sm:inline" title="Today"><Calendar size={16} /></span>
                   )}
-                  {data[`journal_${dayIndex}`] && (
-                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><StickyNote size={16} /></span>
+                  {hasJournal && (
+                    <span className="hidden sm:inline ml-auto" title="Journal entry"><StickyNote size={16} /></span>
+                  )}
+
+                  {/* Mobile: dot indicators below the number */}
+                  {(isToday || hasJournal) && (
+                    <div className="flex sm:hidden gap-0.5 mt-0.5">
+                      {isToday && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-300 inline-block" title="Today" />
+                      )}
+                      {hasJournal && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 dark:bg-yellow-300 inline-block" title="Journal entry" />
+                      )}
+                    </div>
                   )}
                 </div>
               )
