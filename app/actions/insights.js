@@ -5,33 +5,129 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
-const AI_TIMEOUT_MS = 25_000; // 25s timeout for Gemini API (well within Netlify's function limit)
+const AI_TIMEOUT_MS = 30_000; // 30s timeout per model attempt (well within Netlify's function limit)
 
-// Cache for the Gemini model instance
-let cachedModel = null;
+// ===== MODEL FALLBACK CHAIN =====
+// Ordered by preference: newest first, highest-capacity last as safety net.
+// Daily free-tier limits: 3-Flash ~20 RPD, 2.5-Flash ~20 RPD, 2.0-Flash ~1500 RPD.
+// Total effective capacity: ~1540 requests/day.
+const MODEL_CHAIN = [
+  { id: "gemini-3-flash-preview", label: "3-Flash" },
+  { id: "gemini-2.5-flash", label: "2.5-Flash" },
+  { id: "gemini-2.0-flash", label: "2.0-Flash" },
+];
+
+// ===== MODEL INSTANCE HELPERS =====
 
 /**
- * Lazily initialize and return the Gemini model.
- * Validates GEMINI_API_KEY at request time, not module load time.
+ * Validate that the GEMINI_API_KEY is present.
+ * Throws a user-friendly error if missing.
  */
-function getGeminiModel() {
-  if (cachedModel) {
-    return cachedModel;
-  }
-
+function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey.trim() === "") {
-    const errorMsg = "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
-      "Please set it to your Google Gemini API key.";
-    console.error(errorMsg);
+    console.error(
+      "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
+      "Please set it to your Google Gemini API key."
+    );
     throw new Error("AI service is not configured. Please contact support.");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  cachedModel = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+  return apiKey;
+}
 
-  return cachedModel;
+/**
+ * Create a Gemini model instance for the given model ID.
+ * Instances are lightweight, so we create fresh ones per request
+ * to allow seamless fallback between models.
+ */
+function getModelInstance(modelId) {
+  const apiKey = getApiKey();
+  const genAI = new GoogleGenerativeAI(apiKey);
+  return genAI.getGenerativeModel({ model: modelId });
+}
+
+// ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
+
+/**
+ * Calculate seconds remaining until midnight (server-local time).
+ * Used as TTL so exhaustion flags auto-reset when Google's daily quotas reset.
+ */
+function secondsUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return Math.max(Math.ceil((midnight - now) / 1000), 60); // minimum 60s to avoid edge cases
+}
+
+/**
+ * Mark a model as exhausted in Redis. The key expires at midnight
+ * so the model becomes available again when Google resets daily quotas.
+ */
+async function markModelExhausted(modelId) {
+  try {
+    const ttl = secondsUntilMidnight();
+    await redis.set(`model:exhausted:${modelId}`, "1", { ex: ttl });
+    console.warn(`[Insights] ⚠️ Marked ${modelId} as exhausted (TTL: ${ttl}s until midnight)`);
+  } catch (error) {
+    // Non-critical: if Redis fails, we'll just retry the model next time
+    console.error("[Insights] Failed to mark model exhausted in Redis:", error.message);
+  }
+}
+
+/**
+ * Return the ordered list of models that are NOT currently marked as exhausted.
+ * Uses a single redis.mget() call for efficiency.
+ */
+async function getAvailableModels() {
+  try {
+    const keys = MODEL_CHAIN.map((m) => `model:exhausted:${m.id}`);
+    const results = await redis.mget(...keys);
+
+    return MODEL_CHAIN.filter((_, index) => !results[index]);
+  } catch (error) {
+    // If Redis is down, return the full chain — we'll discover exhaustion via API errors
+    console.error("[Insights] Failed to check model exhaustion (using full chain):", error.message);
+    return [...MODEL_CHAIN];
+  }
+}
+
+/**
+ * Determine if an error is retryable (model-specific issue that another model may not have).
+ * Includes: quota/rate limits, access errors, and timeouts.
+ * A timeout on one model doesn't mean the next one will also timeout.
+ */
+function isRetryableError(error) {
+  const msg = error.message || "";
+  const isQuotaOrAccess =
+    msg.includes("429") ||
+    msg.includes("quota") ||
+    msg.includes("403") ||
+    msg.includes("Forbidden") ||
+    msg.includes("Resource has been exhausted") ||
+    msg.includes("rate limit");
+  const isTimeout =
+    error.name === "AbortError" || msg.includes("abort") || msg.includes("timeout");
+
+  return isQuotaOrAccess || isTimeout;
+}
+
+/**
+ * Determine if a retryable error is specifically a quota/access error
+ * (should mark the model as exhausted) vs a transient error like a timeout
+ * (should try next model but NOT mark as exhausted since it may work later).
+ */
+function isQuotaError(error) {
+  const msg = error.message || "";
+  return (
+    msg.includes("429") ||
+    msg.includes("quota") ||
+    msg.includes("403") ||
+    msg.includes("Forbidden") ||
+    msg.includes("Resource has been exhausted") ||
+    msg.includes("rate limit")
+  );
 }
 
 /**
@@ -146,65 +242,104 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     }
   }
 
-  // ===== PHASE 2: AI GENERATION (ONLY REACHED ON MISS OR FORCE) =====
+  // ===== PHASE 2: AI GENERATION WITH CASCADING MODEL FALLBACK =====
+  // Try each model in the chain until one succeeds.
+  // Retryable errors (429/403) mark the model as exhausted and fall through.
+  // Non-retryable errors (timeout, parse, validation) return immediately.
+
+  const availableModels = await getAvailableModels();
+
+  if (availableModels.length === 0) {
+    console.error("[Insights] All models are exhausted for today");
+    return {
+      success: false,
+      error: "All AI models are currently at capacity. Please try again tomorrow.",
+    };
+  }
+
+  const prompt = buildPrompt(journalText);
   let insight;
-  try {
-    const model = getGeminiModel();
-    const prompt = buildPrompt(journalText);
+  let modelUsed = null;
 
-    // Abort controller to prevent Netlify 504 Gateway Timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  for (let i = 0; i < availableModels.length; i++) {
+    const { id: modelId, label: modelLabel } = availableModels[i];
+    const isLastModel = i === availableModels.length - 1;
 
-    let result;
     try {
-      result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-      }, { signal: controller.signal });
-    } finally {
-      clearTimeout(timeout);
-    }
+      console.log(`[Insights] Attempting ${modelLabel} (${modelId})...`);
+      const model = getModelInstance(modelId);
 
-    let text = result.response.text();
+      // Abort controller to prevent Netlify 504 Gateway Timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
-    // Clean up response
-    text = text.trim();
-    if (text.startsWith("```")) {
-      text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
-    }
+      let result;
+      try {
+        result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+        }, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
 
-    const parsed = JSON.parse(text);
+      let text = result.response.text();
 
-    if (!validateInsight(parsed)) {
-      throw new Error("Validation Failed");
-    }
+      // Clean up response
+      text = text.trim();
+      if (text.startsWith("```")) {
+        text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
+      }
 
-    insight = parsed;
-    console.log("[Insights] 🤖 AI response received, parsed, and validated");
-  } catch (error) {
-    console.error("[Insights] AI generation error:", error.message);
+      const parsed = JSON.parse(text);
 
-    // User-friendly error messages returned as values (not thrown)
-    // so they survive Next.js production error sanitization
-    if (error.message?.includes("429") || error.message?.includes("quota")) {
-      return { success: false, error: "AI Rate Limit. Please try again after some time" };
+      if (!validateInsight(parsed)) {
+        throw new Error("Validation Failed");
+      }
+
+      insight = parsed;
+      modelUsed = modelId;
+      console.log(`[Insights] 🤖 AI response received from ${modelLabel}, parsed, and validated`);
+      break; // Success — exit the fallback loop
+
+    } catch (error) {
+      console.error(`[Insights] ${modelLabel} error:`, error.message);
+
+      // --- RETRYABLE ERRORS: try next model ---
+      if (isRetryableError(error)) {
+        // Only mark as exhausted for quota/access errors, not timeouts
+        if (isQuotaError(error)) {
+          await markModelExhausted(modelId);
+        }
+
+        if (!isLastModel) {
+          const nextLabel = availableModels[i + 1].label;
+          const reason = isQuotaError(error) ? "exhausted" : "timed out";
+          console.warn(`[Insights] ${modelLabel} ${reason}, falling through to ${nextLabel}...`);
+          continue; // Try next model
+        }
+
+        // Last model also failed
+        const isAllQuota = isQuotaError(error);
+        return {
+          success: false,
+          error: isAllQuota
+            ? "All AI models are currently at capacity. Please try again tomorrow."
+            : "AI request timed out across all models. Please try again.",
+        };
+      }
+
+      // --- NON-RETRYABLE ERRORS: return immediately (no point trying another model) ---
+      if (error.message?.includes("not configured")) {
+        return { success: false, error: "AI service is not configured. Please contact support." };
+      }
+      if (error.message?.includes("JSON")) {
+        return { success: false, error: "Failed to parse AI response. Please try again." };
+      }
+      if (error.message?.includes("Validation Failed")) {
+        return { success: false, error: "AI response validation failed. Please try again." };
+      }
+      return { success: false, error: "Something went wrong. Please try again." };
     }
-    if (error.message?.includes("403") || error.message?.includes("Forbidden")) {
-      return { success: false, error: "AI service unavailable. Please try again later." };
-    }
-    if (error.message?.includes("not configured")) {
-      return { success: false, error: "AI service is not configured. Please contact support." };
-    }
-    if (error.name === "AbortError" || error.message?.includes("abort")) {
-      return { success: false, error: "AI request timed out. Please try again." };
-    }
-    if (error.message?.includes("JSON")) {
-      return { success: false, error: "Failed to parse AI response. Please try again." };
-    }
-    if (error.message?.includes("Validation Failed")) {
-      return { success: false, error: "AI response validation failed. Please try again." };
-    }
-    return { success: false, error: "Something went wrong. Please try again." };
   }
 
   // ===== PHASE 3: CACHE WRITE =====
@@ -214,7 +349,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     console.error("[Insights] ⚠️ Cache write error (returning AI result anyway):", error);
   }
 
-  return { success: true, data: insight };
+  return { success: true, data: insight, modelUsed };
 }
 
 function validateInsight(data) {
