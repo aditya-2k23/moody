@@ -14,20 +14,34 @@
   /* Fonts */
   --font-fugaz: "Fugaz One", sans-serif;
 
-  /* Colors */
-  --color-lavender: lavender;
-  --color-glow: rgba(254, 240, 138, 0.822);
-  --color-resizer: #818cf8;
-
-  /* Shadows */
-  --shadow-light: 3px 3px 1px 1px var(--color-lavender);
-  --shadow-light-hover: 0px 0px 1px 1px var(--color-lavender);
-
-  /* Dark Mode Colors */
+  /* Theme Palette */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-shadow-lavender: lavender;
   --color-shadow-dark: rgb(51 65 85 / 0.8);
   --color-shadow-dark-hover: rgb(51 65 85 / 0.2);
+  --color-glow-light: rgba(254, 240, 138, 0.822);
   --color-glow-dark: rgba(254, 240, 138, 0.47);
-  --color-resizer-dark: #6366f1;
+  --color-blob-bg-light: #ffffff;
+  --color-blob-bg-dark: rgb(24 30 41);
+  --color-theme-reveal-light: #f6f8ff;
+  --color-theme-reveal-dark: #141414;
+
+  /* Active Theme Tokens (Light Default) */
+  --shadow-purple: 3px 3px 1px 1px var(--color-shadow-lavender);
+  --shadow-purple-hover: 0px 0px 1px 1px var(--color-shadow-lavender);
+  --glow-shadow-hover: 2px 1px 2px 2px var(--color-glow-light);
+  --color-resizer: var(--color-brand-400);
+  --theme-reveal-bg: var(--color-theme-reveal-light);
+
+  /* Blob Button Tokens */
+  --color-blob: var(--color-brand-500);
+  --color-blob-border: var(--color-brand-500);
+  --color-blob-text: var(--color-brand-500);
+  --color-blob-text-hover: var(--color-white);
+  --color-blob-bg: var(--color-blob-bg-light);
 }
 
 .fugaz {
@@ -47,22 +61,12 @@
 
 /* Shadows */
 .purpleShadow {
-  box-shadow: var(--shadow-light);
+  box-shadow: var(--shadow-purple);
 }
 
 .purpleShadow:hover {
   transform: translate(3px, 3px);
-  box-shadow: var(--shadow-light-hover);
-}
-
-.dark .purpleShadow {
-  box-shadow: 3px 3px 1px 1px var(--color-shadow-dark);
-  backdrop-filter: blur(10px);
-}
-
-.dark .purpleShadow:hover {
-  transform: translate(3px, 3px);
-  box-shadow: 0px 0px 1px 1px var(--color-shadow-dark-hover);
+  box-shadow: var(--shadow-purple-hover);
 }
 
 /* Glow */
@@ -71,12 +75,7 @@
 }
 
 .glow:hover {
-  box-shadow: 2px 1px 2px 2px var(--color-glow);
-}
-
-.dark .glow:hover {
-  box-shadow: 1px 1px 1px 1px var(--color-glow-dark);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--glow-shadow-hover);
 }
 
 /* Animations */
@@ -443,11 +442,11 @@
 }
 
 .theme-reveal-light {
-  --theme-reveal-bg: #f6f8ff;
+  --theme-reveal-bg: var(--color-theme-reveal-light);
 }
 
 .theme-reveal-dark {
-  --theme-reveal-bg: #141414;
+  --theme-reveal-bg: var(--color-theme-reveal-dark);
 }
 
 @keyframes theme-reveal {
@@ -463,6 +462,21 @@
 /* Dark Mode Overrides */
 .dark {
   color-scheme: dark;
+  --shadow-purple: 3px 3px 1px 1px var(--color-shadow-dark);
+  --shadow-purple-hover: 0px 0px 1px 1px var(--color-shadow-dark-hover);
+  --glow-shadow-hover: 1px 1px 1px 1px var(--color-glow-dark);
+  --color-resizer: var(--color-brand-500);
+  --theme-reveal-bg: var(--color-theme-reveal-dark);
+  --color-blob-bg: var(--color-blob-bg-dark);
+  --color-blob-text: var(--color-white);
+}
+
+.dark .purpleShadow {
+  backdrop-filter: blur(10px);
+}
+
+.dark .glow:hover {
+  backdrop-filter: blur(10px);
 }
 
 .dark .bg-white {
@@ -507,18 +521,6 @@
       var(--color-resizer) 85%,
       transparent 85%);
   border-radius: 0 0 8px 0;
-}
-
-.dark .journal-textarea::-webkit-resizer {
-  background: linear-gradient(135deg,
-      transparent 50%,
-      var(--color-resizer-dark) 50%,
-      var(--color-resizer-dark) 60%,
-      transparent 60%,
-      transparent 75%,
-      var(--color-resizer-dark) 75%,
-      var(--color-resizer-dark) 85%,
-      transparent 85%);
 }
 
 /* ========== AI Insights Section Animations ========== */
@@ -609,11 +611,11 @@
 /* ========== Blob Button Styles ========== */
 
 .blob-btn {
-  --blob-color: var(--color-blob, #6366f1);
-  --blob-border: var(--color-blob-border, #6366f1);
-  --blob-text: var(--color-blob-text, #6366f1);
-  --blob-text-hover: var(--color-blob-text-hover, #ffffff);
-  --blob-bg: var(--color-blob-bg, #ffffff);
+  --blob-color: var(--color-blob, var(--color-brand-500));
+  --blob-border: var(--color-blob-border, var(--color-brand-500));
+  --blob-text: var(--color-blob-text, var(--color-brand-500));
+  --blob-text-hover: var(--color-blob-text-hover, var(--color-white));
+  --blob-bg: var(--color-blob-bg, var(--color-white));
   --border-width: 2px;
 
   z-index: 1;
@@ -747,14 +749,6 @@
 .blob-btn--lg {
   padding: 16px 36px;
   font-size: 1.125rem;
-}
-
-/* Dark mode adjustments */
-.dark .blob-btn {
-  --blob-bg: rgb(24, 30, 41);
-  --blob-text: #fff;
-  --blob-color: #6366f1;
-  --border-width: 2px;
 }
 
 /* ========== Journal Modal Animations ========== */
