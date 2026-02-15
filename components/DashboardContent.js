@@ -110,6 +110,31 @@ export default function DashboardContent() {
   const monthsArr = Object.keys(months);
   const memoriesLabel = `${monthsArr[memoriesMonth]} ${memoriesYear}`;
 
+  // Whether the Memories month can advance forward (can't go past current month)
+  const canMemoriesGoForward = !(memoriesYear === now.getFullYear() && memoriesMonth === now.getMonth());
+
+  // Handle month navigation from Memories buttons (val: -1 or +1)
+  const handleMemoriesMonthChange = useCallback((val) => {
+    const curYear = memoriesYear;
+    const curMonth = memoriesMonth;
+    let newMonth = curMonth + val;
+    let newYear = curYear;
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear = curYear - 1;
+    } else if (newMonth > 11) {
+      newYear = curYear + 1;
+      newMonth = 0;
+    }
+    // Block future months
+    const nowDate = new Date();
+    if (newYear > nowDate.getFullYear() || (newYear === nowDate.getFullYear() && newMonth > nowDate.getMonth())) {
+      return;
+    }
+    setMemoriesYear(newYear);
+    setMemoriesMonth(newMonth);
+  }, [memoriesYear, memoriesMonth]);
+
   function getTimeRemaining() {
     const now = new Date();
     const hours = 23 - now.getHours();
@@ -625,6 +650,8 @@ export default function DashboardContent() {
           monthLabel={memoriesLabel}
           yearMonth={memoriesYearMonth}
           onDelete={removeMemory}
+          onMonthChange={handleMemoriesMonthChange}
+          canGoForward={canMemoriesGoForward}
         />
 
         <Calender
@@ -633,6 +660,8 @@ export default function DashboardContent() {
           showJournalPopup
           onUpdateEntry={handleUpdateDailyEntry}
           onDeleteEntry={handleDeleteDailyEntry}
+          controlledYear={memoriesYear}
+          controlledMonth={memoriesMonth}
           onMonthChange={(year, month) => {
             setMemoriesYear(year);
             setMemoriesMonth(month);
