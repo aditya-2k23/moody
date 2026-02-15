@@ -27,7 +27,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
-- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini 2.5 Flash** — powered by server-side Redis caching for instant repeat lookups.
+- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching for instant repeat lookups.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
 
 ### 🆕 Recent Features & Improvements (v2.5.0)
@@ -46,7 +46,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **React** 19+
 - **Firebase** (Auth & Firestore)
 - **Cloudinary** (Image storage & transformation)
-- **Google Gemini 2.5 Flash** (AI Insights)
+- **Google Gemini Flash 3 Preview** (AI Insights)
 - **Upstash Redis** (Server-side caching)
 - **lucide-react** (Icons)
 - **Tailwind CSS**

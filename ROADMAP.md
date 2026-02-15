@@ -4,12 +4,13 @@ This document outlines the development plan and future vision for **Moody**. Our
 
 > **Note:** This roadmap is a living document and subject to change based on community feedback and project priorities.
 
-## 📍 Current Status (v2.4)
+## 📍 Current Status (v2.5)
 
 - [x] **User Authentication** (Firebase Auth)
 - [x] **Mood Logging** (Daily mood + Journaling)
 - [x] **Visual Memories** (Upload up to 5 photos/day via Cloudinary)
-- [x] **AI Insights** (Gemini 2.5 Flash integration for mood analysis)
+- [x] **AI Insights** (Gemini Flash 3 Preview integration for mood analysis)
+- [x] **Upstash Redis Caching** (Server-side caching for AI insights)
 - [x] **🎙️ Voice Input Support** (Beta transcription + Smart Autosave)
 - [x] **Dashboard** (Stats, streaks, and averages)
 - [x] **Interactive Gallery** (Zoom, pan, keyboard nav)

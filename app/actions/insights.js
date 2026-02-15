@@ -28,7 +28,7 @@ function getGeminiModel() {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  cachedModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  cachedModel = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
   return cachedModel;
 }
@@ -125,7 +125,7 @@ ${journalEntry}
 export async function generateInsight(userId, journalText, forceRegenerate = false) {
   // ===== VALIDATION =====
   if (!userId || !journalText?.trim()) {
-    throw new Error("User ID and journal text are required.");
+    return { success: false, error: "User ID and journal text are required." };
   }
 
   const cacheKey = generateCacheKey(userId, journalText);
@@ -137,7 +137,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       const cached = await redis.get(cacheKey);
 
       if (cached && typeof cached === "object" && cached.mood) {
-        return cached;
+        return { success: true, data: cached };
       }
     } catch (error) {
       console.error("[Insights] Cache read error (proceeding to AI generation):", error);
@@ -170,20 +170,24 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   } catch (error) {
     console.error("[Insights] AI generation error:", error.message);
 
-    // User-friendly error messages
+    // User-friendly error messages returned as values (not thrown)
+    // so they survive Next.js production error sanitization
     if (error.message?.includes("429") || error.message?.includes("quota")) {
-      throw new Error("AI Rate Limit. Please try again after some time");
+      return { success: false, error: "AI Rate Limit. Please try again after some time" };
     }
     if (error.message?.includes("403") || error.message?.includes("Forbidden")) {
-      throw new Error("AI service unavailable. Please try again later.");
+      return { success: false, error: "AI service unavailable. Please try again later." };
+    }
+    if (error.message?.includes("not configured")) {
+      return { success: false, error: "AI service is not configured. Please contact support." };
     }
     if (error.message?.includes("JSON")) {
-      throw new Error("Failed to parse AI response. Please try again.");
+      return { success: false, error: "Failed to parse AI response. Please try again." };
     }
     if (error.message?.includes("Validation Failed")) {
-      throw new Error("AI response validation failed. Please try again.");
+      return { success: false, error: "AI response validation failed. Please try again." };
     }
-    throw new Error("Something went wrong. Please try again.");
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 
   // ===== PHASE 3: CACHE WRITE =====
@@ -193,7 +197,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     console.error("[Insights] ⚠️ Cache write error (returning AI result anyway):", error);
   }
 
-  return insight;
+  return { success: true, data: insight };
 }
 
 function validateInsight(data) {
