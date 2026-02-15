@@ -16,6 +16,8 @@ export default function Calender({
   onMonthChange,
   onUpdateEntry,
   onDeleteEntry,
+  controlledYear,
+  controlledMonth,
 }) {
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -26,6 +28,22 @@ export default function Calender({
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
+
+  // Sync with externally controlled month/year (e.g. from Memories nav buttons)
+  useEffect(() => {
+    if (controlledYear != null && controlledMonth != null) {
+      setSelectedYear(controlledYear);
+      setSelectedMonth(monthsArr[controlledMonth]);
+      // If a day is selected, clamp to new month's range; journal/mood synced by other effect
+      if (selectedDay) {
+        const newDaysInMonth = new Date(controlledYear, controlledMonth + 1, 0).getDate();
+        if (selectedDay > newDaysInMonth) {
+          setSelectedDay(newDaysInMonth);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledYear, controlledMonth]);
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = useMemo(() => {
@@ -81,10 +99,15 @@ export default function Calender({
       setSelectedMonth(monthsArr[newMonthIndex]);
     }
 
-    // Clear any open popup state when navigating months
-    setSelectedDay(null);
-    setSelectedJournal("");
-    setSelectedMood(null);
+    // If a day is selected, clamp it to the new month's range so the modal
+    // stays open and the useEffect syncs journal/mood from the new data.
+    if (selectedDay) {
+      const newDaysInMonth = new Date(newYear, newMonthIndex + 1, 0).getDate();
+      if (selectedDay > newDaysInMonth) {
+        setSelectedDay(newDaysInMonth);
+      }
+      // Journal/mood will be updated by the existing useEffect [data, selectedDay]
+    }
 
     // Notify parent of month change
     if (onMonthChange) {
