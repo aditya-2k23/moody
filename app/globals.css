@@ -751,6 +751,23 @@
   font-size: 1.125rem;
 }
 
+/* Dark variant - inverted colors: purple bg, white blob fill */
+.blob-btn--dark {
+  --blob-color: var(--color-white);
+  --blob-border: var(--color-brand-500);
+  --blob-text: var(--color-white);
+  --blob-text-hover: var(--color-brand-500);
+  --blob-bg: var(--color-brand-500);
+}
+
+.dark .blob-btn--dark {
+  --blob-border: var(--color-brand-400);
+  --blob-bg: var(--color-brand-500);
+  --blob-text: var(--color-white);
+  --blob-text-hover: var(--color-brand-500);
+  --blob-color: var(--color-white);
+}
+
 /* ========== Journal Modal Animations ========== */
 
 /* Overlay fade in */
