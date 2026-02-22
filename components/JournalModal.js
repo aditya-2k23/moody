@@ -291,9 +291,9 @@ export default function JournalModal({
 
             {/* Journal content */}
             {!isEditing ? (
-              <div className="min-h-[120px] p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700">
+              <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
                 {journal ? (
-                  <p className="whitespace-pre-line text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                  <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {journal}
                   </p>
                 ) : (
@@ -304,7 +304,7 @@ export default function JournalModal({
               </div>
             ) : (
               <textarea
-                className="w-full min-h-[140px] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-line text-sm leading-relaxed resize-y"
+                className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
                 value={draftJournal}
                 onChange={(e) => setDraftJournal(e.target.value)}
                 disabled={saving}
