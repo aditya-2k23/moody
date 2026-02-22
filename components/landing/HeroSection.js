@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Button from "../Button";
 import { useAuth } from "@/context/authContext";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRightToLine, Play } from "lucide-react";
 
 export default function HeroSection() {
   const { currentUser } = useAuth();
@@ -13,7 +13,7 @@ export default function HeroSection() {
       {/* Version Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8">
         <span className="w-2 h-2 rounded-full bg-green-400" />
-        <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
+        <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium italic font-sans">
           v2.5 Now Available with Gemini Flash 3
         </span>
       </div>
@@ -29,7 +29,7 @@ export default function HeroSection() {
       </h1>
 
       {/* Subheading */}
-      <p className="text-base sm:text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-[600px] mx-auto mb-10 leading-relaxed">
+      <p className="text-base sm:text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-[600px] mx-auto mb-10 leading-relaxed font-sans font-medium">
         Your personal AI-powered emotional architect. Track, analyze, and
         optimize your mental state with precision—no more subjective guesswork.
       </p>
@@ -37,15 +37,15 @@ export default function HeroSection() {
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
         {currentUser ? (
-          <Link href="/dashboard">
+          <Link href="/dashboard" className="w-full sm:w-auto">
             <Button
               text={
-                <>
-                  Go to your Dashboard <ArrowRight size={18} />
-                </>
+                <span className="flex items-center justify-center gap-2 w-full">
+                  Go to your Dashboard <ArrowRightToLine size={20} />
+                </span>
               }
               size="lg"
-              className="!px-56"
+              className="w-full sm:w-auto sm:!px-56 flex justify-center"
             />
           </Link>
         ) : (
@@ -54,7 +54,7 @@ export default function HeroSection() {
               <Button
                 text={
                   <>
-                    Start Tracking Free <ArrowRight size={18} />
+                    Start Tracking Free <ArrowRightToLine size={20} />
                   </>
                 }
                 dark
@@ -65,7 +65,7 @@ export default function HeroSection() {
               <Button
                 text={
                   <>
-                    <Play size={16} /> View Live Demo
+                    <Play size={19} /> View Live Demo
                   </>
                 }
                 size="lg"
