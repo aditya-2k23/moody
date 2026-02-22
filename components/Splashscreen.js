@@ -7,9 +7,26 @@ import ThemeToggle from './ThemeToggle';
 // Fallback tip for SSR (must be deterministic to avoid hydration mismatch)
 const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your productivity.";
 
-export default function Splashscreen({ message = "✨ Fetching your insights..." }) {
+export default function Splashscreen({ message = "✨ Fetching your insights...", progress = null }) {
   // Start with deterministic fallback for SSR, then pick random tip on client
   const [randomTip, setRandomTip] = useState(DEFAULT_TIP);
+
+  // If no explicit progress, animate from 0 to 90 over time (indeterminate feel)
+  const [animatedProgress, setAnimatedProgress] = useState(0);
+  useEffect(() => {
+    if (progress !== null) return; // Controlled externally
+    const interval = setInterval(() => {
+      setAnimatedProgress((prev) => {
+        if (prev >= 90) { clearInterval(interval); return 90; }
+        // Slow down as we approach 90
+        const increment = Math.max(0.5, (90 - prev) * 0.05);
+        return Math.min(90, prev + increment);
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [progress]);
+
+  const displayProgress = progress !== null ? progress : animatedProgress;
 
   useEffect(() => {
     // Only runs on client after hydration - safe to use Math.random()
@@ -29,26 +46,26 @@ export default function Splashscreen({ message = "✨ Fetching your insights..."
 
       {/* Decorative floating orbs */}
       {/* Top-left bluish-white sphere */}
-      <div className="absolute top-16 left-20 w-24 h-24 sm:w-32 sm:h-32 animate-float-slow">
+      <div className="absolute top-16 left-10 sm:left-20 w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 animate-float-slow">
         <div className="w-full h-full rounded-full bg-gradient-to-br from-white via-indigo-100 to-indigo-200 dark:from-slate-700 dark:via-indigo-800 dark:to-indigo-900 shadow-lg">
-          <div className="absolute top-2 left-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/60 dark:bg-white/20 blur-sm" />
+          <div className="absolute top-2 left-3 w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 rounded-full bg-white/60 dark:bg-white/20 blur-sm" />
         </div>
       </div>
 
       {/* Top-right purple ring */}
-      <div className="absolute top-28 right-24 w-16 h-16 sm:w-20 sm:h-20 animate-float-medium">
+      <div className="absolute top-28 right-10 sm:right-24 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 animate-float-medium">
         <div className="w-full h-full rounded-full border-4 border-indigo-300/50 dark:border-indigo-500/30" />
       </div>
 
       {/* Right side yellow/golden sphere */}
-      <div className="absolute top-1/3 right-16 sm:right-32 w-20 h-20 sm:w-28 sm:h-28 animate-float-medium">
+      <div className="hidden sm:block absolute top-1/3 right-16 lg:right-32 w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 animate-float-medium">
         <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-100/80 via-yellow-200/80 to-amber-300/70 dark:from-yellow-300/70 dark:via-amber-400/60 dark:to-amber-500/70 shadow-lg">
-          <div className="absolute top-2 left-3 w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-white/50 dark:bg-white/20 blur-sm" />
+          <div className="absolute top-2 left-3 w-4 h-4 sm:w-5 sm:h-5 lg:w-7 lg:h-7 rounded-full bg-white/50 dark:bg-white/20 blur-sm" />
         </div>
       </div>
 
       {/* Bottom-right pink ring (larger) */}
-      <div className="absolute bottom-20 right-20 sm:right-40 w-32 h-32 sm:w-44 sm:h-44 animate-float-slow">
+      <div className="absolute bottom-20 right-10 sm:right-20 lg:right-40 w-24 h-24 sm:w-32 sm:h-32 lg:w-44 lg:h-44 animate-float-slow">
         <div className="w-full h-full rounded-full border-[6px] border-pink-200/60 dark:border-pink-500/20" />
       </div>
 
@@ -59,17 +76,25 @@ export default function Splashscreen({ message = "✨ Fetching your insights..."
       <div className="absolute bottom-32 left-8 sm:left-24 w-40 h-40 bg-gradient-to-tr from-yellow-200/40 to-orange-200/30 dark:from-yellow-600/10 dark:to-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main content container */}
-      <div className="flex flex-col items-center gap-6 relative z-10 px-4">
+      <div className="flex flex-col items-center gap-4 relative z-10 px-4">
         {/* Logo */}
         <h1 className="fugaz text-5xl sm:text-6xl md:text-7xl textGradient">Moody</h1>
 
         {/* Progress bar */}
         <div className="w-64 sm:w-72 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full animate-loading-bar" />
+          <div
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${displayProgress}%` }}
+          />
         </div>
 
+        {/* Percentage */}
+        <p className="text-indigo-500 dark:text-indigo-300 text-sm sm:text-base font-semibold tabular-nums fugaz">
+          {Math.round(displayProgress)}%
+        </p>
+
         {/* Loading message */}
-        <p role="status" aria-live="polite" className="text-slate-500 dark:text-slate-400 text-sm sm:text-base">
+        <p role="status" aria-live="polite" className="text-slate-600 dark:text-slate-400 text-sm sm:text-base italic">
           {message}
         </p>
 
