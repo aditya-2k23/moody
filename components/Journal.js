@@ -17,9 +17,18 @@ import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { Book, CloudUpload, Check, Mic, Square } from "lucide-react";
 
-export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
+export default function Journal({
+  mode = "auth",
+  currentUser,
+  onMemoryAdded,
+  onJournalSaved,
+  initialText = "",
+  onAuthRequired,
+  onGuestTextChange,
+}) {
+  const isGuest = mode === "guest";
   const { resolvedTheme } = useTheme();
-  const [entry, setEntry] = useState("");
+  const [entry, setEntry] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
@@ -82,8 +91,17 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     onJournalSavedRef.current = onJournalSaved;
   }, [onJournalSaved]);
 
+  // Sync entry when initialText changes (draft hydration)
+  useEffect(() => {
+    if (initialText && !entry) {
+      setEntry(initialText);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialText]);
+
   // ========== Auto-Save Logic (Text Only) ==========
   const saveJournalText = useCallback(async () => {
+    if (isGuest) return false; // Never write to Firebase in guest mode
     if (!entry.trim() || !currentUser?.uid) return false;
 
     // Prevent duplicate Firebase writes
@@ -115,7 +133,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       console.error("Auto-save error:", error);
       return false;
     }
-  }, [entry, currentUser]);
+  }, [entry, currentUser, isGuest]);
 
   // Debounce constants
   const TYPING_DEBOUNCE_MS = 1700;
@@ -187,6 +205,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // Trigger auto-save when entry changes (only for typing, not voice)
   useEffect(() => {
+    // In guest mode, notify parent of text changes but never auto-save to Firebase
+    if (isGuest) {
+      onGuestTextChange?.(entry);
+      return;
+    }
     if (entry.trim()) {
       if (isListening) {
         // During voice input, just mark as having unsaved changes
@@ -218,7 +241,9 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   }, [isListening, entry, triggerAutoSave]);
 
   // Page exit safety: save on visibility change and beforeunload using sendBeacon for reliability
+  // (auth mode only — guest mode has nothing to persist to Firebase)
   useEffect(() => {
+    if (isGuest) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && hasUnsavedChangesRef.current && entry.trim()) {
         // Use sendBeacon for guaranteed delivery on page hide
@@ -274,7 +299,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [saveJournalText, entry, currentUser]);
+  }, [saveJournalText, entry, currentUser, isGuest]);
 
   // ========== Image Upload Handlers ==========
   const handleImagesChange = (files, previews) => {
@@ -290,6 +315,10 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Save Handler ==========
   const handleSave = async () => {
+    if (isGuest) {
+      onAuthRequired?.("save");
+      return;
+    }
     if (!entry.trim() && selectedImages.length === 0) {
       toast.error("Add a journal entry or photos.");
       return;
@@ -406,6 +435,10 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async (forceRegenerate = false) => {
+    if (isGuest) {
+      onAuthRequired?.("insights");
+      return;
+    }
     if (!currentUser || !currentUser.uid) {
       toast.error("Please log in to generate insights.");
       return;
@@ -520,14 +553,16 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             )}
           </button>
 
-          {/* Image Upload Component */}
-          <ImageUpload
-            selectedImages={selectedImages}
-            imagePreviews={imagePreviews}
-            onImagesChange={handleImagesChange}
-            disabled={saving || uploading}
-            className="bottom-9 right-3.5"
-          />
+          {/* Image Upload Component — hidden in guest mode (requires auth for Cloudinary) */}
+          {!isGuest && (
+            <ImageUpload
+              selectedImages={selectedImages}
+              imagePreviews={imagePreviews}
+              onImagesChange={handleImagesChange}
+              disabled={saving || uploading}
+              className="bottom-9 right-3.5"
+            />
+          )}
         </div>
 
         <div className="flex justify-end items-center gap-2 mt-3">
