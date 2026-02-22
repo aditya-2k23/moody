@@ -12,7 +12,7 @@ export default function HeroSection() {
     <section className="pt-12 pb-16 md:pt-20 md:pb-28 text-center">
       {/* Version Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8">
-        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        <span className="w-2 h-2 rounded-full bg-green-400" />
         <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
           v2.5 Now Available with Gemini Flash 3
         </span>
