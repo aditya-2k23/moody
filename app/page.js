@@ -5,7 +5,7 @@ import FeaturesGrid from "@/components/landing/FeaturesGrid";
 import TechStack from "@/components/landing/TechStack";
 import FinalCTA from "@/components/landing/FinalCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
-import Image from "next/image";
+import GuestMoodSection from "@/components/landing/GuestMoodSection";
 
 export default function Home() {
   return (
@@ -16,17 +16,8 @@ export default function Home() {
       <div className="px-4 sm:px-8">
         <HeroSection />
 
-        <section className="flex justify-center">
-          <div className="w-full rounded-2xl shadow-xl shadow-indigo-500/5 dark:shadow-slate-900/30 border border-slate-200/80 dark:border-slate-700/50 overflow-hidden">
-            <Image
-              src="/mood-preview-light.png"
-              alt="Moody mood picker preview"
-              className="w-full h-auto"
-              width={800}
-              height={500}
-            />
-          </div>
-        </section>
+        {/* Interactive guest mood picker — sign-up not required */}
+        <GuestMoodSection />
 
         <ComparisonSection />
         <FeaturesGrid />
