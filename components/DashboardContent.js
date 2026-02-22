@@ -11,10 +11,11 @@ import convertMood, { moods, months } from "@/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc, deleteField } from "firebase/firestore";
-import Journal from "./Journal";
+import MoodJournal from "./MoodJournal";
 import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
+import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
 
 function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
@@ -63,8 +64,13 @@ export default function DashboardContent() {
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
   const [showAllMoods, setShowAllMoods] = useState(false);
 
-  // Initial loading splash screen state (3 seconds)
+  // Guest draft hydration flag — ensures we only hydrate once
+  const guestDraftHydratedRef = useRef(false);
+
+  // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
@@ -150,7 +156,7 @@ export default function DashboardContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // Show splash screen for 3 seconds on first load (only for authenticated users)
+  // Real loading state: track auth + data loading stages
   useEffect(() => {
     if (!currentUser) {
       // If not logged in, skip splash
@@ -158,13 +164,35 @@ export default function DashboardContent() {
       return;
     }
 
-    // Always set a 3 second timer for authenticated users
-    const splashTimer = setTimeout(() => {
-      setInitialLoading(false);
-    }, 3000);
-
-    return () => clearTimeout(splashTimer);
+    // Stage 1: Authenticated (30%)
+    setLoadingProgress(30);
+    setLoadingMessage("🔐 Authenticated! Loading your data...");
   }, [currentUser]);
+
+  // Stage 2: User data loaded (70%) → Complete (100%)
+  useEffect(() => {
+    if (!currentUser || loading) return;
+
+    if (userDataObj !== null) {
+      setLoadingProgress(70);
+      setLoadingMessage("Preparing your dashboard...");
+
+      // Brief delay for the user to see 100% before dismissing
+      const finishTimer = setTimeout(() => {
+        setLoadingProgress(100);
+        setLoadingMessage("✅ Ready!");
+      }, 400);
+
+      const dismissTimer = setTimeout(() => {
+        setInitialLoading(false);
+      }, 800);
+
+      return () => {
+        clearTimeout(finishTimer);
+        clearTimeout(dismissTimer);
+      };
+    }
+  }, [currentUser, loading, userDataObj]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -542,7 +570,7 @@ export default function DashboardContent() {
   if (!currentUser) return <Login initialRegister={shouldRegister} />;
 
   // Show full-page splash screen while dashboard loads
-  if (initialLoading) return <Splashscreen />;
+  if (initialLoading) return <Splashscreen progress={loadingProgress} message={loadingMessage} />;
 
   const statuses = {
     ...memoizedCounts,
@@ -593,39 +621,11 @@ export default function DashboardContent() {
           })}
         </div>
 
-        <h4 className="text-3xl sm:text-4xl md:text-5xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
-        <div className="flex items-stretch flex-wrap gap-4">
-          {(showAllMoods ? Object.keys(moods) : Object.keys(moods).slice(0, 5)).map((mood, moodIndex) => {
-            const currentMood = moodIndex + 1;
-            const isSelected = todaysMood === currentMood;
-            return (
-              <button
-                onClick={() => handleSetMood(currentMood)}
-                key={moodIndex}
-                style={{
-                  outline: isSelected ? '2px solid var(--outline-color)' : 'none',
-                  outlineOffset: 2,
-                  '--outline-color': 'rgb(79 70 229)'
-                }}
-                className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
-                ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
-              >
-                <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
-                <p className="fugaz text-xs sm:text-sm md:text-base">{mood}</p>
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => setShowAllMoods((prev) => !prev)}
-            className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px] flex items-center justify-center"
-          >
-            {showAllMoods ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
-          </button>
-        </div>
-
-        <Journal
-          currentUser={currentUser}
+        <MoodJournal
+          mode="auth"
+          initialMood={todaysMood}
+          user={currentUser}
+          onMoodChange={handleSetMood}
           onMemoryAdded={refetchMemories}
           onJournalSaved={(savedEntry) => {
             // Compute fresh date values to avoid stale dates if tab was open past midnight
