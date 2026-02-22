@@ -6,7 +6,7 @@ import Input from "./Input";
 import { useAuth } from "@/context/authContext";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function Login({ initialRegister = false }) {
+export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(initialRegister);
@@ -21,9 +21,11 @@ export default function Login({ initialRegister = false }) {
     try {
       if (isRegister) {
         await signUp(email, password);
+        onAuthSuccess?.();
       } else {
         await signIn(email, password);
         toast.success("Successfully logged in!");
+        onAuthSuccess?.();
       }
     } catch (error) {
       console.log(`${isRegister ? "Sign Up" : "Sign In"} Error:`, error.message);
@@ -51,6 +53,7 @@ export default function Login({ initialRegister = false }) {
     try {
       await signInWithGoogle();
       toast.success("Successfully signed in with Google!");
+      onAuthSuccess?.();
     } catch (error) {
       toast.error("Google sign-in failed. Please try again.");
     } finally {
