@@ -26,7 +26,7 @@ export default function ConditionalFooter() {
           <Button
             text={
               <>
-                <Github size={18} /> GitHub
+                <Github size={18} className="mb-1" /> GitHub
               </>
             }
             normal={false}
@@ -42,7 +42,7 @@ export default function ConditionalFooter() {
           <Button
             text={
               <>
-                <Linkedin size={18} /> LinkedIn
+                <Linkedin size={18} className="mb-1" /> LinkedIn
               </>
             }
             normal={false}
