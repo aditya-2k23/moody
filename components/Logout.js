@@ -12,7 +12,7 @@ export default function Logout() {
   return (
     <div className="flex items-center justify-center gap-2 md:gap-3 text-slate-700 hover:text-white transition duration-200">
       <p className="hidden sm:block text-base md:text-lg text-slate-700 font-semibold fugaz">Hello <span className="textGradient">
-        {currentUser.email.split("@")[0]}</span>👋
+        {currentUser.email.split("@")[0].replace(/[0-9]/g, '')}</span>👋
       </p>
 
       <Button

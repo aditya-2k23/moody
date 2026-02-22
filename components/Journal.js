@@ -15,7 +15,7 @@ import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { Book, CloudUpload, Check, Mic, Square } from "lucide-react";
+import { CloudUpload, Check, Mic, Square, NotebookPen } from "lucide-react";
 
 export default function Journal({
   mode = "auth",
@@ -480,7 +480,7 @@ export default function Journal({
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
-            <Book size={24} /> Quick Journal
+            <NotebookPen size={24} /> Quick Journal
           </h2>
 
           {/* Cloud Save Status */}

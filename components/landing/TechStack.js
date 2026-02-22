@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { CloudUpload, ExternalLink, ShieldCheck } from "lucide-react";
 
 export default function TechStack() {
   const stack = [
@@ -22,29 +22,19 @@ export default function TechStack() {
     {
       name: "GEMINI",
       icon: (
-        <svg viewBox="0 0 28 28" className="w-6 h-6" fill="none">
-          <path
-            d="M14 28C14 21.79 9.21 16.68 3.11 16.12C2.07 16.02 1.03 15.98 0 16C0 16 0 12 0 12C1.03 12.02 2.07 11.98 3.11 11.88C9.21 11.32 14 6.21 14 0C14 6.21 18.79 11.32 24.89 11.88C25.93 11.98 26.97 12.02 28 12C28 12 28 16 28 16C26.97 15.98 25.93 16.02 24.89 16.12C18.79 16.68 14 21.79 14 28Z"
-            fill="currentColor"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" fillRule="evenodd" height="1.5em" style={{ flex: "none", lineHeight: 1 }} viewBox="0 0 24 24" width="1.5em"><title>Gemini</title><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" /></svg>
       ),
     },
     {
       name: "CLOUDINARY",
       icon: (
-        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
-        </svg>
+        <CloudUpload />
       ),
     },
     {
       name: "SECURE",
       icon: (
-        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2L3.5 6.5V11C3.5 16.25 7.08 21.12 12 22.5C16.92 21.12 20.5 16.25 20.5 11V6.5L12 2Z" />
-          <path d="M9 12L11 14L15.5 9.5" />
-        </svg>
+        <ShieldCheck />
       ),
     },
   ];
