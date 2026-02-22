@@ -6,6 +6,7 @@ import { useAuth } from "@/context/authContext";
 import { useGuestDraft } from "@/hooks/useGuestDraft";
 import MoodJournal from "../MoodJournal";
 import Login from "../Login";
+import { MousePointerClick, TargetIcon, X } from "lucide-react";
 
 /**
  * GuestMoodSection — Embeds the MoodJournal in guest mode on the landing page.
@@ -23,10 +24,6 @@ export default function GuestMoodSection() {
   const { draft, saveDraft } = useGuestDraft();
   const [showAuth, setShowAuth] = useState(false);
 
-  // Already signed in → don't render the guest section
-  // (The HeroSection CTA handles authenticated users)
-  if (currentUser) return null;
-
   const handleAuthRequired = () => {
     setShowAuth(true);
   };
@@ -37,6 +34,27 @@ export default function GuestMoodSection() {
     router.push("/dashboard");
   };
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && showAuth) {
+        setShowAuth(false);
+      }
+    };
+
+    if (showAuth) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showAuth]);
+
+  // Already signed in → don't render the guest section
+  // (The HeroSection CTA handles authenticated users)
+  if (currentUser) return null;
+
   return (
     <section className="py-12 md:py-20">
       <div className="max-w-4xl mx-auto">
@@ -44,7 +62,7 @@ export default function GuestMoodSection() {
         <div className="text-center mb-8">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-4">
             <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
-              🎯 Try it now — no sign-up needed
+              <MousePointerClick className="inline-block mr-1" size={20} /> Try it now — no sign-up needed
             </span>
           </span>
         </div>
@@ -62,7 +80,12 @@ export default function GuestMoodSection() {
 
         {/* Inline auth modal */}
         {showAuth && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowAuth(false);
+            }}
+          >
             <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
               {/* Close button */}
               <button
@@ -70,16 +93,8 @@ export default function GuestMoodSection() {
                 className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
                 aria-label="Close"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <X />
               </button>
-
-              {/* Info text */}
-              <p className="text-center text-sm text-slate-500 dark:text-slate-400 mb-2">
-                Sign in to save your mood and journal entry
-              </p>
 
               <Login
                 initialRegister
