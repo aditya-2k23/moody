@@ -20,9 +20,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 flex items-center justify-between gap-4">
-      <Link href="/">
-        <h1 className={`fugaz text-2xl sm:text-4xl textGradient hover:scale-110 duration-200`} title="Home">Moody</h1>
-      </Link>
+      <div >
+        <Link href="/?ref=internal" className="flex fugaz hover:scale-110 duration-200">
+          <h1 className={`text-2xl sm:text-4xl textGradient`} title="Moody v2.5">Moody</h1>
+          <span className="text-xs self-end text-indigo-500 dark:text-indigo-300">v2.5</span>
+        </Link>
+      </div>
 
       <div className="flex items-center gap-4">
         <ThemeToggle />

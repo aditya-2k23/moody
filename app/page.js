@@ -6,10 +6,15 @@ import TechStack from "@/components/landing/TechStack";
 import FinalCTA from "@/components/landing/FinalCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import GuestMoodSection from "@/components/landing/GuestMoodSection";
+import HomeRedirect from "@/components/HomeRedirect";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
     <main className="flex-1 flex flex-col relative">
+      <Suspense fallback={null}>
+        <HomeRedirect />
+      </Suspense>
       <GlowBackground />
 
       {/* Contained sections */}
