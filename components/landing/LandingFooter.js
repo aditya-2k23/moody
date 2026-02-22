@@ -1,5 +1,48 @@
 import Link from "next/link";
 
+const SocialLinks = () => {
+  const links = [
+    {
+      name: "Privacy",
+      href: "#",
+    },
+    {
+      name: "Terms",
+      href: "#",
+    },
+    {
+      name: "X",
+      href: "https://x.com/Tema_roon",
+      external: true,
+    },
+    {
+      name: "GitHub",
+      href: "https://github.com/aditya-2k23/moody",
+      external: true,
+    },
+    {
+      name: "LinkedIn",
+      href: "https://www.linkedin.com/in/aditya-2k23/",
+      external: true,
+    }
+  ]
+
+  return (
+    <div className="flex items-center gap-5">
+      {links.map(({ name, href, external }) => (
+        <Link
+          key={name}
+          href={href}
+          target={external ? "_blank" : "_self"}
+          className="text-slate-500 hover:text-slate-300 text-xs sm:text-sm transition duration-200"
+        >
+          {name === "X" ? <span className="font-bold text-lg">X</span> : name}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 export default function LandingFooter() {
   return (
     <footer className="w-screen relative left-1/2 -translate-x-1/2 bg-slate-950 border-t border-slate-800">
@@ -17,29 +60,7 @@ export default function LandingFooter() {
             © 2026 Moody Inc. All rights reserved.
           </p>
 
-          {/* Links */}
-          <div className="flex items-center gap-5">
-            <Link
-              href="#"
-              className="text-slate-400 hover:text-white transition-colors duration-200"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="#"
-              className="text-slate-400 hover:text-white transition-colors duration-200"
-            >
-              Terms
-            </Link>
-            <Link
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-slate-400 hover:text-white transition-colors duration-200"
-            >
-              Twitter
-            </Link>
-          </div>
+          <SocialLinks />
         </div>
       </div>
     </footer>
