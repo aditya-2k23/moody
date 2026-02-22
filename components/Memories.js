@@ -45,7 +45,7 @@ function MemoriesSkeleton({ monthLabel }) {
  * Shows skeleton during loading, fades in/out content with GSAP
  * @param {{items: Array, status: 'idle'|'loading'|'loaded', monthLabel: string, yearMonth: string, onDelete: function}} props
  */
-export default function Memories({ items = [], status = "idle", monthLabel = "", yearMonth = "", onDelete, onMonthChange, canGoForward = true }) {
+export default function Memories({ items = [], status = "idle", monthLabel = "", yearMonth = "", onDelete, onMonthChange, canGoForward = true, isVisible: externalIsVisible = true }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef(null);
@@ -53,6 +53,7 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
   // Track visibility for fade-out animation
   const [isVisible, setIsVisible] = useState(false);
   const prevHadItemsRef = useRef(false);
+  const prevExternalVisibleRef = useRef(externalIsVisible);
 
   // Preserve items during fade-out so images don't disappear
   const [displayItems, setDisplayItems] = useState([]);
@@ -63,10 +64,13 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
   };
 
   const hasItems = status === "loaded" && items?.length > 0;
+  const shouldShow = hasItems && externalIsVisible;
 
-  // Handle fade-out when items disappear
+  // Handle fade-out when items disappear or external visibility changes
   useEffect(() => {
-    if (prevHadItemsRef.current && !hasItems && containerRef.current) {
+    const wasShowing = prevHadItemsRef.current && prevExternalVisibleRef.current;
+
+    if (wasShowing && !shouldShow && containerRef.current) {
       // Fade out then hide (keep displayItems until animation completes)
       gsap.to(containerRef.current, {
         opacity: 0,
@@ -75,46 +79,48 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
         ease: "power2.in",
         onComplete: () => {
           setIsVisible(false);
-          setDisplayItems([]); // Clear after fade completes
+          if (!hasItems) setDisplayItems([]); // Clear only if no items
         }
       });
-    } else if (prevHadItemsRef.current && !hasItems && !containerRef.current) {
+    } else if (wasShowing && !shouldShow && !containerRef.current) {
       // Edge case: previous had items but container not mounted (first load race)
       // Synchronously hide without animation
       setIsVisible(false);
-      setDisplayItems([]);
-    } else if (!prevHadItemsRef.current && !hasItems) {
-      // First load with no items - ensure hidden state
+      if (!hasItems) setDisplayItems([]);
+    } else if (!wasShowing && !shouldShow) {
+      // First load with no items or hidden - ensure hidden state
       setIsVisible(false);
-    } else if (hasItems && !isVisible) {
+    } else if (shouldShow && !isVisible) {
       // Update displayItems and show
       setDisplayItems(items);
       setIsVisible(true);
-    } else if (hasItems) {
+    } else if (shouldShow) {
       // Update displayItems when items change while visible
       setDisplayItems(items);
     }
-    prevHadItemsRef.current = hasItems;
-  }, [hasItems, isVisible, items]);
 
-  // Animate in when loaded with items
+    prevHadItemsRef.current = hasItems;
+    prevExternalVisibleRef.current = externalIsVisible;
+  }, [hasItems, isVisible, items, externalIsVisible, shouldShow]);
+
+  // Animate in when loaded with items and externally visible
   useGSAP(() => {
-    if (hasItems && isVisible && containerRef.current) {
+    if (shouldShow && isVisible && containerRef.current) {
       gsap.fromTo(
         containerRef.current,
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
       );
     }
-  }, [hasItems, isVisible]);
+  }, [shouldShow, isVisible]);
 
-  // Show skeleton while loading
-  if (status === "loading") {
+  // Show skeleton while loading (only if it's supposed to be visible)
+  if (status === "loading" && externalIsVisible) {
     return <MemoriesSkeleton monthLabel={monthLabel} />;
   }
 
   // Don't render anything if not visible and no items
-  if (!isVisible && !hasItems) {
+  if (!isVisible && !shouldShow) {
     return null;
   }
 
@@ -146,8 +152,8 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
                 type="button"
                 onClick={() => onMonthChange(1)}
                 className={`p-1.5 rounded-lg transition-colors ${canGoForward
-                    ? "hover:bg-purple-200/60 dark:hover:bg-slate-600/60 text-gray-600 dark:text-gray-300"
-                    : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                  ? "hover:bg-purple-200/60 dark:hover:bg-slate-600/60 text-gray-600 dark:text-gray-300"
+                  : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
                   }`}
                 disabled={!canGoForward}
                 aria-label="Next month"

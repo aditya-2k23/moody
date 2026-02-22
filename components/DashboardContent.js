@@ -15,6 +15,7 @@ import MoodJournal from "./MoodJournal";
 import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
 import { RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
+import MemoriesToggle from "./MemoriesToggle";
 import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
 
 function calculateStreakFromData(dataObj) {
@@ -62,7 +63,7 @@ export default function DashboardContent() {
   const now = new Date();
   const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
-  const [showAllMoods, setShowAllMoods] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
 
   // Guest draft hydration flag — ensures we only hydrate once
   const guestDraftHydratedRef = useRef(false);
@@ -629,7 +630,7 @@ export default function DashboardContent() {
     <>
       <Toaster position="top-center" />
 
-      <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
+      <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-12'>
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
           <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
@@ -700,6 +701,12 @@ export default function DashboardContent() {
           onDelete={removeMemory}
           onMonthChange={handleMemoriesMonthChange}
           canGoForward={canMemoriesGoForward}
+          isVisible={showMemories}
+        />
+
+        <MemoriesToggle
+          showMemories={showMemories}
+          onToggle={() => setShowMemories(!showMemories)}
         />
 
         <Calender
