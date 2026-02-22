@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { ImageIcon, Sparkles, X, Plus } from "lucide-react";
+import { Sparkles, X, Plus, ImagePlus } from "lucide-react";
 
 const MAX_IMAGES_PER_DAY = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -115,16 +115,8 @@ export default function ImageUpload({
           className={`absolute w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ring-indigo-500 dark:ring-indigo-400/80 ${className}`}
           title="Add photos"
         >
-          <ImageIcon size={18} />
+          <ImagePlus size={18} />
         </button>
-      )}
-
-      {/* New feature hint */}
-      {imagePreviews.length === 0 && (
-        <p className="text-xs text-right text-indigo-500 dark:text-indigo-300 font-medium mt-1 flex items-center justify-end gap-1">
-          <Sparkles size={10} />
-          <span>New! Add photos to your memories</span>
-        </p>
       )}
 
       {/* Image Previews */}

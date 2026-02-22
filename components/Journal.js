@@ -510,7 +510,7 @@ export default function Journal({
           <textarea
             name="journal"
             id="journal"
-            className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
+            className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
             placeholder={placeholder}
             value={displayEntry}
             onChange={(e) => {
@@ -540,7 +540,7 @@ export default function Journal({
           <button
             type="button"
             onClick={() => toggleVoiceInput(entry)}
-            className={`absolute ${isGuest ? "bottom-[18px]" : "bottom-9"} ${isGuest ? "right-3" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+            className={`absolute bottom-4 ${isGuest ? "right-4" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
               ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
               : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
               }`}
@@ -560,7 +560,7 @@ export default function Journal({
               imagePreviews={imagePreviews}
               onImagesChange={handleImagesChange}
               disabled={saving || uploading}
-              className="bottom-9 right-3.5"
+              className="bottom-4 right-3.5"
             />
           )}
         </div>
