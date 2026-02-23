@@ -2,7 +2,7 @@ import { Brain, ImageIcon, Flame, Mic, Moon } from "lucide-react";
 
 export default function FeaturesGrid() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-16 md:py-24" id="features">
       {/* Section Label */}
       <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-3">
         Features

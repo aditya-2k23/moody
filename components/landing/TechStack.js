@@ -40,7 +40,7 @@ export default function TechStack() {
   ];
 
   return (
-    <section className="py-16 md:py-24 text-center">
+    <section className="py-16 md:py-24 text-center" id="tech-stack">
       <h2 className="fugaz text-xl sm:text-2xl md:text-3xl mb-10 md:mb-12">
         Built for <span className="textGradient">Speed</span> and <span className="textGradient">Security</span>
       </h2>
