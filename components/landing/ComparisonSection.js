@@ -9,7 +9,7 @@ export default function ComparisonSection() {
       iconBg: "bg-indigo-200/50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400",
       title: "Chaos",
       subtitle: "Scattered & Forgettable",
-      cardBg: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 shadow-md",
+      cardBg: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-100 dark:border-slate-600/50 shadow shadow-indigo-400/20 relative",
       textColor: "text-slate-700 dark:text-slate-300",
       subTextColor: "text-slate-500 dark:text-slate-400",
       listIcon: <X size={24} className="text-red-400 dark:text-red-500" />,
@@ -61,7 +61,7 @@ export default function ComparisonSection() {
           {stages.map((stage, index) => (
             <React.Fragment key={stage.id}>
               {/* Card */}
-              <div className={`flex-1 flex flex-col rounded-3xl border p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1 ${stage.cardBg}`}>
+              <div className={`flex-1 flex flex-col rounded-3xl border p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 ${stage.cardBg}`}>
                 {/* Decorative glows for the Intelligence card */}
                 {stage.id === 'intelligence' && (
                   <>
@@ -70,26 +70,26 @@ export default function ComparisonSection() {
                   </>
                 )}
 
-                <div className="flex flex-col items-center text-center mb-8 relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${stage.iconBg}`}>
+                <div className="flex md:flex-col gap-4 md:gap-0 items-center text-center mb-6 relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center md:mb-5 ${stage.iconBg}`}>
                     {stage.icon}
                   </div>
-                  <h3 className={`fugaz text-2xl mb-1.5 ${stage.textColor}`}>{stage.title}</h3>
-                  <p className={`text-sm font-medium ${stage.subTextColor}`}>{stage.subtitle}</p>
+                  <h3 className={`fugaz text-xl sm:text-2xl mb-1.5 ${stage.textColor}`}>{stage.title}</h3>
+                  <p className={`text-xs sm:text-sm font-medium ${stage.subTextColor}`}>{stage.subtitle}</p>
                 </div>
 
-                <div className="flex-1 space-y-4 mb-10 relative z-10">
+                <div className="flex-1 space-y-4 mb-6 relative z-10 px-4 sm:px-6">
                   {stage.features.map((feat, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
-                      <span className="shrink-0 flex items-center justify-center w-5 h-5 mt-0 sm:mt-0.5">
+                    <div key={i} className="flex gap-2 sm:gap-4 items-center">
+                      <span className="shrink-0 flex items-center justify-center w-5 h-5 mt-0.5 sm:mt-1">
                         {stage.listIcon}
                       </span>
-                      <span className={`text-sm md:text-base font-medium ${stage.textColor}`}>{feat}</span>
+                      <span className={`text-sm md:text-base font-medium leading-tight ${stage.textColor}`}>{feat}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className={`pt-6 border-t relative z-10 ${stage.divider}`}>
+                <div className={`pt-4 border-t relative z-10 ${stage.divider}`}>
                   <p className={`text-sm text-center italic ${stage.subTextColor}`}>
                     {stage.quote}
                   </p>
