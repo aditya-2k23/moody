@@ -38,12 +38,12 @@ function StaticGallery({ images, onImageClick }) {
                 transform: `rotate(${rotation}deg) translateY(${yOffset}px)`,
               }}
             >
-              <div className="relative w-36 h-48 sm:w-44 sm:h-60 md:w-52 md:h-72">
+              <div className="relative w-28 h-40 sm:w-44 sm:h-60 md:w-52 md:h-72">
                 <Image
                   src={getOptimizedUrl(item.imageUrl, 400)}
                   alt={`Memory from day ${item.day || index + 1}`}
                   fill
-                  sizes="(max-width: 640px) 144px, (max-width: 768px) 176px, 208px"
+                  sizes="(max-width: 640px) 112px, (max-width: 768px) 176px, 208px"
                   className="object-cover rounded-xl transition-transform duration-300 group-hover:scale-[1.03]"
                 />
                 {/* Subtle overlay on hover */}
@@ -96,7 +96,7 @@ export default function MemoriesCircularGallery({
   }
 
   return (
-    <div className="memories-circular-gallery relative w-full h-[280px] sm:h-[320px] md:h-[380px]">
+    <div className="memories-circular-gallery relative w-full h-[220px] sm:h-[320px] md:h-[380px]">
       <CircularGallery
         items={galleryItems}
         bend={1.5}

@@ -19,16 +19,16 @@ function MemoriesSkeleton({ monthLabel }) {
       <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-32 h-28 bg-gradient-to-tr from-yellow-400/30 to-orange-400/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
-      <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2 relative z-10">
-        <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
+      <h2 className="text-lg md:text-2xl font-bold fugaz flex items-center gap-2 relative z-10">
+        <Images size={20} className="md:w-6 md:h-6" /> Memories {monthLabel && <span className="text-sm sm:text-base text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
       </h2>
 
       {/* Skeleton gallery placeholder */}
-      <div className="relative z-10 h-[300px] sm:h-[400px] flex items-center justify-center gap-4 overflow-hidden">
+      <div className="relative z-10 h-[220px] sm:h-[400px] flex items-center justify-center gap-4 overflow-hidden">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="w-32 sm:w-40 h-44 sm:h-56 rounded-xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-600 animate-pulse"
+            className="w-28 sm:w-40 h-40 sm:h-56 rounded-xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-600 animate-pulse"
             style={{
               transform: `rotate(${(i - 1) * 5}deg) translateY(${Math.abs(i - 1) * 10}px)`,
               opacity: 1 - Math.abs(i - 1) * 0.2
@@ -135,8 +135,8 @@ export default function Memories({ items = [], status = "idle", monthLabel = "",
         <div className="absolute bottom-0 left-0 w-32 h-28 bg-gradient-to-tr from-yellow-400/30 to-orange-400/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center justify-between relative z-10">
-          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
-            <Images size={24} /> Memories {monthLabel && <span className="text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
+          <h2 className="text-lg md:text-2xl font-bold fugaz flex items-center gap-2">
+            <Images size={20} className="md:w-6 md:h-6" /> Memories {monthLabel && <span className="text-sm sm:text-base font-normal text-gray-500 dark:text-gray-400">• {monthLabel}</span>}
           </h2>
           {onMonthChange && (
             <div className="flex items-center gap-1">

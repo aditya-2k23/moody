@@ -240,7 +240,12 @@ class Media {
         this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
       }
     }
-    this.scale = this.screen.height / 1500;
+    // Adjust scale based on screen size - smaller for mobile
+    const isMobile = this.screen.width < 768;
+    const mobileScaleFactor = isMobile ? 0.8 : 1;
+
+    this.scale = (this.screen.height / 1200) * mobileScaleFactor;
+
     this.plane.scale.y = (this.viewport.height * (950 * this.scale)) / this.screen.height;
     this.plane.scale.x = (this.viewport.width * (750 * this.scale)) / this.screen.width;
     this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];

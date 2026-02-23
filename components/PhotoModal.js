@@ -5,6 +5,7 @@ import { getOptimizedUrl } from "@/utils/cloudinary";
 import { deleteMemory } from "@/utils/deleteMemory";
 import toast from "react-hot-toast";
 import { X, Loader2, Trash2, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 /**
  * PhotoModal - Full-screen image viewer with zoom, navigation, and delete
@@ -181,15 +182,15 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
       <button
         onClick={() => setConfirmDelete(true)}
         disabled={deleting}
-        className="absolute top-4 right-16 z-10 py-2.5 px-4 bg-white/10 hover:bg-white/20 disabled:bg-gray-500 rounded-full flex items-center justify-center text-white transition-colors text-sm"
+        className="absolute top-4 right-16 z-10 py-2.5 px-2 sm:px-4 w-10 h-10 bg-white/10 hover:bg-white/20 disabled:bg-gray-500 rounded-full flex items-center justify-center text-white transition-colors sm:text-sm"
         title="Delete memory"
       >
         {deleting ? (
           <Loader2 className="mr-1.5 animate-spin" size={14} />
         ) : (
-          <Trash2 className="mr-1.5" size={14} />
+          <Trash2 className="sm:mr-1.5" size={16} />
         )}
-        Delete
+        <span className="hidden sm:inline-block">Delete</span>
       </button>
 
       {/* Delete confirmation overlay */}
@@ -282,6 +283,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
         }}
         style={{ cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={getOptimizedUrl(currentImage.imageUrl, 1200)}
           alt={`Memory from day ${currentImage.day}`}
@@ -309,10 +311,12 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
                 : "opacity-60 hover:opacity-100"
                 }`}
             >
-              <img
+              <Image
                 src={getOptimizedUrl(img.imageUrl, 100)}
                 alt={`Thumbnail ${idx + 1}`}
                 className="w-full h-full object-cover"
+                width={100}
+                height={100}
               />
             </button>
           ))}
