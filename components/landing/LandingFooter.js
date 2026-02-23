@@ -1,3 +1,5 @@
+import { Github, Linkedin } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const SocialLinks = () => {
@@ -13,30 +15,33 @@ const SocialLinks = () => {
     {
       name: "X",
       href: "https://x.com/Tema_roon",
+      logo: "/x.svg",
       external: true,
     },
     {
       name: "GitHub",
       href: "https://github.com/aditya-2k23/moody",
+      logo: <Github size={20} />,
       external: true,
     },
     {
       name: "LinkedIn",
       href: "https://www.linkedin.com/in/aditya-2k23/",
+      logo: <Linkedin size={20} />,
       external: true,
     }
   ]
 
   return (
     <div className="flex items-center gap-5">
-      {links.map(({ name, href, external }) => (
+      {links.map(({ name, href, external, logo }) => (
         <Link
           key={name}
           href={href}
           target={external ? "_blank" : "_self"}
           className="text-slate-500 hover:text-slate-300 text-xs sm:text-sm transition duration-200"
         >
-          {name === "X" ? <span className="font-bold text-lg">X</span> : name}
+          {logo ? (logo === "/x.svg") ? <Image src="/x.svg" alt="X (Twitter) logo" width={20} height={20} /> : logo : name}
         </Link>
       ))}
     </div>
