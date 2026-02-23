@@ -588,6 +588,7 @@ export default function Journal({
             dark
             onClick={handleSave}
             disabled={saving || uploading}
+            className={isGuest ? "!hidden !sm:inline-flex" : ""}
           />
         </div>
       </div>
