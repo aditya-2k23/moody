@@ -31,20 +31,10 @@ export default function Home() {
       {/* Contained sections */}
       <div className="px-8 sm:px-12">
         <HeroSection />
-
-        {/* Interactive guest mood picker */}
-        <div id="guest-mood">
-          <GuestMoodSection />
-        </div>
-        <div id="comparison">
-          <ComparisonSection />
-        </div>
-        <div id="features">
-          <FeaturesGrid />
-        </div>
-        <div id="tech-stack">
-          <TechStack />
-        </div>
+        <GuestMoodSection />
+        <ComparisonSection />
+        <FeaturesGrid />
+        <TechStack />
       </div>
 
       {/* Full-width dark sections */}
