@@ -1,5 +1,7 @@
-import Link from "next/link";
+"use client";
+
 import { CloudUpload, ExternalLink, ShieldCheck } from "lucide-react";
+import HandDrawnButton from "@/components/HandDrawnButton";
 
 export default function TechStack() {
   const stack = [
@@ -60,14 +62,13 @@ export default function TechStack() {
       </div>
 
       {/* GitHub link */}
-      <Link
+      <HandDrawnButton
         href="https://www.github.com/aditya-2k23/moody"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors duration-200"
       >
-        View GitHub Repository <ExternalLink size={14} />
-      </Link>
+        View GitHub Repo <ExternalLink size={16} />
+      </HandDrawnButton>
     </section>
   );
 }
