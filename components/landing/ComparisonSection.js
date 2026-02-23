@@ -1,106 +1,110 @@
-import { X, Check, Sparkles, ClipboardCheck } from "lucide-react";
+import React from "react";
+import { X, Check, Sparkles, Calendar, XCircle, ArrowRight, ArrowDown, Star } from "lucide-react";
 
 export default function ComparisonSection() {
-  const oldWay = [
+  const stages = [
     {
-      title: "Inconsistent Notes",
-      desc: "Scattered across apps and paper journals.",
+      id: "chaos",
+      icon: <XCircle size={28} strokeWidth={1.5} className="text-red-400 dark:text-red-500" />,
+      iconBg: "bg-indigo-200/50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400",
+      title: "Chaos",
+      subtitle: "Scattered & Forgettable",
+      cardBg: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 shadow-md",
+      textColor: "text-slate-700 dark:text-slate-300",
+      subTextColor: "text-slate-500 dark:text-slate-400",
+      listIcon: <X size={24} className="text-red-400 dark:text-red-500" />,
+      features: ["Notes everywhere", "No long-term tracking", "No measurable patterns"],
+      quote: '"You remember how you felt. But you don\'t know why."',
+      divider: "border-slate-200 dark:border-slate-700/50"
     },
     {
-      title: "Forgotten Triggers",
-      desc: "Impossible to spot patterns over months.",
+      id: "structure",
+      icon: <Calendar size={28} strokeWidth={1.5} />,
+      iconBg: "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-300",
+      title: "Structure",
+      subtitle: "Daily Clarity",
+      cardBg: "bg-white dark:bg-slate-800 border-indigo-100 dark:border-indigo-500/20 shadow-xl shadow-indigo-500/10 relative",
+      textColor: "text-slate-800 dark:text-slate-100",
+      subTextColor: "text-slate-500 dark:text-slate-400",
+      listIcon: <Check size={20} className="text-green-500 dark:text-green-400" />,
+      features: ["One-click mood logging", "Calendar history", "Streak tracking"],
+      quote: '"You start seeing consistency."',
+      divider: "border-slate-200 dark:border-slate-700"
     },
     {
-      title: "Zero Data",
-      desc: "Feelings are never quantified or measured.",
-    },
-  ];
-
-  const moodyWay = [
-    {
-      title: "One-click Logging",
-      desc: "Capture your state in seconds, anywhere.",
-    },
-    {
-      title: "AI Analysis",
-      desc: "Gemini Flash 3 detects hidden correlations.",
-    },
-    {
-      title: "Visual Memories",
-      desc: "Attach photos to anchor feelings to moments.",
-    },
+      id: "intelligence",
+      icon: <Sparkles size={28} strokeWidth={1.5} />,
+      iconBg: "bg-white/20 text-white",
+      title: "Intelligence",
+      subtitle: "AI-Powered Insights",
+      cardBg: "bg-gradient-to-br from-indigo-500 to-violet-600 border-indigo-400 dark:border-indigo-500 shadow-xl shadow-indigo-500/30 text-white relative overflow-hidden",
+      textColor: "text-white",
+      subTextColor: "text-indigo-100",
+      listIcon: <Star size={14} className="text-white fill-white" />,
+      features: ["Gemini analysis", "Trigger detection", "Emotional pattern recognition"],
+      quote: '"You understand patterns before they repeat."',
+      divider: "border-indigo-400/50"
+    }
   ];
 
   return (
-    <section className="py-16 md:py-24">
-      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-3">
-        The Old Way vs. The Moody Way
-      </h2>
-      <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-[500px] mx-auto">
-        Stop relying on subjective guesswork. Switch to data-driven clarity.
-      </p>
+    <section className="py-16 md:py-24" id="comparison">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-3">
+          From Chaos to <span className="textGradient">Intelligence</span>
+        </h2>
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-12 md:mb-20 max-w-[500px] mx-auto">
+          Stop relying on subjective guesswork. Switch to data-driven clarity.
+        </p>
 
-      <div className="grid md:grid-cols-2 gap-5 md:gap-6">
-        {/* The Old Way */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700/60 p-6 sm:p-8 bg-white dark:bg-slate-800/40">
-          <div className="flex items-center gap-2.5 mb-7">
-            <span className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-lg">
-              <ClipboardCheck size={20} className="text-slate-500 dark:text-slate-400" />
-            </span>
-            <h3 className="fugaz text-base sm:text-lg">The Old Way</h3>
-          </div>
-          <div className="space-y-5">
-            {oldWay.map((item) => (
-              <div key={item.title} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <X size={12} className="text-red-500" />
-                </span>
-                <div>
-                  <p className="font-bold text-sm mb-0.5">{item.title}</p>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-                    {item.desc}
+        <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4 lg:gap-2 relative z-10">
+          {stages.map((stage, index) => (
+            <React.Fragment key={stage.id}>
+              {/* Card */}
+              <div className={`flex-1 flex flex-col rounded-3xl border p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1 ${stage.cardBg}`}>
+                {/* Decorative glows for the Intelligence card */}
+                {stage.id === 'intelligence' && (
+                  <>
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-black/10 rounded-full blur-3xl pointer-events-none" />
+                  </>
+                )}
+
+                <div className="flex flex-col items-center text-center mb-8 relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${stage.iconBg}`}>
+                    {stage.icon}
+                  </div>
+                  <h3 className={`fugaz text-2xl mb-1.5 ${stage.textColor}`}>{stage.title}</h3>
+                  <p className={`text-sm font-medium ${stage.subTextColor}`}>{stage.subtitle}</p>
+                </div>
+
+                <div className="flex-1 space-y-4 mb-10 relative z-10">
+                  {stage.features.map((feat, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+                      <span className="shrink-0 flex items-center justify-center w-5 h-5 mt-0 sm:mt-0.5">
+                        {stage.listIcon}
+                      </span>
+                      <span className={`text-sm md:text-base font-medium ${stage.textColor}`}>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className={`pt-6 border-t relative z-10 ${stage.divider}`}>
+                  <p className={`text-sm text-center italic ${stage.subTextColor}`}>
+                    {stage.quote}
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* The Moody Way */}
-        <div className="rounded-2xl border border-indigo-200 dark:border-indigo-500/25 p-6 sm:p-8 bg-gradient-to-br from-indigo-50/80 to-white dark:from-indigo-500/5 dark:to-slate-800/40 relative overflow-hidden">
-          {/* Decorative glows */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-300/20 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-purple-300/15 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Decorative stars */}
-          <div className="absolute top-4 right-4 text-indigo-200 dark:text-indigo-500/30">
-            <Sparkles size={24} />
-          </div>
-
-          <div className="flex items-center gap-2.5 mb-7 relative z-10">
-            <span className="w-9 h-9 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-lg">
-              😊
-            </span>
-            <h3 className="fugaz text-base sm:text-lg">The Moody Way</h3>
-          </div>
-          <div className="space-y-5 relative z-10">
-            {moodyWay.map((item) => (
-              <div key={item.title} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Check
-                    size={12}
-                    className="text-green-600 dark:text-green-400"
-                  />
-                </span>
-                <div>
-                  <p className="font-bold text-sm mb-0.5">{item.title}</p>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-                    {item.desc}
-                  </p>
+              {/* Arrow */}
+              {index < stages.length - 1 && (
+                <div className="flex items-center justify-center shrink-0 lg:w-12 py-2 lg:py-0 text-indigo-400 dark:text-indigo-500">
+                  <ArrowRight size={28} strokeWidth={2.5} className="hidden lg:block" />
+                  <ArrowDown size={28} strokeWidth={2.5} className="block lg:hidden" />
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </section>
