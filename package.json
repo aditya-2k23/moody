@@ -23,6 +23,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hot-toast": "^2.5.2",
+    "styled-components": "^6.3.11",
     "use-local-storage-state": "^19.5.0"
   },
   "devDependencies": {
