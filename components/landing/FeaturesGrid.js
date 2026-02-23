@@ -2,14 +2,14 @@ import { Brain, ImageIcon, Flame, Mic, Moon } from "lucide-react";
 
 export default function FeaturesGrid() {
   return (
-    <section className="py-16 md:py-24" id="features">
+    <section className="py-12 md:py-16" id="features">
       {/* Section Label */}
       <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-3">
         Features
       </p>
       {/* Section Headline */}
-      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl leading-snug mb-10 md:mb-14 max-w-md">
-        Engineered for your peace of mind.
+      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl leading-snug mb-10 md:mb-12">
+        Engineered for <span className="textGradient">your</span> peace of mind.
       </h2>
 
       {/* Top Row: AI Insights (wider) + Visual Memories */}
