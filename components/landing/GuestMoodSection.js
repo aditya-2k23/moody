@@ -115,7 +115,7 @@ export default function GuestMoodSection() {
     <section className="py-12 md:py-20" id="guest-mood">
       <div className="max-w-4xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-2">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-4">
             <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
               <MousePointerClick className="inline-block mr-1" size={20} /> Try it now!
