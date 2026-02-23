@@ -1,13 +1,15 @@
 "use client";
 
 import { useAuth } from "@/context/authContext";
+import { usePathname } from "next/navigation";
 import Button from "./Button";
 import { LogOut } from "lucide-react";
 
 export default function Logout() {
   const { logOut, currentUser } = useAuth();
+  const pathname = usePathname();
 
-  if (!currentUser) return null;
+  if (!currentUser || pathname === "/") return null;
 
   return (
     <div className="flex items-center justify-center gap-2 md:gap-3 text-slate-700 hover:text-white transition duration-200">
