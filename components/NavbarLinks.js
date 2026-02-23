@@ -95,13 +95,13 @@ export default function NavbarLinks() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:flex items-center gap-3 lg:gap-6 mx-2 lg:mx-4">
+      <nav className="hidden md:flex items-center gap-6 lg:gap-10">
         {navLinks.map((link) => (
           <Link
             key={link.id}
             href={`#${link.id}`}
             onClick={(e) => handleScroll(e, link.id)}
-            className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-sans whitespace-nowrap"
+            className="text-sm lg:text-base font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-sans whitespace-nowrap fugaz"
           >
             {link.name}
           </Link>
@@ -130,7 +130,7 @@ export default function NavbarLinks() {
           {/* Drawer */}
           <div
             ref={menuRef}
-            className="relative w-64 h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800"
+            className="relative w-64 h-full bg-slate-200/90 dark:bg-slate-900 shadow-2xl shadow-indigo-300 flex flex-col border-l border-indigo-500 dark:border-slate-800"
           >
             <div className="p-4 flex justify-end">
               <button
