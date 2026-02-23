@@ -7,6 +7,7 @@ import Logout from "@/components/Logout";
 import { BlobSvgFilter } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import NavbarLinks from "@/components/NavbarLinks";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -20,16 +21,22 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const Header = (
     <header className="p-4 sm:p-8 sticky top-0 z-20 flex items-center justify-between gap-4 backdrop-blur-sm">
-      <div >
-        <Link href="/?ref=internal" className="flex fugaz hover:scale-110 duration-200">
+      <div className="flex items-center gap-4 lg:gap-6">
+        <Link href="/?ref=internal" className="flex items-center fugaz hover:scale-105 duration-200 shrink-0">
           <h1 className={`text-2xl sm:text-4xl textGradient`} title="Moody v2.5">Moody</h1>
           <span className="text-xs self-end text-indigo-500 dark:text-indigo-300">v2.5</span>
         </Link>
+        <div className="hidden md:block">
+          <NavbarLinks />
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <ThemeToggle />
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <Logout />
+        <ThemeToggle />
+        <div className="md:hidden">
+          <NavbarLinks />
+        </div>
       </div>
     </header>
   );
