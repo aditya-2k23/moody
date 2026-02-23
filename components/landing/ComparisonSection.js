@@ -48,12 +48,12 @@ export default function ComparisonSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24" id="comparison">
+    <section className="py-12 md:py-16" id="comparison">
       <div className="max-w-6xl mx-auto">
-        <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-3">
+        <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-2">
           From Chaos to <span className="textGradient">Intelligence</span>
         </h2>
-        <p className="text-center text-slate-500 dark:text-slate-400 mb-12 md:mb-20 max-w-[500px] mx-auto">
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-[500px] mx-auto">
           Stop relying on subjective guesswork. Switch to data-driven clarity.
         </p>
 
