@@ -39,7 +39,7 @@ const SocialLinks = () => {
           key={name}
           href={href}
           target={external ? "_blank" : "_self"}
-          className="text-slate-500 hover:text-slate-300 text-xs sm:text-sm transition duration-200"
+          className="text-slate-300 hover:text-slate-100 text-xs sm:text-sm transition duration-200"
         >
           {logo ? (logo === "/x.svg") ? <Image src="/x.svg" alt="X (Twitter) logo" width={20} height={20} /> : logo : name}
         </Link>
@@ -55,7 +55,7 @@ export default function LandingFooter() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           {/* Logo */}
           <div className="flex items-center gap-1.5">
-            <span className="fugaz text-lg text-white">
+            <span className="fugaz text-lg text-gray-300">
               <span className="text-indigo-400">✦</span> Moody
             </span>
           </div>
