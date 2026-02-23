@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { useGuestDraft } from "@/hooks/useGuestDraft";
 import MoodJournal from "../MoodJournal";
 import Login from "../Login";
-import { MousePointerClick, TargetIcon, X } from "lucide-react";
+import { MousePointerClick, X } from "lucide-react";
+import gsap from "gsap";
 
 /**
  * GuestMoodSection — Embeds the MoodJournal in guest mode on the landing page.
@@ -23,10 +24,39 @@ export default function GuestMoodSection() {
   const router = useRouter();
   const { draft, saveDraft } = useGuestDraft();
   const [showAuth, setShowAuth] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const modalRef = useRef(null);
+  const overlayRef = useRef(null);
 
   const handleAuthRequired = () => {
     setShowAuth(true);
   };
+
+  const handleCloseAuth = useCallback(() => {
+    if (isAnimatingOut) return;
+    setIsAnimatingOut(true);
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setShowAuth(false);
+        setIsAnimatingOut(false);
+      }
+    });
+
+    tl.to(modalRef.current, {
+      y: 100,
+      scaleY: 1.1,
+      scaleX: 0.9,
+      opacity: 0,
+      duration: 0.5,
+      ease: "back.in(1.7)"
+    }, 0)
+      .to(overlayRef.current, {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.inOut"
+      }, 0);
+  }, [isAnimatingOut]);
 
   const handleAuthSuccess = () => {
     // After sign-in, redirect to dashboard.
@@ -38,17 +68,43 @@ export default function GuestMoodSection() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showAuth) {
-        setShowAuth(false);
+        handleCloseAuth();
       }
     };
 
     if (showAuth) {
       window.addEventListener("keydown", handleKeyDown);
+      // Prevent background scrolling
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     }
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     };
+  }, [showAuth, handleCloseAuth]);
+
+  // Animate in when modal opens
+  useEffect(() => {
+    if (showAuth && modalRef.current && overlayRef.current) {
+      gsap.fromTo(overlayRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5, ease: "power2.out" }
+      );
+
+      gsap.fromTo(modalRef.current,
+        { y: 100, scaleY: 1.2, scaleX: 0.8, opacity: 0 },
+        { y: 0, scaleY: 1, scaleX: 1, opacity: 1, duration: 0.8, ease: "elastic.out(1, 0.5)" }
+      );
+    }
   }, [showAuth]);
 
   // Already signed in → don't render the guest section
@@ -56,13 +112,13 @@ export default function GuestMoodSection() {
   if (currentUser) return null;
 
   return (
-    <section className="py-12 md:py-20">
+    <section className="py-12 md:py-20" id="guest-mood">
       <div className="max-w-4xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-8">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-4">
             <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
-              <MousePointerClick className="inline-block mr-1" size={20} /> Try it now — no sign-up needed
+              <MousePointerClick className="inline-block mr-1" size={20} /> Try it now!
             </span>
           </span>
         </div>
@@ -81,15 +137,19 @@ export default function GuestMoodSection() {
         {/* Inline auth modal */}
         {showAuth && (
           <div
+            ref={overlayRef}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm"
             onClick={(e) => {
-              if (e.target === e.currentTarget) setShowAuth(false);
+              if (e.target === e.currentTarget) handleCloseAuth();
             }}
           >
-            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div
+              ref={modalRef}
+              className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-indigo-500/40 dark:shadow-indigo-600/20 p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-indigo-600"
+            >
               {/* Close button */}
               <button
-                onClick={() => setShowAuth(false)}
+                onClick={handleCloseAuth}
                 className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
                 aria-label="Close"
               >
