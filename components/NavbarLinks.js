@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -13,9 +14,14 @@ export default function NavbarLinks() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
   const overlayRef = useRef(null);
   const linksRef = useRef([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -111,9 +117,9 @@ export default function NavbarLinks() {
         <Menu size={24} />
       </button>
 
-      {/* Mobile Menu Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-end md:hidden">
+      {/* Mobile Menu Modal — portaled to document.body to escape header's backdrop-filter containing block */}
+      {mounted && isOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end">
           {/* Overlay */}
           <div
             ref={overlayRef}
@@ -143,14 +149,15 @@ export default function NavbarLinks() {
                   ref={el => linksRef.current[i] = el}
                   href={`#${link.id}`}
                   onClick={(e) => handleScroll(e, link.id, true)}
-                  className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-sans"
+                  className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors fugaz"
                 >
                   {link.name}
                 </Link>
               ))}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
