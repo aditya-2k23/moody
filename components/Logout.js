@@ -1,15 +1,21 @@
 "use client";
 
 import { useAuth } from "@/context/authContext";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
 import { LogOut } from "lucide-react";
 
 export default function Logout() {
   const { logOut, currentUser } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
 
   if (!currentUser || pathname === "/") return null;
+
+  async function handleLogout() {
+    await logOut();
+    router.push("/");
+  }
 
   return (
     <div className="flex items-center justify-center gap-2 md:gap-3 text-slate-700 hover:text-white transition duration-200">
@@ -22,7 +28,7 @@ export default function Logout() {
           Log Out
           <LogOut className="ml-1 sm:ml-2" size={16} />
         </>}
-        onClick={logOut}
+        onClick={handleLogout}
         className="dark:!text-slate-200 !text-slate-700 dark:hover:!text-white hover:!text-white !py-2 !px-5"
       />
     </div>
