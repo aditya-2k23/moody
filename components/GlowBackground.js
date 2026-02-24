@@ -169,7 +169,7 @@ export default function GlowBackground() {
           maxWidth: 700,
           maxHeight: 700,
           background:
-            "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.20) 0%, rgba(129,140,248,0.15) 30%, rgba(139,92,246,0.10) 60%, transparent 100%)",
+            "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.12) 0%, rgba(129,140,248,0.09) 30%, rgba(139,92,246,0.06) 60%, transparent 100%)",
           filter: "blur(60px)",
           borderRadius: "50%",
           willChange: "transform, top",
@@ -192,7 +192,7 @@ export default function GlowBackground() {
           maxWidth: 500,
           maxHeight: 500,
           background:
-            "radial-gradient(circle at 30% 70%, rgba(139,92,246,0.16) 0%, rgba(99,102,241,0.12) 45%, rgba(129,140,248,0.07) 75%, transparent 100%)",
+            "radial-gradient(circle at 30% 70%, rgba(139,92,246,0.10) 0%, rgba(99,102,241,0.07) 45%, rgba(129,140,248,0.04) 75%, transparent 100%)",
           filter: "blur(80px)",
           borderRadius: "50%",
           willChange: "transform, top",
@@ -215,7 +215,7 @@ export default function GlowBackground() {
           maxWidth: 800,
           maxHeight: 400,
           background:
-            "linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.13) 35%, rgba(129,140,248,0.08) 70%, rgba(109,82,226,0.04) 100%)",
+            "linear-gradient(135deg, rgba(99,102,241,0.10) 0%, rgba(139,92,246,0.07) 35%, rgba(129,140,248,0.04) 70%, rgba(109,82,226,0.02) 100%)",
           filter: "blur(100px)",
           borderRadius: "50%",
           willChange: "transform, top",
@@ -238,7 +238,7 @@ export default function GlowBackground() {
           maxWidth: 550,
           maxHeight: 550,
           background:
-            "radial-gradient(circle at 60% 40%, rgba(139,92,246,0.18) 0%, rgba(99,102,241,0.12) 40%, rgba(129,140,248,0.06) 70%, transparent 100%)",
+            "radial-gradient(circle at 60% 40%, rgba(139,92,246,0.10) 0%, rgba(99,102,241,0.07) 40%, rgba(129,140,248,0.03) 70%, transparent 100%)",
           filter: "blur(70px)",
           borderRadius: "50%",
           willChange: "transform, top",
@@ -249,7 +249,7 @@ export default function GlowBackground() {
       {/* Dark mode overrides — keep existing subtle look */}
       <style jsx>{`
         :global(.dark) div[aria-hidden="true"] {
-          opacity: 0.45 !important;
+          opacity: 0.30 !important;
         }
       `}</style>
     </>
