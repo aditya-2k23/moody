@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudUpload, ExternalLink, ShieldCheck } from "lucide-react";
+import { CloudUpload, ExternalLink, Heart, ShieldCheck, Star } from "lucide-react";
 import HandDrawnButton from "@/components/HandDrawnButton";
 
 export default function TechStack() {
@@ -42,16 +42,25 @@ export default function TechStack() {
   ];
 
   return (
-    <section className="py-16 md:py-24 text-center" id="tech-stack">
-      <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-3">
-        Tech Stack
-      </p>
-      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-12">
-        Built for <span className="textGradient">Speed</span> and <span className="textGradient">Security</span>
+    <section className="py-12 md:py-16 text-center" id="tech-stack">
+      {/* Open Source badge */}
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-4">
+        <Heart size={14} className="text-indigo-500 fill-indigo-500" />
+        <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
+          100% Open Source
+        </span>
+      </div>
+
+      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl mb-3">
+        Built in the Open, for <span className="textGradient">Everyone</span>
       </h2>
+      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-[520px] mx-auto mb-10 md:mb-12 leading-relaxed">
+        Moody is free, transparent, and community-driven. Star us on GitHub to show your support,
+        or jump in and contribute—every PR makes Moody better for everyone.
+      </p>
 
       {/* Tech icons row */}
-      <div className="flex items-center justify-center gap-6 sm:gap-10 md:gap-12 mb-8">
+      <div className="flex items-center justify-center gap-6 sm:gap-10 md:gap-12 mb-10">
         {stack.map(({ name, icon }) => (
           <div key={name} className="flex flex-col items-center gap-2.5">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300">
@@ -64,14 +73,17 @@ export default function TechStack() {
         ))}
       </div>
 
-      {/* GitHub link */}
-      <HandDrawnButton
-        href="https://www.github.com/aditya-2k23/moody"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View GitHub Repo <ExternalLink size={16} />
-      </HandDrawnButton>
+      {/* CTA buttons */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <HandDrawnButton
+          href="https://www.github.com/aditya-2k23/moody"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Star size={16} className="fill-current" /> Star on GitHub <ExternalLink size={14} />
+        </HandDrawnButton>
+      </div>
     </section>
   );
 }
+

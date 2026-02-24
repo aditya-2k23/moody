@@ -6,6 +6,7 @@ import TechStack from "@/components/landing/TechStack";
 import FinalCTA from "@/components/landing/FinalCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import GuestMoodSection from "@/components/landing/GuestMoodSection";
+import ScrollAnimations from "@/components/landing/ScrollAnimations";
 import HomeRedirect from "@/components/HomeRedirect";
 import { Suspense } from "react";
 
@@ -27,6 +28,7 @@ export default function Home() {
       </Suspense>
 
       <GlowBackground />
+      <ScrollAnimations />
 
       {/* Contained sections */}
       <div className="px-8 sm:px-12">
