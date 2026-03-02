@@ -6,11 +6,11 @@ const SocialLinks = () => {
   const links = [
     {
       name: "Privacy",
-      href: "#",
+      href: "/privacy",
     },
     {
       name: "Terms",
-      href: "#",
+      href: "/terms",
     },
     {
       name: "X",
