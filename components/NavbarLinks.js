@@ -7,11 +7,13 @@ import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/context/authContext";
 
 gsap.registerPlugin(ScrollToPlugin);
 
 export default function NavbarLinks() {
   const pathname = usePathname();
+  const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -90,7 +92,7 @@ export default function NavbarLinks() {
     { name: "Features", id: "features" },
     { name: "Comparison", id: "comparison" },
     { name: "Tech Stack", id: "tech-stack" }
-  ];
+  ].filter(link => !(currentUser && link.id === "guest-mood"));
 
   return (
     <>

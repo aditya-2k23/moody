@@ -10,7 +10,7 @@ export default function Logout() {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (!currentUser || pathname === "/") return null;
+  if (!currentUser || pathname !== "/dashboard") return null;
 
   async function handleLogout() {
     await logOut();
