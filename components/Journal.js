@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -16,6 +16,8 @@ import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Check, Mic, Square, NotebookPen } from "lucide-react";
+import { TypeAnimation } from 'react-type-animation';
+import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
 export default function Journal({
   mode = "auth",
@@ -53,6 +55,10 @@ export default function Journal({
 
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
+
+  const typingSequence = useMemo(() => {
+    return journalPlaceholders.flatMap(text => [text, 3000]);
+  }, []);
 
   // Image upload state
   const [selectedImages, setSelectedImages] = useState([]);
@@ -507,11 +513,22 @@ export default function Journal({
         </div>
 
         <div className="relative">
+          {!displayEntry && (
+            <div className="absolute top-4 left-4 right-12 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
+              <TypeAnimation
+                sequence={typingSequence}
+                wrapper="span"
+                cursor={true}
+                repeat={Infinity}
+                style={{ display: 'inline-block' }}
+              />
+            </div>
+          )}
           <textarea
             name="journal"
             id="journal"
-            className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
-            placeholder={placeholder}
+            aria-label={placeholder}
+            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;
