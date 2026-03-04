@@ -102,6 +102,7 @@ export default function NavbarLinks() {
           <Link
             key={link.id}
             href={`#${link.id}`}
+            scroll={false}
             onClick={(e) => handleScroll(e, link.id)}
             className="text-sm lg:text-base font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-sans whitespace-nowrap fugaz"
           >
@@ -150,6 +151,7 @@ export default function NavbarLinks() {
                   key={link.id}
                   ref={el => linksRef.current[i] = el}
                   href={`#${link.id}`}
+                  scroll={false}
                   onClick={(e) => handleScroll(e, link.id, true)}
                   className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors fugaz"
                 >
