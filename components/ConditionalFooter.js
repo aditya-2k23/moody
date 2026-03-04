@@ -8,8 +8,8 @@ import { Github, Linkedin } from "lucide-react";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  // Hide layout footer on landing page (it has its own footer)
-  if (pathname === "/") return null;
+  // Hide layout footer on landing page and policy pages
+  if (pathname === "/" || pathname === "/privacy" || pathname === "/terms") return null;
 
   return (
     <footer className="p-4 md:px-8 flex justify-between text-sm md:text-base">
