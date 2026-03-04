@@ -55,9 +55,9 @@ export default function LandingFooter() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           {/* Logo */}
           <div className="flex items-center gap-1.5">
-            <span className="fugaz text-lg text-gray-300">
+            <Link href="/?ref=internal" className="fugaz text-lg text-gray-300">
               <span className="text-indigo-400">✦</span> Moody
-            </span>
+            </Link>
           </div>
 
           {/* Copyright */}
