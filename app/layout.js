@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/authContext";
 import { ThemeProvider } from "@/context/themeContext";
 import { BlobSvgFilter } from "@/components/Button";
+import { HandDrawnSvgFilters } from "@/components/HandDrawnButton";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import Header from "@/components/Header";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ThemeProvider>
             <BlobSvgFilter />
+            <HandDrawnSvgFilters />
             <Header />
             {children}
             <ConditionalFooter />
