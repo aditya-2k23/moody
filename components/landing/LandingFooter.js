@@ -39,6 +39,7 @@ const SocialLinks = () => {
           key={name}
           href={href}
           target={external ? "_blank" : "_self"}
+          rel={external ? "noopener noreferrer" : undefined}
           className="text-slate-300 hover:text-slate-100 text-xs sm:text-sm transition duration-200"
         >
           {logo ? (logo === "/x.svg") ? <Image src="/x.svg" alt="X (Twitter) logo" width={20} height={20} /> : logo : name}
