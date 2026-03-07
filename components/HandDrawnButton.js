@@ -39,9 +39,23 @@ export default function HandDrawnButton({ children, href, target, rel, className
         </svg>
         {children}
       </Tag>
+    </div>
+  );
+}
 
-      {/* SVG filters for the hand-drawn effect */}
-      <svg height={0} width={0} style={{ position: "absolute" }}>
+/**
+ * SVG filters for the hand-drawn effect.
+ * Should be included once in the layout or root component to avoid duplicate IDs.
+ */
+export function HandDrawnSvgFilters() {
+  return (
+    <svg
+      height={0}
+      width={0}
+      style={{ position: "absolute", pointerEvents: "none", visibility: "hidden" }}
+      aria-hidden="true"
+    >
+      <defs>
         <filter id="handDrawnNoise">
           <feTurbulence result="noise" numOctaves={8} baseFrequency="0.1" type="fractalNoise" />
           <feDisplacementMap yChannelSelector="G" xChannelSelector="R" scale={3} in2="noise" in="SourceGraphic" />
@@ -58,7 +72,7 @@ export default function HandDrawnButton({ children, href, target, rel, className
           <feTurbulence result="noise" numOctaves={8} baseFrequency="0.1" seed={1010} type="fractalNoise" />
           <feDisplacementMap yChannelSelector="G" xChannelSelector="R" scale={6} in2="noise" in="SourceGraphic" />
         </filter>
-      </svg>
-    </div>
+      </defs>
+    </svg>
   );
 }
