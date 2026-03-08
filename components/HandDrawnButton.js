@@ -4,7 +4,17 @@ import "./HandDrawnButton.css";
 
 export default function HandDrawnButton({ children, href, target, rel, className = "" }) {
   const Tag = href ? "a" : "button";
-  const linkProps = href ? { href, target, rel } : {};
+
+  let linkProps = {};
+  if (href) {
+    let finalRel = rel;
+    if (target === "_blank") {
+      finalRel = rel ? `${rel} noopener noreferrer` : "noopener noreferrer";
+    }
+    linkProps = { href, target, rel: finalRel };
+  } else {
+    linkProps = { type: "button" };
+  }
 
   return (
     <div className={`hand-drawn-btn-wrapper ${className}`}>
