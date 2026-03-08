@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Button from "../Button";
 import { useAuth } from "@/context/authContext";
 import { ArrowRightToLine, Play } from "lucide-react";
+import VideoModal from "./VideoModal";
 
 export default function HeroSection() {
   const { currentUser } = useAuth();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
     <section className="pt-12 pb-16 md:pt-20 md:pb-28 text-center">
@@ -54,26 +57,31 @@ export default function HeroSection() {
               <Button
                 text={
                   <>
-                    Start Tracking Free <ArrowRightToLine size={20} />
+                    Start Tracking <ArrowRightToLine size={20} />
                   </>
                 }
                 dark
                 size="lg"
               />
             </Link>
-            <Link href="/dashboard">
+            <div onClick={() => setIsVideoModalOpen(true)}>
               <Button
                 text={
                   <>
-                    <Play size={19} /> View Live Demo
+                    <Play size={19} /> Live Demo
                   </>
                 }
                 size="lg"
               />
-            </Link>
+            </div>
           </>
         )}
       </div>
+
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+      />
     </section>
   );
 }
