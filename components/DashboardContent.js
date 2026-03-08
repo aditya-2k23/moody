@@ -224,28 +224,34 @@ export default function DashboardContent() {
 
     // Apply journal text — write to Firestore
     if (journalText && journalText.trim()) {
-      const now = new Date();
-      const day = now.getDate();
-      const month = now.getMonth();
-      const year = now.getFullYear();
+      const saveDraft = async () => {
+        try {
+          const now = new Date();
+          const day = now.getDate();
+          const month = now.getMonth();
+          const year = now.getFullYear();
 
-      const docRef = doc(db, "users", currentUser.uid);
-      setDoc(docRef, {
-        [year]: { [month]: { [`journal_${day}`]: journalText } }
-      }, { merge: true }).catch((err) =>
-        console.error("Failed to hydrate guest journal:", err)
-      );
+          const docRef = doc(db, "users", currentUser.uid);
+          await setDoc(docRef, {
+            [year]: { [month]: { [`journal_${day}`]: journalText } }
+          }, { merge: true });
 
-      // Update local state so calendar reflects it
-      updateBothStates((prev) => {
-        const next = { ...prev };
-        next[year] = { ...(prev?.[year] || {}) };
-        next[year][month] = { ...(prev?.[year]?.[month] || {}) };
-        next[year][month][`journal_${day}`] = journalText;
-        return next;
-      });
+          // Update local state so calendar reflects it only after successful write
+          updateBothStates((prev) => {
+            const next = { ...prev };
+            next[year] = { ...(prev?.[year] || {}) };
+            next[year][month] = { ...(prev?.[year]?.[month] || {}) };
+            next[year][month][`journal_${day}`] = journalText;
+            return next;
+          });
 
-      toast.success("Your guest draft has been saved!", { icon: "📝", duration: 4000 });
+          toast.success("Your guest draft has been saved!", { icon: "📝", duration: 4000 });
+        } catch (err) {
+          console.error("Failed to hydrate guest journal:", err);
+          toast.error("Failed to save guest draft.");
+        }
+      };
+      saveDraft();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, loading, userDataObj]);
