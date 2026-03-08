@@ -1,6 +1,6 @@
 "use client";
 import LandingFooter from "@/components/landing/LandingFooter";
-import { ShieldCheck, ChevronDown, ChevronUp, AlignLeft } from "lucide-react";
+import { ShieldCheck, ChevronDown, ChevronUp, AlignLeft, Link } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function PrivacyPolicy() {
@@ -24,6 +24,29 @@ export default function PrivacyPolicy() {
 
   const [activeSection, setActiveSection] = useState("intro");
   const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // If we are at the very top, always show navbar gap
+      if (currentScrollY < 80) {
+        setIsScrollingDown(false);
+      }
+      // Add a small threshold to avoid jittering
+      else if (Math.abs(currentScrollY - lastScrollY) > 5) {
+        setIsScrollingDown(currentScrollY > lastScrollY);
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -63,19 +86,37 @@ export default function PrivacyPolicy() {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const SectionTitle = ({ title, id, number, hideNumber }) => (
-    <button
-      onClick={() => toggleSection(id)}
-      className="w-full flex items-center justify-between text-left group"
-    >
-      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-500 transition-colors">
-        {!hideNumber && `${number}. `}{title}
-      </h2>
-      <div className="text-slate-400 group-hover:text-indigo-500 transition-colors ease-linear ml-4 shrink-0">
-        {openSections[id] ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+  const SectionTitle = ({ title, id, number, hideNumber }) => {
+    const handleCopyLink = (e) => {
+      e.stopPropagation();
+      const url = `${window.location.origin}${window.location.pathname}#${id}`;
+      navigator.clipboard.writeText(url);
+    };
+
+    return (
+      <div className="flex w-full items-center gap-2 group mb-4">
+        <button
+          onClick={() => toggleSection(id)}
+          className="flex-1 flex items-center justify-between text-left group/button"
+        >
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover/button:text-indigo-500 transition-colors">
+            {!hideNumber && `${number}. `}{title}
+          </h2>
+          <div className="text-slate-400 group-hover/button:text-indigo-500 transition-colors ease-linear ml-4 shrink-0">
+            {openSections[id] ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+          </div>
+        </button>
+
+        <button
+          onClick={handleCopyLink}
+          className="opacity-0 group-hover:opacity-100 transition text-slate-400 hover:text-indigo-500"
+          aria-label="Copy link to section"
+        >
+          <Link size={20} />
+        </button>
       </div>
-    </button>
-  );
+    );
+  };
 
   const tocItems = [
     { id: "intro", title: "Introduction" },
@@ -97,10 +138,12 @@ export default function PrivacyPolicy() {
 
   return (
     <main className="flex-1 flex flex-col w-full relative">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-0 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-4 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}
-        <div className="md:hidden sticky top-[72px] z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm pb-4">
+        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm pb-4 transition-all duration-300 ${
+          isScrollingDown ? 'top-4' : 'top-[72px]'
+        }`}>
           <button
             onClick={() => setIsMobileTocOpen(!isMobileTocOpen)}
             className="flex items-center justify-between w-full text-indigo-600 dark:text-indigo-400 font-bold"
@@ -115,12 +158,13 @@ export default function PrivacyPolicy() {
                 <button
                   key={item.id}
                   onClick={() => handleTocClick(item.id)}
-                  className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeSection === item.id
+                  className={`group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${activeSection === item.id
                     ? "bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-semibold"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                 >
-                  {item.title}
+                  <span className="truncate text-left">{item.title}</span>
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all ${activeSection === item.id ? "bg-indigo-500 scale-125" : ""}`} />
                 </button>
               ))}
             </div>
@@ -128,7 +172,9 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Desktop Sidebar TOC */}
-        <aside className="hidden md:block w-64 shrink-0 sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar">
+        <aside className={`hidden md:block w-[17rem] shrink-0 sticky h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar transition-all duration-300 ${
+          isScrollingDown ? 'top-6' : 'top-24'
+        }`}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <AlignLeft size={20} className="text-indigo-500" /> Contents
@@ -138,12 +184,14 @@ export default function PrivacyPolicy() {
                 <button
                   key={item.id}
                   onClick={() => handleTocClick(item.id)}
-                  className={`text-left px-2.5 py-1.5 rounded-xl text-sm transition-all duration-200 ${activeSection === item.id
+                  className={`group flex items-center justify-between px-2.5 py-1.5 rounded-xl text-sm transition-all duration-200 ${activeSection === item.id
                     ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold translate-x-1.5"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
+                  title={item.title.replace(/^\d+\.\s/, "")}
                 >
-                  {item.title}
+                  <span className="truncate text-left">{item.title}</span>
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all ${activeSection === item.id ? "bg-indigo-500 scale-125" : ""}`} />
                 </button>
               ))}
             </nav>
@@ -152,13 +200,13 @@ export default function PrivacyPolicy() {
 
         {/* Main Content Area */}
         <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm min-w-0">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 fugaz text-indigo-500">Privacy Policy</h1>
-          <div className="flex flex-col sm:flex-row sm:gap-6 mb-10 text-slate-500 italic text-sm">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 fugaz text-indigo-500 uppercase">Privacy Policy</h1>
+          <div className="flex flex-col sm:flex-row sm:gap-6 mb-8 text-slate-500 italic text-sm">
             <p>Version 1.0 &mdash; March 2026</p>
           </div>
 
-          <div className="mb-10 p-6 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
-            <h2 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-2">
+          <div className="mb-10 p-6 pt-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
+            <h2 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2">
               <span className="text-2xl"><ShieldCheck /></span> Privacy at a Glance
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm sm:text-base">
@@ -182,9 +230,8 @@ export default function PrivacyPolicy() {
             <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 italic">This is a summary for convenience. Please read the full policy below for complete details.</p>
           </div>
 
-          <div className="space-y-10 text-slate-700 dark:text-slate-300 leading-relaxed max-w-none">
-
-            <section id="intro" className="pb-8 border-b border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+          <div className="space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed max-w-none">
+            <section id="intro" className="pb-2 border-b border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <p className="text-lg">
                 Moody (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) is an AI-powered mood tracking application designed to help users better understand their emotional patterns. We are committed to protecting your privacy and being transparent about how your information is collected, used, and stored.
               </p>
@@ -193,7 +240,7 @@ export default function PrivacyPolicy() {
               </p>
             </section>
 
-            <section id="section1" className="space-y-4 pt-4 scroll-mt-24 w-full">
+            <section id="section1" className="space-y-4 pt-4 scroll-mt-28 w-full">
               <SectionTitle title="Information We Collect" id="section1" number="1" />
               {openSections.section1 && (
                 <div className="pt-4 animate-in fade-in slide-in-from-top-2 duration-300 transition-all">
@@ -275,7 +322,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section2" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section2" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="How We Use Your Information" id="section2" number="2" />
               {openSections.section2 && (
                 <div className="pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -292,7 +339,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section3" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section3" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Age Requirements" id="section3" number="3" />
               {openSections.section3 && (
                 <div className="pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -302,7 +349,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section4" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section4" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Legal Basis for Processing (GDPR Notice)" id="section4" number="4" />
               {openSections.section4 && (
                 <div className="pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -317,7 +364,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section5" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section5" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Third-Party Service Providers" id="section5" number="5" />
               {openSections.section5 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -377,7 +424,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section6" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section6" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Data Storage & Security" id="section6" number="6" />
               {openSections.section6 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -403,7 +450,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section7" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section7" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Data Retention & Deletion" id="section7" number="7" />
               {openSections.section7 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -431,7 +478,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section8" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section8" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Your Rights & Data Portability" id="section8" number="8" />
               {openSections.section8 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -453,7 +500,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section9" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section9" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="International Data Transfers" id="section9" number="9" />
               {openSections.section9 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -463,7 +510,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section10" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section10" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="AI-Generated Content Disclaimer" id="section10" number="10" />
               {openSections.section10 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -493,7 +540,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="section11" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-24 w-full">
+            <section id="section11" className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 scroll-mt-28 w-full">
               <SectionTitle title="Cookies and Local Storage" id="section11" number="11" />
               {openSections.section11 && (
                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -516,7 +563,7 @@ export default function PrivacyPolicy() {
               )}
             </section>
 
-            <section id="appendix" className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 scroll-mt-24 w-full">
+            <section id="appendix" className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 scroll-mt-28 w-full">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Appendix: Technical Data Flow</h2>
               <div className="space-y-4 text-sm sm:text-base">
                 <div>
@@ -539,12 +586,12 @@ export default function PrivacyPolicy() {
               </div>
             </section>
 
-            <section id="section12" className="scroll-mt-24 w-full pt-4 border-t border-slate-100 dark:border-slate-800/50">
+            <section id="section12" className="scroll-mt-28 w-full pt-4 border-t border-slate-100 dark:border-slate-800/50">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">12. Changes to This Policy</h2>
               <p>We may update this Privacy Policy periodically. Changes will be reflected with a revised &ldquo;Last Updated&rdquo; date.</p>
             </section>
 
-            <section id="section13" className="border-t border-slate-200 dark:border-slate-800 pt-8 scroll-mt-24 w-full">
+            <section id="section13" className="border-t border-slate-200 dark:border-slate-800 pt-8 scroll-mt-28 w-full">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">13. Contact Us</h2>
               <p>If you have questions about this Privacy Policy, please contact us at:</p>
               <ul className="list-none mt-4 space-y-2">
