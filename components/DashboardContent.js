@@ -710,12 +710,11 @@ export default function DashboardContent() {
           isVisible={showMemories}
         />
 
-        {memories && memories.length > 0 && (
-          <MemoriesToggle
-            showMemories={showMemories}
-            onToggle={() => setShowMemories(!showMemories)}
-          />
-        )}
+        <MemoriesToggle
+          showMemories={showMemories}
+          onToggle={() => setShowMemories(!showMemories)}
+          hasMemories={memories && memories.length > 0}
+        />
 
         <Calender
           currentUser={currentUser}
