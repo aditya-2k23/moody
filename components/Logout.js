@@ -4,6 +4,7 @@ import { useAuth } from "@/context/authContext";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
 import { LogOut } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Logout() {
   const { logOut, currentUser } = useAuth();
@@ -13,8 +14,13 @@ export default function Logout() {
   if (!currentUser || pathname !== "/dashboard") return null;
 
   async function handleLogout() {
-    await logOut();
-    router.push("/");
+    try {
+      await logOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Failed to log out. Please try again.");
+    }
   }
 
   return (

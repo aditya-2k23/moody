@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { useGuestDraft } from "@/hooks/useGuestDraft";
@@ -135,10 +136,10 @@ export default function GuestMoodSection() {
         </div>
 
         {/* Inline auth modal */}
-        {showAuth && (
+        {showAuth && typeof document !== "undefined" && createPortal(
           <div
             ref={overlayRef}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm"
             onClick={(e) => {
               if (e.target === e.currentTarget) handleCloseAuth();
             }}
@@ -161,7 +162,8 @@ export default function GuestMoodSection() {
                 onAuthSuccess={handleAuthSuccess}
               />
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </section>
