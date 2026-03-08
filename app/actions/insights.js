@@ -5,7 +5,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
-const AI_TIMEOUT_MS = 30_000; // 30s timeout per model attempt (well within Netlify's function limit)
+const GLOBAL_TIMEOUT_MS = 50_000; // 50s total deadline
+const AI_TIMEOUT_MS = 15_000; // 15s timeout per model attempt
 
 // ===== MODEL FALLBACK CHAIN =====
 // Ordered by preference: newest first, highest-capacity last as safety net.
@@ -51,14 +52,16 @@ function getModelInstance(modelId) {
 // ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
 
 /**
- * Calculate seconds remaining until midnight (server-local time).
+ * Calculate seconds remaining until the next midnight in Pacific Time (America/Los_Angeles).
  * Used as TTL so exhaustion flags auto-reset when Google's daily quotas reset.
  */
 function secondsUntilMidnight() {
   const now = new Date();
-  const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0);
-  return Math.max(Math.ceil((midnight - now) / 1000), 60); // minimum 60s to avoid edge cases
+  const options = { timeZone: "America/Los_Angeles", hour12: false };
+  const ptTime = new Date(now.toLocaleString("en-US", options));
+  const ptMidnight = new Date(ptTime);
+  ptMidnight.setHours(24, 0, 0, 0);
+  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60); // minimum 60s to avoid edge cases
 }
 
 /**
@@ -69,7 +72,7 @@ async function markModelExhausted(modelId) {
   try {
     const ttl = secondsUntilMidnight();
     await redis.set(`model:exhausted:${modelId}`, "1", { ex: ttl });
-    console.warn(`[Insights] ⚠️ Marked ${modelId} as exhausted (TTL: ${ttl}s until midnight)`);
+    console.warn(`[Insights] Marked ${modelId} as exhausted (TTL: ${ttl}s until midnight)`);
   } catch (error) {
     // Non-critical: if Redis fails, we'll just retry the model next time
     console.error("[Insights] Failed to mark model exhausted in Redis:", error.message);
@@ -109,12 +112,13 @@ function isRetryableError(error) {
     msg.includes("rate limit");
   const isTimeout =
     error.name === "AbortError" || msg.includes("abort") || msg.includes("timeout");
+  const isFormat = msg.includes("JSON") || msg.includes("Validation Failed");
 
-  return isQuotaOrAccess || isTimeout;
+  return isQuotaOrAccess || isTimeout || isFormat;
 }
 
 /**
- * Determine if a retryable error is specifically a quota/access error
+ * Determine if a retryable error is specifically a quota error
  * (should mark the model as exhausted) vs a transient error like a timeout
  * (should try next model but NOT mark as exhausted since it may work later).
  */
@@ -123,8 +127,6 @@ function isQuotaError(error) {
   return (
     msg.includes("429") ||
     msg.includes("quota") ||
-    msg.includes("403") ||
-    msg.includes("Forbidden") ||
     msg.includes("Resource has been exhausted") ||
     msg.includes("rate limit")
   );
@@ -156,53 +158,45 @@ function generateCacheKey(userId, journalText) {
  * AI prompt for journal analysis.
  */
 function buildPrompt(journalEntry) {
-  return `
-You are an AI journal assistant designed to help users reflect on their mental and emotional well-being in a calm, supportive way.
+  return `You are an empathetic AI journal assistant analyzing emotional well-being.
 
-A user has written a personal journal entry. Analyze the text carefully and generate structured insights that feel human, thoughtful, and grounded in what the user actually wrote.
-
-### Your tasks:
-
-1. **Mood**
-  - Identify the dominant emotional tone of the entry.
-  - Choose **exactly one** mood from the following list:
-  [Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral]
-
-2. **Triggers**
-  - Extract specific words, events, or themes from the entry that influenced the mood.
-  - Keep them short, concrete, and directly tied to the text (e.g., deadlines, friends, uncertainty, rest).
-
-3. **Insight**
-  - Write a kind, empathetic reflection that acknowledges the user's experience.
-  - Avoid clichés, therapy-speak, or judgment.
-  - The tone should be reassuring, natural, and supportive.
-
-4. **Pro Tip**
-  - Provide one short, actionable, and realistic suggestion tailored to the user's mood.
-  - It should feel achievable today, not overwhelming.
-
-5. **Headline**
-  - Write a short, creative, mood-appropriate headline for an insight card.
-  - It should feel personal and encouraging.
-  - Avoid generic motivational phrases or platitudes.
-
----
-
-### User's journal entry:
+JOURNAL ENTRY:
 """
 ${journalEntry}
 """
 
----
+ANALYSIS REQUIREMENTS:
 
-### Response format (STRICT JSON ONLY — no explanations, no markdown):
-{
-  "mood": "one of Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral",
-  "triggers": ["keywords or events influencing the mood"],
-  "insight": "empathetic reflection based on the journal entry",
-  "pro_tip": "short, actionable suggestion",
-  "headline": "short, creative, mood-appropriate headline"
-}
+1. MOOD (select exactly one):
+${["Elated", "Good", "Existing", "Sad", "Awful", "Angry", "Anxious",
+      "Unsure", "Excited", "Grateful", "Tired", "Stressed", "Neutral"].join(", ")}
+
+2. TRIGGERS:
+- Extract 2-4 specific words/events/themes from the entry
+- Must be directly referenced in the text
+- Keep concise (1-3 words each)
+- Examples: "work deadline", "friend conflict", "poor sleep"
+
+3. INSIGHT (2-3 sentences):
+- Reflect on what the user expressed
+- Use warm, non-clinical language
+- Acknowledge their experience without judgment
+- Avoid: "It's okay to feel...", "Remember that...", generic therapy phrases
+
+4. PRO TIP (1 sentence):
+- Actionable and achievable today
+- Tailored to their specific mood/situation
+- Practical, not aspirational
+
+5. HEADLINE (4-8 words):
+- Creative and personal
+- Match the emotional tone
+- Avoid: "You've Got This", "Stay Strong", generic motivational phrases
+
+CONSTRAINTS:
+- Base analysis ONLY on explicit content in the entry
+- If entry is vague, acknowledge uncertainty in insight
+- Maintain supportive but honest tone
 `;
 }
 
@@ -244,8 +238,9 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
   // ===== PHASE 2: AI GENERATION WITH CASCADING MODEL FALLBACK =====
   // Try each model in the chain until one succeeds.
-  // Retryable errors (429/403) mark the model as exhausted and fall through.
-  // Non-retryable errors (timeout, parse, validation) return immediately.
+  // Retryable errors (429/403/timeout) fall through to the next model.
+  // Quota errors (429/403) also mark the model as exhausted.
+  // Non-retryable errors (parse, validation) return immediately.
 
   const availableModels = await getAvailableModels();
 
@@ -260,8 +255,15 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   const prompt = buildPrompt(journalText);
   let insight;
   let modelUsed = null;
+  const startTime = Date.now();
 
   for (let i = 0; i < availableModels.length; i++) {
+    // Check global deadline
+    if (Date.now() - startTime >= GLOBAL_TIMEOUT_MS) {
+      console.error("[Insights] Global timeout exceeded across fallback loop.");
+      return { success: false, error: "AI request timed out due to slow models. Please try again." };
+    }
+
     const { id: modelId, label: modelLabel } = availableModels[i];
     const isLastModel = i === availableModels.length - 1;
 
@@ -277,6 +279,27 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       try {
         result = await model.generateContent({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "object",
+              properties: {
+                mood: {
+                  type: "string",
+                  enum: [
+                    "Elated", "Good", "Existing", "Sad", "Awful", "Angry",
+                    "Anxious", "Unsure", "Excited", "Grateful", "Tired",
+                    "Stressed", "Neutral",
+                  ],
+                },
+                triggers: { type: "array", items: { type: "string" } },
+                insight: { type: "string" },
+                pro_tip: { type: "string" },
+                headline: { type: "string" },
+              },
+              required: ["mood", "triggers", "insight", "pro_tip", "headline"],
+            },
+          },
         }, { signal: controller.signal });
       } finally {
         clearTimeout(timeout);
@@ -313,30 +336,30 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
         if (!isLastModel) {
           const nextLabel = availableModels[i + 1].label;
-          const reason = isQuotaError(error) ? "exhausted" : "timed out";
+          let reason = "timed out";
+          if (isQuotaError(error)) reason = "exhausted";
+          else if (error.message?.includes("JSON") || error.message?.includes("Validation Failed")) reason = "format error";
+
           console.warn(`[Insights] ${modelLabel} ${reason}, falling through to ${nextLabel}...`);
           continue; // Try next model
         }
 
         // Last model also failed
-        const isAllQuota = isQuotaError(error);
-        return {
-          success: false,
-          error: isAllQuota
-            ? "All AI models are currently at capacity. Please try again tomorrow."
-            : "AI request timed out across all models. Please try again.",
-        };
+        if (isQuotaError(error)) {
+          return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
+        }
+        if (error.message?.includes("JSON")) {
+          return { success: false, error: "Failed to parse AI response. Please try again." };
+        }
+        if (error.message?.includes("Validation Failed")) {
+          return { success: false, error: "AI response validation failed. Please try again." };
+        }
+        return { success: false, error: "AI request timed out across all models. Please try again." };
       }
 
       // --- NON-RETRYABLE ERRORS: return immediately (no point trying another model) ---
       if (error.message?.includes("not configured")) {
         return { success: false, error: "AI service is not configured. Please contact support." };
-      }
-      if (error.message?.includes("JSON")) {
-        return { success: false, error: "Failed to parse AI response. Please try again." };
-      }
-      if (error.message?.includes("Validation Failed")) {
-        return { success: false, error: "AI response validation failed. Please try again." };
       }
       return { success: false, error: "Something went wrong. Please try again." };
     }
