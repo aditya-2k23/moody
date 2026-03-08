@@ -68,6 +68,12 @@ export default function DashboardContent() {
   // Guest draft hydration flag — ensures we only hydrate once
   const guestDraftHydratedRef = useRef(false);
 
+  // Flag to auto-trigger insight generation after guest draft hydration
+  const [autoGenerateInsights, setAutoGenerateInsights] = useState(false);
+
+  // Journal text hydrated from guest draft (passed as initialText to MoodJournal)
+  const [hydratedJournalText, setHydratedJournalText] = useState("");
+
   // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -214,7 +220,7 @@ export default function DashboardContent() {
     const draft = getGuestDraft();
     if (!draft) return;
 
-    const { mood, journalText } = draft;
+    const { mood, journalText, pendingAction } = draft;
     clearGuestDraft();
 
     // Apply mood
@@ -245,13 +251,24 @@ export default function DashboardContent() {
             return next;
           });
 
+          // Set the hydrated text so Journal gets it as initialText
+          setHydratedJournalText(journalText);
+
           toast.success("Your guest draft has been saved!", { icon: "📝", duration: 4000 });
+
+          // If the guest wanted to generate insights, trigger it after hydration
+          if (pendingAction === "insights") {
+            setAutoGenerateInsights(true);
+          }
         } catch (err) {
           console.error("Failed to hydrate guest journal:", err);
           toast.error("Failed to save guest draft.");
         }
       };
       saveDraft();
+    } else if (pendingAction === "insights" && typeof mood === "number") {
+      // Mood-only draft with insights action (no journal text)
+      setAutoGenerateInsights(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, loading, userDataObj]);
@@ -679,9 +696,12 @@ export default function DashboardContent() {
         <MoodJournal
           mode="auth"
           initialMood={todaysMood}
+          initialText={hydratedJournalText}
           user={currentUser}
           onMoodChange={handleSetMood}
           onMemoryAdded={refetchMemories}
+          autoGenerateInsights={autoGenerateInsights}
+          onInsightsAutoTriggered={() => setAutoGenerateInsights(false)}
           onJournalSaved={(savedEntry) => {
             // Compute fresh date values to avoid stale dates if tab was open past midnight
             const now = new Date();

@@ -32,14 +32,23 @@ export function useGuestDraft() {
     }
   }, []);
 
-  const saveDraft = useCallback((mood, moodLabel, journalText) => {
-    const next = { mood, moodLabel, journalText };
+  const saveDraft = useCallback((mood, moodLabel, journalText, pendingAction = null) => {
+    const next = { mood, moodLabel, journalText, pendingAction };
     setDraft(next);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       saveGuestDraft(next);
     }, 300);
+  }, []);
+
+  /** Immediately persist a pending action (e.g. "insights") into the draft. */
+  const setPendingAction = useCallback((action) => {
+    setDraft((prev) => {
+      const next = { ...(prev || { mood: null, moodLabel: null, journalText: "" }), pendingAction: action };
+      saveGuestDraft(next);
+      return next;
+    });
   }, []);
 
   const clearDraftFn = useCallback(() => {
@@ -55,5 +64,5 @@ export function useGuestDraft() {
     };
   }, []);
 
-  return { draft, saveDraft, clearDraft: clearDraftFn };
+  return { draft, saveDraft, clearDraft: clearDraftFn, setPendingAction };
 }

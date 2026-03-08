@@ -39,6 +39,8 @@ export default function MoodJournal({
   onMemoryAdded,
   onAuthRequired,
   saveDraft,
+  autoGenerateInsights,
+  onInsightsAutoTriggered,
 }) {
   const isGuest = mode === "guest";
 
@@ -136,6 +138,8 @@ export default function MoodJournal({
         onMemoryAdded={onMemoryAdded}
         onJournalSaved={onJournalSaved}
         initialText={isGuest ? guestJournalText : initialText}
+        autoGenerateInsights={autoGenerateInsights}
+        onInsightsAutoTriggered={onInsightsAutoTriggered}
         onAuthRequired={onAuthRequired}
         onGuestTextChange={(text) => {
           setGuestJournalText(text);

@@ -23,13 +23,14 @@ import gsap from "gsap";
 export default function GuestMoodSection() {
   const { currentUser } = useAuth();
   const router = useRouter();
-  const { draft, saveDraft } = useGuestDraft();
+  const { draft, saveDraft, setPendingAction } = useGuestDraft();
   const [showAuth, setShowAuth] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
 
-  const handleAuthRequired = () => {
+  const handleAuthRequired = (action) => {
+    if (action) setPendingAction(action);
     setShowAuth(true);
   };
 

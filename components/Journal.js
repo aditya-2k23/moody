@@ -27,6 +27,8 @@ export default function Journal({
   initialText = "",
   onAuthRequired,
   onGuestTextChange,
+  autoGenerateInsights,
+  onInsightsAutoTriggered,
 }) {
   const isGuest = mode === "guest";
   const { resolvedTheme } = useTheme();
@@ -73,6 +75,24 @@ export default function Journal({
 
   const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
   const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
+
+  // Auto-trigger insight generation when redirected from guest mode
+  const autoInsightTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (
+      autoGenerateInsights &&
+      !autoInsightTriggeredRef.current &&
+      !isGuest &&
+      currentUser?.uid
+    ) {
+      // Wait for the entry to be populated (synced from initialText)
+      if (!entry.trim()) return;
+      autoInsightTriggeredRef.current = true;
+      onInsightsAutoTriggered?.();
+      handleGenerateInsights();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerateInsights, entry, currentUser]);
 
   // Voice input hook
   const {
