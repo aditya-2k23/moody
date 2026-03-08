@@ -33,7 +33,7 @@ export default function ScrollAnimations() {
           stagger: 0.5,
           scrollTrigger: {
             trigger: section,
-            start: "top 75%",    // trigger when top of section hits 85% of viewport
+            start: "top 75%",    // trigger when top of section hits 75% of viewport
           },
           delay: index === 0 ? 0.2 : 0, // slight delay for hero so it feels intentional
         });
