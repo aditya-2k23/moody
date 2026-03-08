@@ -56,7 +56,8 @@ export default function NavbarLinks() {
     }
     const target = document.getElementById(targetId);
     if (target) {
-      const headerHeight = (document.querySelector("header")?.offsetHeight ?? 72) - 100;
+      const headerEl = document.querySelector("header");
+      const headerHeight = headerEl ? Math.max(0, headerEl.offsetHeight + 16) : 72;
       gsap.to(window, {
         duration: 1,
         scrollTo: { y: target, offsetY: headerHeight },

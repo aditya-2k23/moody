@@ -485,7 +485,7 @@ export default function Journal({
 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
             <NotebookPen size={24} /> Quick Journal
           </h2>
 
@@ -528,7 +528,7 @@ export default function Journal({
             name="journal"
             id="journal"
             aria-label={placeholder}
-            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200"
+            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 text-gray-700   text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;
@@ -547,7 +547,7 @@ export default function Journal({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
               </span>
-              <span className="text-xs text-red-500 dark:text-red-300 font-medium">
+              <span className="text-[8px] sm:text-xs text-red-500 dark:text-red-300 font-medium">
                 Listening...
               </span>
             </div>
@@ -605,7 +605,7 @@ export default function Journal({
             dark
             onClick={handleSave}
             disabled={saving || uploading}
-            className={isGuest ? "!hidden !sm:inline-flex" : ""}
+            className="hidden sm:inline-flex"
           />
         </div>
       </div>

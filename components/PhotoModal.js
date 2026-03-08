@@ -182,11 +182,11 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
       <button
         onClick={() => setConfirmDelete(true)}
         disabled={deleting}
-        className="absolute top-4 right-16 z-10 py-2.5 px-2 sm:px-4 w-10 h-10 bg-white/10 hover:bg-white/20 disabled:bg-gray-500 rounded-full flex items-center justify-center text-white transition-colors sm:text-sm"
+        className="absolute top-4 right-16 z-10 py-2.5 w-10 sm:w-auto px-0 sm:px-4 h-10 bg-white/10 hover:bg-white/20 disabled:bg-gray-500 rounded-full flex items-center justify-center text-white transition-colors text-sm"
         title="Delete memory"
       >
         {deleting ? (
-          <Loader2 className="mr-1.5 animate-spin" size={14} />
+          <Loader2 className="sm:mr-1.5 animate-spin" size={14} />
         ) : (
           <Trash2 className="sm:mr-1.5" size={16} />
         )}
