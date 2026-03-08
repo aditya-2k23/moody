@@ -154,101 +154,103 @@ export default function GlowBackground() {
 
   return (
     <>
-      {/* Primary glow — indigo/violet core */}
-      <div
-        ref={primaryRef}
-        className="fixed pointer-events-none -z-10"
-        style={{
-          top: "40vh",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "80vw",
-          height: "80vw",
-          minWidth: 350,
-          minHeight: 350,
-          maxWidth: 700,
-          maxHeight: 700,
-          background:
-            "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.12) 0%, rgba(129,140,248,0.09) 30%, rgba(139,92,246,0.06) 60%, transparent 100%)",
-          filter: "blur(60px)",
-          borderRadius: "50%",
-          willChange: "transform, top",
-        }}
-        aria-hidden="true"
-      />
+      <div className="glow-background-container opacity-85 dark:opacity-65">
+        {/* Primary glow — indigo/violet core */}
+        <div
+          ref={primaryRef}
+          className="glow-element fixed pointer-events-none -z-10"
+          style={{
+            top: "40vh",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80vw",
+            height: "80vw",
+            minWidth: 350,
+            minHeight: 350,
+            maxWidth: 700,
+            maxHeight: 700,
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.16) 0%, rgba(129,140,248,0.13) 30%, rgba(139,92,246,0.1) 60%, transparent 100%)",
+            filter: "blur(60px)",
+            borderRadius: "50%",
+            willChange: "transform, top",
+          }}
+          aria-hidden="true"
+        />
 
-      {/* Secondary accent — pink/violet shift */}
-      <div
-        ref={secondaryRef}
-        className="fixed pointer-events-none -z-[11]"
-        style={{
-          top: "45vh",
-          left: "55%",
-          transform: "translate(-50%, -50%)",
-          width: "45vw",
-          height: "45vw",
-          minWidth: 250,
-          minHeight: 250,
-          maxWidth: 500,
-          maxHeight: 500,
-          background:
-            "radial-gradient(circle at 30% 70%, rgba(139,92,246,0.10) 0%, rgba(99,102,241,0.07) 45%, rgba(129,140,248,0.04) 75%, transparent 100%)",
-          filter: "blur(80px)",
-          borderRadius: "50%",
-          willChange: "transform, top",
-        }}
-        aria-hidden="true"
-      />
+        {/* Secondary accent — pink/violet shift */}
+        <div
+          ref={secondaryRef}
+          className="glow-element fixed pointer-events-none -z-[11]"
+          style={{
+            top: "45vh",
+            left: "55%",
+            transform: "translate(-50%, -50%)",
+            width: "45vw",
+            height: "45vw",
+            minWidth: 250,
+            minHeight: 250,
+            maxWidth: 500,
+            maxHeight: 500,
+            background:
+              "radial-gradient(circle at 30% 70%, rgba(139,92,246,0.14) 0%, rgba(99,102,241,0.11) 45%, rgba(129,140,248,0.12) 75%, transparent 100%)",
+            filter: "blur(80px)",
+            borderRadius: "50%",
+            willChange: "transform, top",
+          }}
+          aria-hidden="true"
+        />
 
-      {/* Tertiary — wide indigo wash */}
-      <div
-        ref={tertiaryRef}
-        className="fixed pointer-events-none -z-[12]"
-        style={{
-          top: "35vh",
-          left: "45%",
-          transform: "translate(-50%, -50%) rotate(45deg)",
-          width: "60vw",
-          height: "40vw",
-          minWidth: 400,
-          minHeight: 200,
-          maxWidth: 800,
-          maxHeight: 400,
-          background:
-            "linear-gradient(135deg, rgba(99,102,241,0.10) 0%, rgba(139,92,246,0.07) 35%, rgba(129,140,248,0.04) 70%, rgba(109,82,226,0.02) 100%)",
-          filter: "blur(100px)",
-          borderRadius: "50%",
-          willChange: "transform, top",
-        }}
-        aria-hidden="true"
-      />
+        {/* Tertiary — wide indigo wash */}
+        <div
+          ref={tertiaryRef}
+          className="glow-element fixed pointer-events-none -z-[12]"
+          style={{
+            top: "35vh",
+            left: "45%",
+            transform: "translate(-50%, -50%) rotate(45deg)",
+            width: "60vw",
+            height: "40vw",
+            minWidth: 400,
+            minHeight: 200,
+            maxWidth: 800,
+            maxHeight: 400,
+            background:
+              "linear-gradient(135deg, rgba(99,102,241,0.14) 0%, rgba(139,92,246,0.11) 35%, rgba(129,140,248,0.12) 70%, rgba(109,82,226,0.08) 100%)",
+            filter: "blur(100px)",
+            borderRadius: "50%",
+            willChange: "transform, top",
+          }}
+          aria-hidden="true"
+        />
 
-      {/* Left-side glow — violet/indigo accent */}
-      <div
-        ref={leftRef}
-        className="fixed pointer-events-none -z-[13]"
-        style={{
-          top: "55vh",
-          left: "8%",
-          transform: "translate(-50%, -50%)",
-          width: "50vw",
-          height: "50vw",
-          minWidth: 280,
-          minHeight: 280,
-          maxWidth: 550,
-          maxHeight: 550,
-          background:
-            "radial-gradient(circle at 60% 40%, rgba(139,92,246,0.10) 0%, rgba(99,102,241,0.07) 40%, rgba(129,140,248,0.03) 70%, transparent 100%)",
-          filter: "blur(70px)",
-          borderRadius: "50%",
-          willChange: "transform, top",
-        }}
-        aria-hidden="true"
-      />
+        {/* Left-side glow — violet/indigo accent */}
+        <div
+          ref={leftRef}
+          className="glow-element fixed pointer-events-none -z-[13]"
+          style={{
+            top: "55vh",
+            left: "8%",
+            transform: "translate(-50%, -50%)",
+            width: "50vw",
+            height: "50vw",
+            minWidth: 280,
+            minHeight: 280,
+            maxWidth: 550,
+            maxHeight: 550,
+            background:
+              "radial-gradient(circle at 60% 40%, rgba(139,92,246,0.14) 0%, rgba(99,102,241,0.11) 40%, rgba(129,140,248,0.06) 70%, transparent 100%)",
+            filter: "blur(70px)",
+            borderRadius: "50%",
+            willChange: "transform, top",
+          }}
+          aria-hidden="true"
+        />
+      </div>
 
       {/* Dark mode overrides — keep existing subtle look */}
       <style jsx>{`
-        :global(.dark) div[aria-hidden="true"] {
+        :global(.dark) .glow-element {
           opacity: 0.30 !important;
         }
       `}</style>
