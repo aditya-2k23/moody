@@ -12,21 +12,46 @@ export default function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
   const [heroHeight, setHeroHeight] = useState(0);
 
-  /* Measure hero once it mounts (hero is the first <section> in main) */
+  /* Measure hero height initially and on resize */
   useEffect(() => {
     const hero = document.querySelector("main section");
-    if (hero) {
-      setHeroHeight(hero.offsetHeight);
-    }
+    if (!hero) return;
+
+    const measureHeight = () => {
+      const height = hero.offsetHeight;
+      setHeroHeight(height);
+      // Determine visibility instantly against new height
+      setVisible(window.scrollY > height);
+    };
+
+    // Measure initially
+    measureHeight();
+
+    // Use ResizeObserver for accurate sizing on DOM or layout changes
+    const resizeObserver = new ResizeObserver(() => measureHeight());
+    resizeObserver.observe(hero);
+
+    // Fallback listeners for window resize/orientation out of caution 
+    window.addEventListener("resize", measureHeight, { passive: true });
+    window.addEventListener("orientationchange", measureHeight, { passive: true });
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measureHeight);
+      window.removeEventListener("orientationchange", measureHeight);
+    };
   }, []);
 
-  /* Show/hide based on scroll position */
+  /* Show/hide dynamically on scroll events targeting the stateful height */
   useEffect(() => {
     if (!heroHeight) return;
 
     const handleScroll = () => {
       setVisible(window.scrollY > heroHeight);
     };
+
+    // Call once to establish sync during any late mount shifts
+    handleScroll();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -41,12 +66,15 @@ export default function ScrollToTopButton() {
       onClick={scrollToTop}
       aria-label="Scroll to top"
       title="Scroll to top"
+      tabIndex={visible ? 0 : -1}
+      aria-hidden={!visible}
+      disabled={!visible}
       className={[
         /* Positioning */
         "fixed bottom-6 right-6 z-50",
         /* Size & shape */
         "w-11 h-11 rounded-full",
-        /* Colours */
+        /* Colors */
         "bg-indigo-500 text-white",
         /* Border glow ring */
         "ring-2 ring-indigo-400/40 dark:ring-indigo-300/30",
