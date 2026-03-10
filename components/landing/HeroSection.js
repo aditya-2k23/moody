@@ -64,16 +64,15 @@ export default function HeroSection() {
                 size="lg"
               />
             </Link>
-            <div onClick={() => setIsVideoModalOpen(true)}>
-              <Button
-                text={
-                  <>
-                    <Play size={19} /> Live Demo
-                  </>
-                }
-                size="lg"
-              />
-            </div>
+            <Button
+              text={
+                <>
+                  <Play size={19} /> Live Demo
+                </>
+              }
+              size="lg"
+              onClick={() => setIsVideoModalOpen(true)}
+            />
           </>
         )}
       </div>

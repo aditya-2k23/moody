@@ -76,6 +76,9 @@ export default function VideoModal({ isOpen, onClose }) {
       {/* Modal Content */}
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Live demo video"
         className="relative w-full h-full sm:h-auto sm:max-w-5xl rounded-2xl overflow-hidden sm:border-2 sm:border-indigo-500 sm:shadow-[0_0_30px_rgba(99,102,241,0.3)]"
         onClick={(e) => e.stopPropagation()}
       >
