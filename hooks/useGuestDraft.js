@@ -15,9 +15,10 @@ import {
  * avoid thrashing localStorage on every keystroke.
  *
  * @returns {{
- *   draft: { mood: number|null, moodLabel: string|null, journalText: string } | null,
+ *   draft: { mood: number|null, moodLabel: string|null, journalText: string, pendingAction: string|null } | null,
  *   saveDraft: (mood: number|null, moodLabel: string|null, journalText: string) => void,
  *   clearDraft: () => void,
+ *   setPendingAction: (action: string|null) => void,
  * }}
  */
 export function useGuestDraft() {
