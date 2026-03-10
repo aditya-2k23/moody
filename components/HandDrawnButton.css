@@ -203,3 +203,34 @@
     translate: 0 -1px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-drawn-btn-wrapper .hand-drawn-button {
+    animation: none;
+    transition: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:hover {
+    animation: none;
+    rotate: none;
+    translate: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:active {
+    animation: none;
+    rotate: none;
+    translate: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:active .highlight {
+    animation: none;
+  }
+
+  .hand-drawn-btn-wrapper .highlight {
+    transition: none;
+  }
+
+  .hand-drawn-btn-wrapper .button-cosm {
+    transition: none;
+  }
+}
