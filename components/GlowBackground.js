@@ -14,6 +14,12 @@ export default function GlowBackground() {
     const secondary = secondaryRef.current;
     const tertiary = tertiaryRef.current;
     const left = leftRef.current;
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      gsap.set([primary, secondary, tertiary, left], { opacity: 1, scale: 1 });
+      return;
+    }
 
     // Gentle floating animation for primary glow
     gsap.to(primary, {
@@ -145,6 +151,13 @@ export default function GlowBackground() {
   // Fade in on mount
   useEffect(() => {
     const nodes = [primaryRef.current, secondaryRef.current, tertiaryRef.current, leftRef.current];
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      gsap.set(nodes, { opacity: 1, scale: 1 });
+      return;
+    }
+
     gsap.fromTo(
       nodes,
       { opacity: 0, scale: 0.8 },
