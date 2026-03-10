@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
             <BlobSvgFilter />
             <HandDrawnSvgFilters />
             <Header />
-            {children}
+            <main className="flex-1">{children}</main>
             <ConditionalFooter />
           </ThemeProvider>
         </AuthProvider>

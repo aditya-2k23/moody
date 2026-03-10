@@ -2,6 +2,7 @@
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShieldAlert, AlignLeft, ChevronDown, ChevronUp, Link } from "lucide-react";
 import { useState, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function TermsOfService() {
   const [activeSection, setActiveSection] = useState("intro");
@@ -45,7 +46,7 @@ export default function TermsOfService() {
     );
 
     const sectionElements = document.querySelectorAll("section[id]");
-    sectionElements.forEach((el) => observer.observe(el));
+    sectionElements.forEach((el) => { observer.observe(el) });
 
     return () => observer.disconnect();
   }, []);
@@ -66,13 +67,19 @@ export default function TermsOfService() {
   const SectionTitle = ({ title, id, number, hideNumber }) => {
     const handleCopyLink = () => {
       const url = `${window.location.origin}${window.location.pathname}#${id}`;
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success("Link copied to clipboard!", {
+          duration: 3000,
+        });
+      }).catch((err) => {
+        console.error("Failed to copy link:", err);
+      });
     };
 
     return (
       <div className="w-full flex items-center gap-2 group mb-4 text-slate-900 dark:text-slate-100 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200 cursor-pointer" onClick={handleCopyLink}>
         <h2
-          id={id}
+          id={`${id}-heading`}
           className="text-xl sm:text-2xl font-bold "
         >
           {!hideNumber && `${number}. `}{title}
@@ -107,6 +114,7 @@ export default function TermsOfService() {
 
   return (
     <main className="flex-1 flex flex-col w-full relative">
+      <Toaster position="bottom-right" />
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-4 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}
@@ -210,7 +218,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section1" className="scroll-mt-28 w-full">
+            <section id="section1" aria-labelledby="section1-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="Description of the Service" id="section1" number="1" />
               <div className="space-y-4">
                 <p>
@@ -246,7 +254,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section2" className="scroll-mt-28 w-full">
+            <section id="section2" aria-labelledby="section2-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="Eligibility" id="section2" number="2" />
               <div className="space-y-4">
                 <p>To use Moody you must meet the following requirements:</p>
@@ -263,7 +271,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section3" className="scroll-mt-28 w-full">
+            <section id="section3" aria-labelledby="section3-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="Account Registration and Security" id="section3" number="3" />
               <div className="space-y-4">
                 <p>
@@ -294,7 +302,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section4" className="scroll-mt-28 w-full">
+            <section id="section4" aria-labelledby="section4-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="User Content and Data Ownership" id="section4" number="4" />
               <div className="space-y-4">
                 <p>
@@ -314,7 +322,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section5" className="scroll-mt-28 w-full">
+            <section id="section5" aria-labelledby="section5-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="Acceptable Use Policy" id="section5" number="5" />
 
               <div className="space-y-4">
@@ -344,7 +352,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section6" className="scroll-mt-28 w-full">
+            <section id="section6" aria-labelledby="section6-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="AI Insights Disclaimer" id="section6" number="6" />
               <div className="space-y-4">
                 <p>
@@ -364,7 +372,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section7" className="scroll-mt-28 w-full">
+            <section id="section7" aria-labelledby="section7-heading" className="scroll-mt-28 w-full">
               <SectionTitle title="Service Availability and Usage Limits" id="section7" number="7" />
               <div className="space-y-4">
                 <p>
@@ -383,7 +391,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section8" className="scroll-mt-24 w-full">
+            <section id="section8" aria-labelledby="section8-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Data Retention and Account Deletion" id="section8" number="8" />
 
               <div className="space-y-4">
@@ -401,7 +409,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section9" className="scroll-mt-24 w-full">
+            <section id="section9" aria-labelledby="section9-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Third-Party Services" id="section9" number="9" />
 
               <div className="space-y-4">
@@ -427,7 +435,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section10" className="scroll-mt-24 w-full">
+            <section id="section10" aria-labelledby="section10-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Intellectual Property" id="section10" number="10" />
 
               <div className="space-y-4">
@@ -451,7 +459,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section11" className="scroll-mt-24 w-full">
+            <section id="section11" aria-labelledby="section11-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Limitation of Liability" id="section11" number="11" />
 
               <div className="space-y-4">
@@ -479,7 +487,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section12" className="scroll-mt-24 w-full">
+            <section id="section12" aria-labelledby="section12-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Indemnification" id="section12" number="12" />
 
               <div className="space-y-4">
@@ -496,7 +504,7 @@ export default function TermsOfService() {
               </div>
             </section>
 
-            <section id="section13" className="scroll-mt-24 w-full">
+            <section id="section13" aria-labelledby="section13-heading" className="scroll-mt-24 w-full">
               <SectionTitle title="Modifications to the Terms" id="section13" number="13" />
 
               <div className="space-y-4">

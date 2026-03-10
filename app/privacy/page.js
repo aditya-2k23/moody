@@ -2,6 +2,7 @@
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShieldCheck, ChevronDown, ChevronUp, AlignLeft, Link } from "lucide-react";
 import { useState, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function PrivacyPolicy() {
   const [openSections, setOpenSections] = useState({
@@ -90,7 +91,13 @@ export default function PrivacyPolicy() {
     const handleCopyLink = (e) => {
       e.stopPropagation();
       const url = `${window.location.origin}${window.location.pathname}#${id}`;
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success("Link copied to clipboard!", {
+          duration: 3000,
+        });
+      }).catch((err) => {
+        console.error("Failed to copy link:", err);
+      })
     };
 
     return (
@@ -138,12 +145,12 @@ export default function PrivacyPolicy() {
 
   return (
     <main className="flex-1 flex flex-col w-full relative">
+      <Toaster position="bottom-right" />
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-4 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}
-        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm pb-4 transition-all duration-300 ${
-          isScrollingDown ? 'top-4' : 'top-[72px]'
-        }`}>
+        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm pb-4 transition-all duration-300 ${isScrollingDown ? 'top-4' : 'top-[72px]'
+          }`}>
           <button
             onClick={() => setIsMobileTocOpen(!isMobileTocOpen)}
             className="flex items-center justify-between w-full text-indigo-600 dark:text-indigo-400 font-bold"
@@ -172,9 +179,8 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Desktop Sidebar TOC */}
-        <aside className={`hidden md:block w-[17rem] shrink-0 sticky h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar transition-all duration-300 ${
-          isScrollingDown ? 'top-6' : 'top-24'
-        }`}>
+        <aside className={`hidden md:block w-[17rem] shrink-0 sticky h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar transition-all duration-300 ${isScrollingDown ? 'top-6' : 'top-24'
+          }`}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <AlignLeft size={20} className="text-indigo-500" /> Contents
@@ -595,9 +601,9 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">13. Contact Us</h2>
               <p>If you have questions about this Privacy Policy, please contact us at:</p>
               <ul className="list-none mt-4 space-y-2">
-                <li>Email: <a href="mailto:holaaditya123@gmail.com" className="text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium transition duration-200 hover:underline">holaaditya123@gmail.com</a></li>
-                <li>X: <a href="https://x.com/Tema_roon" target="_blank" rel="noopener noreferrer" className="text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 hover:text-indigo-300 font-medium transition duration-200">@Tema_roon</a></li>
-                <li>Website: <a href="https://moody-adi.netlify.app" target="_blank" rel="noopener noreferrer" className="text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium transition duration-200">https://moody-adi.netlify.app</a></li>
+                <li>Email: <a href="mailto:holaaditya123@gmail.com" className="text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-500 font-medium transition duration-200 hover:underline">holaaditya123@gmail.com</a></li>
+                <li>X: <a href="https://x.com/Tema_roon" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-500 font-medium transition duration-200">@Tema_roon</a></li>
+                <li>Website: <a href="https://moody-adi.netlify.app" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-500 font-medium transition duration-200">https://moody-adi.netlify.app</a></li>
               </ul>
             </section>
           </div>
