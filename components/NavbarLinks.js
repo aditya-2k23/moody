@@ -26,11 +26,12 @@ export default function NavbarLinks() {
   }, []);
 
   useEffect(() => {
+    let tl;
     if (isOpen) {
       setIsAnimating(true);
       document.body.style.overflow = "hidden";
 
-      const tl = gsap.timeline({
+      tl = gsap.timeline({
         onComplete: () => setIsAnimating(false)
       });
 
@@ -42,6 +43,7 @@ export default function NavbarLinks() {
     }
 
     return () => {
+      if (tl) tl.kill();
       document.body.style.overflow = "";
     };
   }, [isOpen]);
