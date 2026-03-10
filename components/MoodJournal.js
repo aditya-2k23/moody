@@ -34,7 +34,6 @@ export default function MoodJournal({
   initialText = "",
   user = null,
   onMoodChange,
-  onSave,
   onJournalSaved,
   onMemoryAdded,
   onAuthRequired,
@@ -77,7 +76,7 @@ export default function MoodJournal({
         onMoodChange?.(newMood);
       }
     },
-    [selectedMood, isGuest, saveDraft, guestJournalText, onAuthRequired, onMoodChange]
+    [selectedMood, isGuest, saveDraft, guestJournalText, onMoodChange]
   );
 
   // Keep the mood selection in sync with parent when in auth mode
