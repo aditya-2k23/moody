@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Button from "../Button";
 import { useAuth } from "@/context/authContext";
@@ -10,9 +10,25 @@ import VideoModal from "./VideoModal";
 export default function HeroSection() {
   const { currentUser } = useAuth();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const sectionRef = useRef(null);
+
+  const closeModal = useCallback(() => setIsVideoModalOpen(false), []);
+
+  // Auto-close modal when hero section scrolls out of view
+  useEffect(() => {
+    if (!isVideoModalOpen || !sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) closeModal();
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [isVideoModalOpen, closeModal]);
 
   return (
-    <section className="pt-12 pb-16 md:pt-20 md:pb-28 text-center">
+    <section ref={sectionRef} className="relative pt-12 pb-16 md:pt-20 md:pb-28 text-center">
       {/* Version Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8">
         <span className="w-2 h-2 rounded-full bg-green-400" />
@@ -79,7 +95,7 @@ export default function HeroSection() {
 
       <VideoModal
         isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
+        onClose={closeModal}
       />
     </section>
   );

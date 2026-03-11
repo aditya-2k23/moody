@@ -7,6 +7,7 @@ import gsap from "gsap";
 export default function VideoModal({ isOpen, onClose }) {
   const overlayRef = useRef(null);
   const modalRef = useRef(null);
+  const previouslyFocusedRef = useRef(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -49,19 +50,45 @@ export default function VideoModal({ isOpen, onClose }) {
   }, [isOpen]);
 
   useEffect(() => {
+    let handleKeyDown;
     if (isOpen) {
-      document.body.style.overflow = "hidden";
-      const handleKeyDown = (e) => {
-        if (e.key === "Escape") handleClose();
+      previouslyFocusedRef.current = document.activeElement;
+
+      requestAnimationFrame(() => {
+        modalRef.current?.focus();
+      });
+
+      handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          handleClose();
+          return;
+        }
+        if (e.key === "Tab" && modalRef.current) {
+          const focusable = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), iframe'
+          );
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === modalRef.current)) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       };
       window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
     } else {
-      document.body.style.overflow = "unset";
       setIframeLoaded(false);
     }
     return () => {
-      document.body.style.overflow = "unset";
+      if (handleKeyDown) {
+        window.removeEventListener("keydown", handleKeyDown);
+      }
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
     };
   }, [isOpen, handleClose]);
 
@@ -70,7 +97,7 @@ export default function VideoModal({ isOpen, onClose }) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/90 sm:bg-transparent sm:backdrop-blur-none backdrop-blur-sm"
+      className="absolute inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/10 backdrop-blur-sm"
       onClick={handleClose}
     >
       {/* Modal Content */}
@@ -79,7 +106,8 @@ export default function VideoModal({ isOpen, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label="Live demo video"
-        className="relative w-full h-full sm:h-auto sm:max-w-5xl rounded-2xl overflow-hidden sm:border-2 sm:border-indigo-500 sm:shadow-[0_0_30px_rgba(99,102,241,0.3)]"
+        tabIndex={-1}
+        className="relative w-full h-full sm:h-auto sm:max-w-5xl rounded-2xl overflow-hidden sm:border-2 sm:border-indigo-500 sm:shadow-[0_0_30px_rgba(99,102,241,0.3)] outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -95,12 +123,13 @@ export default function VideoModal({ isOpen, onClose }) {
         <div className="w-full h-full sm:h-0 sm:pb-[56.25%] relative bg-slate-950">
           {/* Loading spinner */}
           {!iframeLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="absolute inset-0 flex items-center justify-center z-30">
               <Loader2 className="w-10 h-10 text-indigo-400 animate-spin" />
             </div>
           )}
           <iframe
             src="https://www.loom.com/embed/cacc77fecccc414292f1bc618514239c?autoplay=1"
+            title="Live demo video"
             frameBorder="0"
             allowFullScreen
             allow="autoplay"
