@@ -24,21 +24,26 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 ## 🚀 Features
 
 - **Mood Tracking**: Log your daily mood with a single click and view your mood history on a calendar.
-- **User Authentication**: SignUp, LogIn, and LogOut securely using Firebase Authentication.
+- **User Authentication**: Sign Up, Log In, and Log Out securely using Firebase Authentication.
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
 - **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching for instant repeat lookups.
+- **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
+- **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
 
-### 🆕 Recent Features & Improvements (v2.5.0)
+### 🆕 Recent Features & Improvements (v2.5.1)
 
+- **🌟 Interactive Landing Page**: An entirely new landing page experience with `ScrollAnimations`, `ComparisonSection`, `FeaturesGrid`, and a `ScrollToTopButton`.
 - **🤖 AI Insights with Redis Cache**: Journal insights are now generated server-side via Next.js Server Actions and cached in Upstash Redis with content-hash keys and a 7-day TTL — eliminating redundant API calls.
-- **📝 Journal Modal with Edit & Delete**: Click any calendar day to view, edit, or delete journal entries and mood in a sleek modal with unsaved changes detection.
-- **🎯 Radial Mood Menu**: GTA-style radial mood selector for intuitive mood selection when editing past entries.
+- **👤 Guest Experience**: Try the `GuestMoodSection` right from the landing page. It uses local storage (`hooks/useGuestDraft.js`) to save your draft so you don't lose your entry if you decide to log in.
+- **🤖 Server-Side AI Insights**: Removed the client-side `utils/analyzeJournal.js` utility, transitioning fully to server-side AI generation for enhanced security and performance.
+- **⚖️ Legal Pages**: Added dedicated `Privacy Policy` and `Terms of Service` pages.
 - **🔥 Streak Indicator**: Dynamic streak display with celebratory animations, grayscale inactive state, and tooltip hints.
 - **🎨 Theme Reveal Animation**: Beautiful flower-shaped mask animation on theme toggle, with reduced motion support.
 - **🎤 Voice Input (Beta)**: Dictate your journal entries using the Web Speech API. Features smart punctuation, auto-capitalization, and a 5-minute listening limit to conserve resources.
-- **✨ Enhanced Memories Animations**: Smooth fade-in/fade-out transitions with skeleton loaders for a polished loading experience.
+- **📝 Journal Modal with Edit & Delete**: Click any calendar day to view, edit, or delete journal entries and mood in a sleek modal with unsaved changes detection.
+- **🎯 Radial Mood Menu**: GTA-style radial mood selector for intuitive mood selection when editing past entries.
 
 ## 🛠️ Tech Stack
 

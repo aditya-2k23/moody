@@ -81,8 +81,6 @@ export default function MemoriesCircularGallery({
   const handleImageClick = useCallback((index) => {
     if (onImageClick) {
       onImageClick(index);
-    } else {
-      console.log("Clicked image at index:", index);
     }
   }, [onImageClick]);
 

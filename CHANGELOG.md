@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.5.1] - 2026-03-12
+
+### 🚀 New Features
+
+- **🌟 Interactive Landing Page**:
+  - An entirely new landing page experience built from the ground up (`app/page.js` updates).
+  - Added new `HeroSection`, `FeaturesGrid`, `ComparisonSection`, `TechStack`, and `FinalCTA` components.
+  - Implemented dynamic `ScrollAnimations` to enhance the visual storytelling of the app.
+  - Added a `ScrollToTopButton` that dynamically appears when users scroll past the hero section.
+
+- **👤 Guest Mood Experience**:
+  - Introduced the `GuestMoodSection` component, allowing users to try mood logging right from the landing page.
+  - Added `useGuestDraft.js` and `guestStorage.js` to persist draft entries locally so users don't lose them when they decide to sign up.
+
+- **✍️ Hand-Drawn UI Aesthetic**:
+  - Added a brand new `HandDrawnButton` component with organic, sketch-like hover and focus effects (`components/HandDrawnButton.js` and `.css`).
+  - Integrated `styled-components` to support complex, dynamic CSS-in-JS visual elements.
+  - Used `react-type-animation` for engaging typing effects on the landing page.
+
+- **⚖️ Legal Pages**:
+  - Added a dedicated Privacy Policy (`app/privacy/page.js`).
+  - Added a dedicated Terms of Service (`app/terms/page.js`).
+  - Added a `ConditionalFooter` and `LandingFooter` to gracefully link these pages without cluttering the app interface.
+
+### ⚡ Performance & Cleanup
+
+- **Removed Legacy AI Code**: Deleted the client-side `utils/analyzeJournal.js` to rely exclusively on the robust, server-side caching flow via Next.js Server Actions.
+
+---
+
 ## [2.5.0] - 2026-02-13
 
 ### 🚀 New Features
