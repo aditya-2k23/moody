@@ -15,7 +15,7 @@ import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { CloudUpload, Check, Mic, Square, NotebookPen } from "lucide-react";
+import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
@@ -72,9 +72,6 @@ export default function Journal({
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
-  const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
 
   // Auto-trigger insight generation when redirected from guest mode
   const autoInsightTriggeredRef = useRef(false);
@@ -613,7 +610,7 @@ export default function Journal({
           <Button
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
-                <Image src={aiIcon} alt="AI Icon" width={24} height={24} />
+                <Sparkles size={20} />
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
