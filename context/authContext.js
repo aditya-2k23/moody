@@ -41,10 +41,7 @@ export function AuthProvider({ children }) {
         setLoading(true);
         setCurrentUser(user);
 
-        if (!user) {
-          console.log("No User found!");
-          return;
-        }
+        if (!user) return;
 
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);

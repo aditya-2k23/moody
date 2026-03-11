@@ -11,10 +11,12 @@ import convertMood, { moods, months } from "@/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/firebase";
 import { doc, setDoc, deleteField } from "firebase/firestore";
-import Journal from "./Journal";
+import MoodJournal from "./MoodJournal";
 import { deleteDailyEntry, updateDailyEntry } from "@/utils/dailyEntry";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
+import MemoriesToggle from "./MemoriesToggle";
+import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
 
 function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
@@ -61,10 +63,21 @@ export default function DashboardContent() {
   const now = new Date();
   const [timeRemaining, setTimeRemaining] = useState(getTimeRemaining());
   const [wasAuthenticated, setWasAuthenticated] = useState(!!currentUser);
-  const [showAllMoods, setShowAllMoods] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
 
-  // Initial loading splash screen state (3 seconds)
+  // Guest draft hydration flag — ensures we only hydrate once
+  const guestDraftHydratedRef = useRef(false);
+
+  // Flag to auto-trigger insight generation after guest draft hydration
+  const [autoGenerateInsights, setAutoGenerateInsights] = useState(false);
+
+  // Journal text hydrated from guest draft (passed as initialText to MoodJournal)
+  const [hydratedJournalText, setHydratedJournalText] = useState("");
+
+  // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
@@ -110,6 +123,31 @@ export default function DashboardContent() {
   const monthsArr = Object.keys(months);
   const memoriesLabel = `${monthsArr[memoriesMonth]} ${memoriesYear}`;
 
+  // Whether the Memories month can advance forward (can't go past current month)
+  const canMemoriesGoForward = !(memoriesYear === now.getFullYear() && memoriesMonth === now.getMonth());
+
+  // Handle month navigation from Memories buttons (val: -1 or +1)
+  const handleMemoriesMonthChange = useCallback((val) => {
+    const curYear = memoriesYear;
+    const curMonth = memoriesMonth;
+    let newMonth = curMonth + val;
+    let newYear = curYear;
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear = curYear - 1;
+    } else if (newMonth > 11) {
+      newYear = curYear + 1;
+      newMonth = 0;
+    }
+    // Block future months
+    const nowDate = new Date();
+    if (newYear > nowDate.getFullYear() || (newYear === nowDate.getFullYear() && newMonth > nowDate.getMonth())) {
+      return;
+    }
+    setMemoriesYear(newYear);
+    setMemoriesMonth(newMonth);
+  }, [memoriesYear, memoriesMonth]);
+
   function getTimeRemaining() {
     const now = new Date();
     const hours = 23 - now.getHours();
@@ -125,7 +163,7 @@ export default function DashboardContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // Show splash screen for 3 seconds on first load (only for authenticated users)
+  // Real loading state: track auth + data loading stages
   useEffect(() => {
     if (!currentUser) {
       // If not logged in, skip splash
@@ -133,13 +171,35 @@ export default function DashboardContent() {
       return;
     }
 
-    // Always set a 3 second timer for authenticated users
-    const splashTimer = setTimeout(() => {
-      setInitialLoading(false);
-    }, 3000);
-
-    return () => clearTimeout(splashTimer);
+    // Stage 1: Authenticated (30%)
+    setLoadingProgress(30);
+    setLoadingMessage("🔐 Authenticated! Loading your data...");
   }, [currentUser]);
+
+  // Stage 2: User data loaded (70%) → Complete (100%)
+  useEffect(() => {
+    if (!currentUser || loading) return;
+
+    if (userDataObj !== null) {
+      setLoadingProgress(70);
+      setLoadingMessage("Preparing your dashboard...");
+
+      // Brief delay for the user to see 100% before dismissing
+      const finishTimer = setTimeout(() => {
+        setLoadingProgress(100);
+        setLoadingMessage("✅ Ready!");
+      }, 400);
+
+      const dismissTimer = setTimeout(() => {
+        setInitialLoading(false);
+      }, 800);
+
+      return () => {
+        clearTimeout(finishTimer);
+        clearTimeout(dismissTimer);
+      };
+    }
+  }, [currentUser, loading, userDataObj]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -147,6 +207,71 @@ export default function DashboardContent() {
     }
     setData(userDataObj);
   }, [currentUser, userDataObj]);
+
+  // ========== Guest Draft Hydration ==========
+  // After sign-in, if there’s a guest draft in localStorage,
+  // apply its mood + journal to our state and write to Firestore.
+  useEffect(() => {
+    if (!currentUser?.uid || loading || guestDraftHydratedRef.current) return;
+    if (userDataObj === null) return; // wait for Firestore data
+
+    guestDraftHydratedRef.current = true;
+
+    const draft = getGuestDraft();
+    if (!draft) return;
+
+    const { mood, journalText, pendingAction } = draft;
+    clearGuestDraft();
+
+    // Apply mood
+    if (typeof mood === "number" && mood >= 1) {
+      handleSetMood(mood);
+    }
+
+    // Apply journal text — write to Firestore
+    if (journalText && journalText.trim()) {
+      const saveDraft = async () => {
+        try {
+          const now = new Date();
+          const day = now.getDate();
+          const month = now.getMonth();
+          const year = now.getFullYear();
+
+          const docRef = doc(db, "users", currentUser.uid);
+          await setDoc(docRef, {
+            [year]: { [month]: { [`journal_${day}`]: journalText } }
+          }, { merge: true });
+
+          // Update local state so calendar reflects it only after successful write
+          updateBothStates((prev) => {
+            const next = { ...prev };
+            next[year] = { ...(prev?.[year] || {}) };
+            next[year][month] = { ...(prev?.[year]?.[month] || {}) };
+            next[year][month][`journal_${day}`] = journalText;
+            return next;
+          });
+
+          // Set the hydrated text so Journal gets it as initialText
+          setHydratedJournalText(journalText);
+
+          toast.success("Your guest draft has been saved!", { icon: "📝", duration: 4000 });
+
+          // If the guest wanted to generate insights, trigger it after hydration
+          if (pendingAction === "insights") {
+            setAutoGenerateInsights(true);
+          }
+        } catch (err) {
+          console.error("Failed to hydrate guest journal:", err);
+          toast.error("Failed to save guest draft.");
+        }
+      };
+      saveDraft();
+    } else if (pendingAction === "insights" && typeof mood === "number") {
+      // Mood-only draft with insights action (no journal text)
+      setAutoGenerateInsights(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, loading, userDataObj]);
 
   useEffect(() => {
     if (!wasAuthenticated && currentUser) {
@@ -517,7 +642,7 @@ export default function DashboardContent() {
   if (!currentUser) return <Login initialRegister={shouldRegister} />;
 
   // Show full-page splash screen while dashboard loads
-  if (initialLoading) return <Splashscreen />;
+  if (initialLoading) return <Splashscreen progress={loadingProgress} message={loadingMessage} />;
 
   const statuses = {
     ...memoizedCounts,
@@ -528,7 +653,7 @@ export default function DashboardContent() {
     <>
       <Toaster position="top-center" />
 
-      <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-14'>
+      <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-12'>
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
           <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
@@ -568,40 +693,15 @@ export default function DashboardContent() {
           })}
         </div>
 
-        <h4 className="text-3xl sm:text-4xl md:text-5xl text-center fugaz">How do you <span className='textGradient'>feel</span> today?</h4>
-        <div className="flex items-stretch flex-wrap gap-4">
-          {(showAllMoods ? Object.keys(moods) : Object.keys(moods).slice(0, 5)).map((mood, moodIndex) => {
-            const currentMood = moodIndex + 1;
-            const isSelected = todaysMood === currentMood;
-            return (
-              <button
-                onClick={() => handleSetMood(currentMood)}
-                key={moodIndex}
-                style={{
-                  outline: isSelected ? '2px solid var(--outline-color)' : 'none',
-                  outlineOffset: 2,
-                  '--outline-color': 'rgb(79 70 229)'
-                }}
-                className={`p-4 px-8 rounded-2xl purpleShadow duration-200 transition text-center flex flex-col items-center gap-3 flex-1
-                ${isSelected ? 'bg-indigo-500/95 text-white scale-105 shadow-lg [--outline-color:rgb(129_140_248)]' : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-300'}`}
-              >
-                <p className='text-4xl sm:text-5xl md:text-6xl'>{moods[mood]}</p>
-                <p className="fugaz text-xs sm:text-sm md:text-base">{mood}</p>
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => setShowAllMoods((prev) => !prev)}
-            className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px] flex items-center justify-center"
-          >
-            {showAllMoods ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
-          </button>
-        </div>
-
-        <Journal
-          currentUser={currentUser}
+        <MoodJournal
+          mode="auth"
+          initialMood={todaysMood}
+          initialText={hydratedJournalText}
+          user={currentUser}
+          onMoodChange={handleSetMood}
           onMemoryAdded={refetchMemories}
+          autoGenerateInsights={autoGenerateInsights}
+          onInsightsAutoTriggered={() => setAutoGenerateInsights(false)}
           onJournalSaved={(savedEntry) => {
             // Compute fresh date values to avoid stale dates if tab was open past midnight
             const now = new Date();
@@ -625,6 +725,15 @@ export default function DashboardContent() {
           monthLabel={memoriesLabel}
           yearMonth={memoriesYearMonth}
           onDelete={removeMemory}
+          onMonthChange={handleMemoriesMonthChange}
+          canGoForward={canMemoriesGoForward}
+          isVisible={showMemories}
+        />
+
+        <MemoriesToggle
+          showMemories={showMemories}
+          onToggle={() => setShowMemories(!showMemories)}
+          hasMemories={memories && memories.length > 0}
         />
 
         <Calender
@@ -633,6 +742,8 @@ export default function DashboardContent() {
           showJournalPopup
           onUpdateEntry={handleUpdateDailyEntry}
           onDeleteEntry={handleDeleteDailyEntry}
+          controlledYear={memoriesYear}
+          controlledMonth={memoriesMonth}
           onMonthChange={(year, month) => {
             setMemoriesYear(year);
             setMemoriesMonth(month);

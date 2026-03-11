@@ -3,6 +3,7 @@
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -65,17 +66,20 @@ export default function ThemeToggle() {
 
   return (
     <>
-      {reveal ? (
-        <span
-          aria-hidden="true"
-          className={`theme-reveal-mask ${reveal.fromTheme === 'dark' ? 'theme-reveal-dark' : 'theme-reveal-light'}`}
-          style={{
-            '--x': `${reveal.x}px`,
-            '--y': `${reveal.y}px`,
-            '--max-r': `${reveal.maxRadius}px`,
-          }}
-        />
-      ) : null}
+      {reveal
+        ? createPortal(
+          <span
+            aria-hidden="true"
+            className={`theme-reveal-mask ${reveal.fromTheme === 'dark' ? 'theme-reveal-dark' : 'theme-reveal-light'}`}
+            style={{
+              '--x': `${reveal.x}px`,
+              '--y': `${reveal.y}px`,
+              '--max-r': `${reveal.maxRadius}px`,
+            }}
+          />,
+          document.body
+        )
+        : null}
       <button
         onClick={toggleTheme}
         className="relative flex items-center justify-center p-2.5 rounded-full transition-all duration-300 ease-in-out bg-indigo-50 hover:bg-indigo-100/70 dark:bg-slate-800 dark:hover:bg-slate-700 border border-indigo-100 dark:border-slate-700 shadow-md hover:shadow-lg"

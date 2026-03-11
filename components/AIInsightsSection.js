@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { moods } from "@/utils";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
 /**
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
@@ -58,7 +57,7 @@ export default function AIInsightsSection({ insights, isLoading }) {
     >
       {/* Section Header */}
       <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 mb-6 font-bold text-gray-800 dark:text-gray-200 fugaz">
-        <Image src="/ai.svg" alt="AI Icon" width={26} height={26} />
+        <Sparkles size={20} />
         AI Insights
         {showContent && insights && (
           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/40 dark:text-green-300 animate-insights-badge">

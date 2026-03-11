@@ -1,0 +1,236 @@
+.hand-drawn-btn-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button {
+  text-align: center;
+  transition: 0.3s ease-in-out;
+  cursor: pointer;
+  background-color: transparent;
+  filter: url("#handDrawnNoise");
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  user-select: none;
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.75em 1.25em;
+  border-width: 0px;
+  border-radius: 2rem;
+  color: inherit;
+  box-shadow: #33333366 4px 4px 0 1px;
+  animation: idle 1s infinite ease-in-out;
+  position: relative;
+  text-decoration: none;
+}
+
+/* Dark mode: indigo glow for visibility */
+.dark .hand-drawn-btn-wrapper .hand-drawn-button {
+  color: #e0e7ff;
+  box-shadow: 0 0 16px 2px rgba(99, 102, 241, 0.35),
+    0 0 4px 1px rgba(99, 102, 241, 0.2),
+    rgba(99, 102, 241, 0.4) 4px 4px 0 1px;
+}
+
+.hand-drawn-btn-wrapper .highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  fill: rgba(99, 102, 241, 0.4);
+  stroke: rgba(99, 102, 241, 0.5);
+  stroke-width: 10;
+  stroke-linecap: round;
+  pointer-events: none;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+.hand-drawn-btn-wrapper .button-cosm {
+  fill: #33333366;
+  transition: 0.3s ease-out;
+  scale: 0.5;
+  position: absolute;
+  translate: calc(-100% + 16px) 1.2rem;
+}
+
+.dark .hand-drawn-btn-wrapper .button-cosm {
+  fill: rgba(99, 102, 241, 0.45);
+}
+
+@keyframes idle {
+  0% {
+    filter: url("#handDrawnNoise");
+  }
+
+  50% {
+    rotate: 2.5deg;
+    filter: url("#handDrawnNoise2");
+  }
+
+  100% {
+    filter: url("#handDrawnNoise");
+  }
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:hover {
+  border-radius: 2rem;
+  rotate: -2.5deg;
+  animation: hover 2.5s infinite ease-in-out;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:hover .highlight {
+  stroke-dashoffset: 0;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:hover .button-cosm {
+  rotate: -15deg;
+  translate: calc(-100% + 14px) 1.4rem;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:active .highlight {
+  stroke-dashoffset: 1000;
+  animation:
+    highlight-anim 5s infinite,
+    col 0.5s forwards;
+  stroke: #bc4e2666;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:active .button-cosm {
+  fill: #333333f1;
+  rotate: -135deg;
+  translate: calc(-100% + 40px) 1.2rem;
+  animation: none;
+}
+
+.hand-drawn-btn-wrapper .hand-drawn-button:active {
+  border-radius: 2rem;
+  box-shadow: inset #333333f1 4px 4px 0 1px;
+  rotate: -2.5deg;
+  animation: active 1s infinite ease-in-out;
+}
+
+.dark .hand-drawn-btn-wrapper .hand-drawn-button:active {
+  box-shadow: inset rgba(99, 102, 241, 0.5) 4px 4px 0 1px,
+    0 0 12px 2px rgba(99, 102, 241, 0.25);
+}
+
+@keyframes col {
+  0% {
+    stroke: rgba(99, 102, 241, 0.5);
+  }
+
+  100% {
+    stroke: rgba(139, 92, 246, 0.5);
+  }
+}
+
+@keyframes highlight-anim {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  25% {
+    stroke-dashoffset: 1000;
+  }
+
+  50% {
+    stroke-dashoffset: 1000;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hover {
+  0% {
+    rotate: 0deg;
+    filter: url("#handDrawnNoise");
+    translate: 0 0px;
+  }
+
+  25% {
+    rotate: -1deg;
+    filter: url("#handDrawnNoise2");
+    translate: 0 -2px;
+  }
+
+  50% {
+    rotate: 0deg;
+    filter: url("#handDrawnNoise");
+    translate: 0 2px;
+  }
+
+  75% {
+    rotate: -1deg;
+    filter: url("#handDrawnNoise2");
+    translate: 0 -2px;
+  }
+
+  100% {
+    rotate: 0deg;
+    filter: url("#handDrawnNoise");
+    translate: 0 0px;
+  }
+}
+
+@keyframes active {
+  0% {
+    filter: url("#handDrawnNoiset");
+    translate: 0 -1px;
+  }
+
+  25% {
+    rotate: -3deg;
+  }
+
+  50% {
+    filter: url("#handDrawnNoiset2");
+    translate: 0 1px;
+  }
+
+  66% {
+    rotate: 1.5deg;
+  }
+
+  100% {
+    filter: url("#handDrawnNoiset");
+    translate: 0 -1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-drawn-btn-wrapper .hand-drawn-button {
+    animation: none;
+    transition: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:hover {
+    animation: none;
+    rotate: none;
+    translate: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:active {
+    animation: none;
+    rotate: none;
+    translate: none;
+  }
+
+  .hand-drawn-btn-wrapper .hand-drawn-button:active .highlight {
+    animation: none;
+  }
+
+  .hand-drawn-btn-wrapper .highlight {
+    transition: none;
+  }
+
+  .hand-drawn-btn-wrapper .button-cosm {
+    transition: none;
+  }
+}

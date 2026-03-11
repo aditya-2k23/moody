@@ -16,6 +16,8 @@ export default function Calender({
   onMonthChange,
   onUpdateEntry,
   onDeleteEntry,
+  controlledYear,
+  controlledMonth,
 }) {
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -26,6 +28,22 @@ export default function Calender({
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
+
+  // Sync with externally controlled month/year (e.g. from Memories nav buttons)
+  useEffect(() => {
+    if (controlledYear != null && controlledMonth != null) {
+      setSelectedYear(controlledYear);
+      setSelectedMonth(monthsArr[controlledMonth]);
+      // If a day is selected, clamp to new month's range; journal/mood synced by other effect
+      if (selectedDay) {
+        const newDaysInMonth = new Date(controlledYear, controlledMonth + 1, 0).getDate();
+        if (selectedDay > newDaysInMonth) {
+          setSelectedDay(newDaysInMonth);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledYear, controlledMonth]);
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = useMemo(() => {
@@ -81,10 +99,15 @@ export default function Calender({
       setSelectedMonth(monthsArr[newMonthIndex]);
     }
 
-    // Clear any open popup state when navigating months
-    setSelectedDay(null);
-    setSelectedJournal("");
-    setSelectedMood(null);
+    // If a day is selected, clamp it to the new month's range so the modal
+    // stays open and the useEffect syncs journal/mood from the new data.
+    if (selectedDay) {
+      const newDaysInMonth = new Date(newYear, newMonthIndex + 1, 0).getDate();
+      if (selectedDay > newDaysInMonth) {
+        setSelectedDay(newDaysInMonth);
+      }
+      // Journal/mood will be updated by the existing useEffect [data, selectedDay]
+    }
 
     // Notify parent of month change
     if (onMonthChange) {
@@ -246,11 +269,14 @@ export default function Calender({
                 (selectedYear === currentYear && numericMonth > currentMonth) ||
                 (selectedYear > currentYear);
 
+              const hasJournal = !!data[`journal_${dayIndex}`];
+
               return (
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
-                    text-xs sm:text-sm border border-solid p-2 flex items-center gap-2 justify-between rounded-lg truncate
+                    text-xs sm:text-sm border border-solid p-1.5 sm:p-2 rounded-lg
+                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between
                     ${isFutureDay ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
                     ${isSelected && !isFutureDay ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
@@ -265,14 +291,28 @@ export default function Calender({
                     setSelectedJournal(data[`journal_${dayIndex}`] || "");
                     setSelectedMood(typeof data?.[dayIndex] === "number" ? data[dayIndex] : null);
                   }}
-                  title={isFutureDay ? "Future date" : (data[`journal_${dayIndex}`] ? "View journal entry" : undefined)}
+                  title={isFutureDay ? "Future date" : (hasJournal ? "View journal entry" : undefined)}
                 >
                   <p className="font-bold">{dayIndex}</p>
+
+                  {/* Desktop: icon indicators */}
                   {isToday && (
-                    <span title="Today"><Calendar size={16} /></span>
+                    <span className="hidden sm:inline" title="Today"><Calendar size={16} /></span>
                   )}
-                  {data[`journal_${dayIndex}`] && (
-                    <span className={`ml-auto ${isToday ? "hidden sm:block" : ""}`} title="Journal entry"><StickyNote size={16} /></span>
+                  {hasJournal && (
+                    <span className="hidden sm:inline ml-auto" title="Journal entry"><StickyNote size={16} /></span>
+                  )}
+
+                  {/* Mobile: dot indicators below the number */}
+                  {(isToday || hasJournal) && (
+                    <div className="flex sm:hidden gap-0.5 mt-0.5">
+                      {isToday && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-300 inline-block" title="Today" />
+                      )}
+                      {hasJournal && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 dark:bg-yellow-300 inline-block" title="Journal entry" />
+                      )}
+                    </div>
                   )}
                 </div>
               )

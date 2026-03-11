@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -15,11 +15,24 @@ import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { Book, CloudUpload, Check, Mic, Square } from "lucide-react";
+import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
+import { TypeAnimation } from 'react-type-animation';
+import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
-export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) {
+export default function Journal({
+  mode = "auth",
+  currentUser,
+  onMemoryAdded,
+  onJournalSaved,
+  initialText = "",
+  onAuthRequired,
+  onGuestTextChange,
+  autoGenerateInsights,
+  onInsightsAutoTriggered,
+}) {
+  const isGuest = mode === "guest";
   const { resolvedTheme } = useTheme();
-  const [entry, setEntry] = useState("");
+  const [entry, setEntry] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
@@ -45,6 +58,10 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   // Get placeholder once on component mount (stable, no re-renders)
   const [placeholder] = useState(() => getJournalPlaceholder());
 
+  const typingSequence = useMemo(() => {
+    return journalPlaceholders.flatMap(text => [text, 3000]);
+  }, []);
+
   // Image upload state
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -56,8 +73,23 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     setMounted(true);
   }, []);
 
-  const isDarkMode = mounted ? resolvedTheme === 'dark' : false;
-  const aiIcon = isDarkMode ? "/ai.svg" : "/ai-full.svg";
+  // Auto-trigger insight generation when redirected from guest mode
+  const autoInsightTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (
+      autoGenerateInsights &&
+      !autoInsightTriggeredRef.current &&
+      !isGuest &&
+      currentUser?.uid
+    ) {
+      // Wait for the entry to be populated (synced from initialText)
+      if (!entry.trim()) return;
+      autoInsightTriggeredRef.current = true;
+      onInsightsAutoTriggered?.();
+      handleGenerateInsights();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerateInsights, entry, currentUser]);
 
   // Voice input hook
   const {
@@ -82,8 +114,17 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
     onJournalSavedRef.current = onJournalSaved;
   }, [onJournalSaved]);
 
+  // Sync entry when initialText changes (draft hydration)
+  useEffect(() => {
+    if (initialText && !entry) {
+      setEntry(initialText);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialText]);
+
   // ========== Auto-Save Logic (Text Only) ==========
   const saveJournalText = useCallback(async () => {
+    if (isGuest) return false; // Never write to Firebase in guest mode
     if (!entry.trim() || !currentUser?.uid) return false;
 
     // Prevent duplicate Firebase writes
@@ -115,7 +156,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       console.error("Auto-save error:", error);
       return false;
     }
-  }, [entry, currentUser]);
+  }, [entry, currentUser, isGuest]);
 
   // Debounce constants
   const TYPING_DEBOUNCE_MS = 1700;
@@ -187,6 +228,11 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // Trigger auto-save when entry changes (only for typing, not voice)
   useEffect(() => {
+    // In guest mode, notify parent of text changes but never auto-save to Firebase
+    if (isGuest) {
+      onGuestTextChange?.(entry);
+      return;
+    }
     if (entry.trim()) {
       if (isListening) {
         // During voice input, just mark as having unsaved changes
@@ -218,7 +264,9 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
   }, [isListening, entry, triggerAutoSave]);
 
   // Page exit safety: save on visibility change and beforeunload using sendBeacon for reliability
+  // (auth mode only — guest mode has nothing to persist to Firebase)
   useEffect(() => {
+    if (isGuest) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && hasUnsavedChangesRef.current && entry.trim()) {
         // Use sendBeacon for guaranteed delivery on page hide
@@ -274,7 +322,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [saveJournalText, entry, currentUser]);
+  }, [saveJournalText, entry, currentUser, isGuest]);
 
   // ========== Image Upload Handlers ==========
   const handleImagesChange = (files, previews) => {
@@ -290,6 +338,10 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Save Handler ==========
   const handleSave = async () => {
+    if (isGuest) {
+      onAuthRequired?.("save");
+      return;
+    }
     if (!entry.trim() && selectedImages.length === 0) {
       toast.error("Add a journal entry or photos.");
       return;
@@ -406,6 +458,10 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
   // ========== Generate Insights Handler ==========
   const handleGenerateInsights = async (forceRegenerate = false) => {
+    if (isGuest) {
+      onAuthRequired?.("insights");
+      return;
+    }
     if (!currentUser || !currentUser.uid) {
       toast.error("Please log in to generate insights.");
       return;
@@ -446,8 +502,8 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
-            <Book size={24} /> Quick Journal
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
+            <NotebookPen size={24} /> Quick Journal
           </h2>
 
           {/* Cloud Save Status */}
@@ -474,11 +530,22 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
         </div>
 
         <div className="relative">
+          {!displayEntry && (
+            <div className="absolute top-4 left-4 right-12 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
+              <TypeAnimation
+                sequence={typingSequence}
+                wrapper="span"
+                cursor={true}
+                repeat={Infinity}
+                style={{ display: 'inline-block' }}
+              />
+            </div>
+          )}
           <textarea
             name="journal"
             id="journal"
-            className="journal-textarea dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-4 pr-12 text-gray-700 text-sm md:text-base border rounded-lg shadow-sm border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 dark:placeholder-gray-300 placeholder-gray-500"
-            placeholder={placeholder}
+            aria-label={placeholder}
+            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 text-gray-700   text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;
@@ -497,7 +564,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
               </span>
-              <span className="text-xs text-red-500 dark:text-red-300 font-medium">
+              <span className="text-[8px] sm:text-xs text-red-500 dark:text-red-300 font-medium">
                 Listening...
               </span>
             </div>
@@ -507,7 +574,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
           <button
             type="button"
             onClick={() => toggleVoiceInput(entry)}
-            className={`absolute bottom-9 right-[60px] w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+            className={`absolute bottom-4 ${isGuest ? "right-4" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
               ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
               : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
               }`}
@@ -520,14 +587,16 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             )}
           </button>
 
-          {/* Image Upload Component */}
-          <ImageUpload
-            selectedImages={selectedImages}
-            imagePreviews={imagePreviews}
-            onImagesChange={handleImagesChange}
-            disabled={saving || uploading}
-            className="bottom-9 right-3.5"
-          />
+          {/* Image Upload Component — hidden in guest mode (requires auth for Cloudinary) */}
+          {!isGuest && (
+            <ImageUpload
+              selectedImages={selectedImages}
+              imagePreviews={imagePreviews}
+              onImagesChange={handleImagesChange}
+              disabled={saving || uploading}
+              className="bottom-4 right-3.5"
+            />
+          )}
         </div>
 
         <div className="flex justify-end items-center gap-2 mt-3">
@@ -541,7 +610,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
           <Button
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
-                <Image src={aiIcon} alt="AI Icon" width={24} height={24} />
+                <Sparkles size={20} />
                 {loadingInsights ? "Generating..." : "Generate Insights"}
               </span>
             }
@@ -553,6 +622,7 @@ export default function Journal({ currentUser, onMemoryAdded, onJournalSaved }) 
             dark
             onClick={handleSave}
             disabled={saving || uploading}
+            className="hidden sm:inline-flex"
           />
         </div>
       </div>

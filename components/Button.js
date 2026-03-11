@@ -6,18 +6,18 @@
  * 
  * Props:
  * - text: Button text content (can be string or JSX)
- * - dark: If true, renders a filled indigo button with opacity hover (NO blob animation)
+ * - dark: If true, renders a blob button with inverted colors (indigo bg, white blob fill on hover)
  * - full: If true, button takes full width
  * - onClick: Click handler function
  * - normal: If false, renders a raw button without ANY styling (only className applies)
  * - className: Additional CSS classes
- * - size: 'sm' | 'default' | 'lg' for button size variants (only applies to blob buttons)
+ * - size: 'sm' | 'default' | 'lg' for button size variants
  * - disabled: If true, button is disabled
  * 
  * Rendering Priority:
  * 1. If normal=false → Raw button (no styles, full className control)
- * 2. If dark=true → Filled button (indigo bg, opacity hover, NO blob effect)
- * 3. Otherwise → Default blob animation button
+ * 2. If dark=true → Blob button with inverted colors (purple bg → white fill on hover)
+ * 3. Otherwise → Default blob animation button (white bg → purple fill on hover)
  */
 export default function Button({
   text,
@@ -35,6 +35,9 @@ export default function Button({
     default: "",
     lg: "blob-btn--lg"
   }[size] || "";
+
+  // Dark variant class for blob button
+  const darkClass = dark ? "blob-btn--dark" : "";
 
   // Prevent onClick when disabled (extra safeguard beyond HTML disabled)
   const handleClick = disabled ? undefined : onClick;
@@ -54,38 +57,14 @@ export default function Button({
     );
   }
 
-  // Dark button - simple filled button with opacity hover (no blob effect)
-  if (dark) {
-    return (
-      <button
-        onClick={handleClick}
-        type="button"
-        disabled={disabled}
-        aria-disabled={disabled}
-        className={`
-          relative px-6 py-3 rounded-full font-semibold text-white
-          bg-indigo-500 dark:bg-indigo-600
-          border-2 border-indigo-600 dark:border-indigo-500
-          transition-all duration-200
-          hover:opacity-80 dark:hover:opacity-70
-          ${full ? "w-full grid place-items-center" : ""}
-          ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""}
-          ${className}
-        `}
-      >
-        <span className="fugaz whitespace-nowrap flex items-center gap-1">{text}</span>
-      </button>
-    );
-  }
-
-  // Default button with blob effect
+  // Default button with blob effect (also handles dark variant)
   return (
     <button
       onClick={handleClick}
       type="button"
       disabled={disabled}
       aria-disabled={disabled}
-      className={`blob-btn ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
+      className={`blob-btn ${darkClass} ${full ? "blob-btn--full" : ""} ${sizeClass} ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""} ${className}`}
     >
       <span className="fugaz whitespace-nowrap relative z-10 flex items-center gap-1">{text}</span>
 

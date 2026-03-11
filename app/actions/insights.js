@@ -5,33 +5,131 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
-const AI_TIMEOUT_MS = 25_000; // 25s timeout for Gemini API (well within Netlify's function limit)
+const GLOBAL_TIMEOUT_MS = 50_000; // 50s total deadline
+const AI_TIMEOUT_MS = 15_000; // 15s timeout per model attempt
 
-// Cache for the Gemini model instance
-let cachedModel = null;
+// ===== MODEL FALLBACK CHAIN =====
+// Ordered by preference: newest first, highest-capacity last as safety net.
+// Daily free-tier limits: 3-Flash ~20 RPD, 2.5-Flash ~20 RPD, 2.0-Flash ~1500 RPD.
+// Total effective capacity: ~1540 requests/day.
+const MODEL_CHAIN = [
+  { id: "gemini-3-flash-preview", label: "3-Flash" },
+  { id: "gemini-2.5-flash", label: "2.5-Flash" },
+  { id: "gemini-2.0-flash", label: "2.0-Flash" },
+];
+
+// ===== MODEL INSTANCE HELPERS =====
 
 /**
- * Lazily initialize and return the Gemini model.
- * Validates GEMINI_API_KEY at request time, not module load time.
+ * Validate that the GEMINI_API_KEY is present.
+ * Throws a user-friendly error if missing.
  */
-function getGeminiModel() {
-  if (cachedModel) {
-    return cachedModel;
-  }
-
+function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey.trim() === "") {
-    const errorMsg = "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
-      "Please set it to your Google Gemini API key.";
-    console.error(errorMsg);
+    console.error(
+      "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
+      "Please set it to your Google Gemini API key."
+    );
     throw new Error("AI service is not configured. Please contact support.");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  cachedModel = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+  return apiKey;
+}
 
-  return cachedModel;
+/**
+ * Create a Gemini model instance for the given model ID.
+ * Instances are lightweight, so we create fresh ones per request
+ * to allow seamless fallback between models.
+ */
+function getModelInstance(modelId) {
+  const apiKey = getApiKey();
+  const genAI = new GoogleGenerativeAI(apiKey);
+  return genAI.getGenerativeModel({ model: modelId });
+}
+
+// ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
+
+/**
+ * Calculate seconds remaining until the next midnight in Pacific Time (America/Los_Angeles).
+ * Used as TTL so exhaustion flags auto-reset when Google's daily quotas reset.
+ */
+function secondsUntilMidnight() {
+  const now = new Date();
+  const options = { timeZone: "America/Los_Angeles", hour12: false };
+  const ptTime = new Date(now.toLocaleString("en-US", options));
+  const ptMidnight = new Date(ptTime);
+  ptMidnight.setHours(24, 0, 0, 0);
+  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60); // minimum 60s to avoid edge cases
+}
+
+/**
+ * Mark a model as exhausted in Redis. The key expires at midnight
+ * so the model becomes available again when Google resets daily quotas.
+ */
+async function markModelExhausted(modelId) {
+  try {
+    const ttl = secondsUntilMidnight();
+    await redis.set(`model:exhausted:${modelId}`, "1", { ex: ttl });
+    console.warn(`[Insights] Marked ${modelId} as exhausted (TTL: ${ttl}s until midnight)`);
+  } catch (error) {
+    // Non-critical: if Redis fails, we'll just retry the model next time
+    console.error("[Insights] Failed to mark model exhausted in Redis:", error.message);
+  }
+}
+
+/**
+ * Return the ordered list of models that are NOT currently marked as exhausted.
+ * Uses a single redis.mget() call for efficiency.
+ */
+async function getAvailableModels() {
+  try {
+    const keys = MODEL_CHAIN.map((m) => `model:exhausted:${m.id}`);
+    const results = await redis.mget(...keys);
+
+    return MODEL_CHAIN.filter((_, index) => !results[index]);
+  } catch (error) {
+    // If Redis is down, return the full chain — we'll discover exhaustion via API errors
+    console.error("[Insights] Failed to check model exhaustion (using full chain):", error.message);
+    return [...MODEL_CHAIN];
+  }
+}
+
+/**
+ * Determine if an error is retryable (model-specific issue that another model may not have).
+ * Includes: quota/rate limits, access errors, and timeouts.
+ * A timeout on one model doesn't mean the next one will also timeout.
+ */
+function isRetryableError(error) {
+  const msg = error.message || "";
+  const isQuotaOrAccess =
+    msg.includes("429") ||
+    msg.includes("quota") ||
+    msg.includes("403") ||
+    msg.includes("Forbidden") ||
+    msg.includes("Resource has been exhausted") ||
+    msg.includes("rate limit");
+  const isTimeout =
+    error.name === "AbortError" || msg.includes("abort") || msg.includes("timeout");
+  const isFormat = msg.includes("JSON") || msg.includes("Validation Failed");
+
+  return isQuotaOrAccess || isTimeout || isFormat;
+}
+
+/**
+ * Determine if a retryable error is specifically a quota error
+ * (should mark the model as exhausted) vs a transient error like a timeout
+ * (should try next model but NOT mark as exhausted since it may work later).
+ */
+function isQuotaError(error) {
+  const msg = error.message || "";
+  return (
+    msg.includes("429") ||
+    msg.includes("quota") ||
+    msg.includes("Resource has been exhausted") ||
+    msg.includes("rate limit")
+  );
 }
 
 /**
@@ -60,53 +158,45 @@ function generateCacheKey(userId, journalText) {
  * AI prompt for journal analysis.
  */
 function buildPrompt(journalEntry) {
-  return `
-You are an AI journal assistant designed to help users reflect on their mental and emotional well-being in a calm, supportive way.
+  return `You are an empathetic AI journal assistant analyzing emotional well-being.
 
-A user has written a personal journal entry. Analyze the text carefully and generate structured insights that feel human, thoughtful, and grounded in what the user actually wrote.
-
-### Your tasks:
-
-1. **Mood**
-  - Identify the dominant emotional tone of the entry.
-  - Choose **exactly one** mood from the following list:
-  [Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral]
-
-2. **Triggers**
-  - Extract specific words, events, or themes from the entry that influenced the mood.
-  - Keep them short, concrete, and directly tied to the text (e.g., deadlines, friends, uncertainty, rest).
-
-3. **Insight**
-  - Write a kind, empathetic reflection that acknowledges the user's experience.
-  - Avoid clichés, therapy-speak, or judgment.
-  - The tone should be reassuring, natural, and supportive.
-
-4. **Pro Tip**
-  - Provide one short, actionable, and realistic suggestion tailored to the user's mood.
-  - It should feel achievable today, not overwhelming.
-
-5. **Headline**
-  - Write a short, creative, mood-appropriate headline for an insight card.
-  - It should feel personal and encouraging.
-  - Avoid generic motivational phrases or platitudes.
-
----
-
-### User's journal entry:
+JOURNAL ENTRY:
 """
 ${journalEntry}
 """
 
----
+ANALYSIS REQUIREMENTS:
 
-### Response format (STRICT JSON ONLY — no explanations, no markdown):
-{
-  "mood": "one of Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral",
-  "triggers": ["keywords or events influencing the mood"],
-  "insight": "empathetic reflection based on the journal entry",
-  "pro_tip": "short, actionable suggestion",
-  "headline": "short, creative, mood-appropriate headline"
-}
+1. MOOD (select exactly one):
+${["Elated", "Good", "Existing", "Sad", "Awful", "Angry", "Anxious",
+      "Unsure", "Excited", "Grateful", "Tired", "Stressed", "Neutral"].join(", ")}
+
+2. TRIGGERS:
+- Extract 2-4 specific words/events/themes from the entry
+- Must be directly referenced in the text
+- Keep concise (1-3 words each)
+- Examples: "work deadline", "friend conflict", "poor sleep"
+
+3. INSIGHT (2-3 sentences):
+- Reflect on what the user expressed
+- Use warm, non-clinical language
+- Acknowledge their experience without judgment
+- Avoid: "It's okay to feel...", "Remember that...", generic therapy phrases
+
+4. PRO TIP (1 sentence):
+- Actionable and achievable today
+- Tailored to their specific mood/situation
+- Practical, not aspirational
+
+5. HEADLINE (4-8 words):
+- Creative and personal
+- Match the emotional tone
+- Avoid: "You've Got This", "Stay Strong", generic motivational phrases
+
+CONSTRAINTS:
+- Base analysis ONLY on explicit content in the entry
+- If entry is vague, acknowledge uncertainty in insight
+- Maintain supportive but honest tone
 `;
 }
 
@@ -146,65 +236,133 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     }
   }
 
-  // ===== PHASE 2: AI GENERATION (ONLY REACHED ON MISS OR FORCE) =====
+  // ===== PHASE 2: AI GENERATION WITH CASCADING MODEL FALLBACK =====
+  // Try each model in the chain until one succeeds.
+  // Retryable errors (429/403/timeout) fall through to the next model.
+  // Quota errors (429/403) also mark the model as exhausted.
+  // Non-retryable errors (parse, validation) return immediately.
+
+  const availableModels = await getAvailableModels();
+
+  if (availableModels.length === 0) {
+    console.error("[Insights] All models are exhausted for today");
+    return {
+      success: false,
+      error: "All AI models are currently at capacity. Please try again tomorrow.",
+    };
+  }
+
+  const prompt = buildPrompt(journalText);
   let insight;
-  try {
-    const model = getGeminiModel();
-    const prompt = buildPrompt(journalText);
+  let modelUsed = null;
+  const startTime = Date.now();
 
-    // Abort controller to prevent Netlify 504 Gateway Timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  for (let i = 0; i < availableModels.length; i++) {
+    // Check global deadline
+    if (Date.now() - startTime >= GLOBAL_TIMEOUT_MS) {
+      console.error("[Insights] Global timeout exceeded across fallback loop.");
+      return { success: false, error: "AI request timed out due to slow models. Please try again." };
+    }
 
-    let result;
+    const { id: modelId, label: modelLabel } = availableModels[i];
+    const isLastModel = i === availableModels.length - 1;
+
     try {
-      result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-      }, { signal: controller.signal });
-    } finally {
-      clearTimeout(timeout);
-    }
+      console.log(`[Insights] Attempting ${modelLabel} (${modelId})...`);
+      const model = getModelInstance(modelId);
 
-    let text = result.response.text();
+      // Abort controller to prevent Netlify 504 Gateway Timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
-    // Clean up response
-    text = text.trim();
-    if (text.startsWith("```")) {
-      text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
-    }
+      let result;
+      try {
+        result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "object",
+              properties: {
+                mood: {
+                  type: "string",
+                  enum: [
+                    "Elated", "Good", "Existing", "Sad", "Awful", "Angry",
+                    "Anxious", "Unsure", "Excited", "Grateful", "Tired",
+                    "Stressed", "Neutral",
+                  ],
+                },
+                triggers: { type: "array", items: { type: "string" } },
+                insight: { type: "string" },
+                pro_tip: { type: "string" },
+                headline: { type: "string" },
+              },
+              required: ["mood", "triggers", "insight", "pro_tip", "headline"],
+            },
+          },
+        }, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
 
-    const parsed = JSON.parse(text);
+      let text = result.response.text();
 
-    if (!validateInsight(parsed)) {
-      throw new Error("Validation Failed");
-    }
+      // Clean up response
+      text = text.trim();
+      if (text.startsWith("```")) {
+        text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
+      }
 
-    insight = parsed;
-    console.log("[Insights] 🤖 AI response received, parsed, and validated");
-  } catch (error) {
-    console.error("[Insights] AI generation error:", error.message);
+      const parsed = JSON.parse(text);
 
-    // User-friendly error messages returned as values (not thrown)
-    // so they survive Next.js production error sanitization
-    if (error.message?.includes("429") || error.message?.includes("quota")) {
-      return { success: false, error: "AI Rate Limit. Please try again after some time" };
+      if (!validateInsight(parsed)) {
+        throw new Error("Validation Failed");
+      }
+
+      insight = parsed;
+      modelUsed = modelId;
+      console.log(`[Insights] 🤖 AI response received from ${modelLabel}, parsed, and validated`);
+      break; // Success — exit the fallback loop
+
+    } catch (error) {
+      console.error(`[Insights] ${modelLabel} error:`, error.message);
+
+      // --- RETRYABLE ERRORS: try next model ---
+      if (isRetryableError(error)) {
+        // Only mark as exhausted for quota/access errors, not timeouts
+        if (isQuotaError(error)) {
+          await markModelExhausted(modelId);
+        }
+
+        if (!isLastModel) {
+          const nextLabel = availableModels[i + 1].label;
+          let reason = "timed out";
+          if (isQuotaError(error)) reason = "exhausted";
+          else if (error.message?.includes("JSON") || error.message?.includes("Validation Failed")) reason = "format error";
+
+          console.warn(`[Insights] ${modelLabel} ${reason}, falling through to ${nextLabel}...`);
+          continue; // Try next model
+        }
+
+        // Last model also failed
+        if (isQuotaError(error)) {
+          return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
+        }
+        if (error.message?.includes("JSON")) {
+          return { success: false, error: "Failed to parse AI response. Please try again." };
+        }
+        if (error.message?.includes("Validation Failed")) {
+          return { success: false, error: "AI response validation failed. Please try again." };
+        }
+        return { success: false, error: "AI request timed out across all models. Please try again." };
+      }
+
+      // --- NON-RETRYABLE ERRORS: return immediately (no point trying another model) ---
+      if (error.message?.includes("not configured")) {
+        return { success: false, error: "AI service is not configured. Please contact support." };
+      }
+      return { success: false, error: "Something went wrong. Please try again." };
     }
-    if (error.message?.includes("403") || error.message?.includes("Forbidden")) {
-      return { success: false, error: "AI service unavailable. Please try again later." };
-    }
-    if (error.message?.includes("not configured")) {
-      return { success: false, error: "AI service is not configured. Please contact support." };
-    }
-    if (error.name === "AbortError" || error.message?.includes("abort")) {
-      return { success: false, error: "AI request timed out. Please try again." };
-    }
-    if (error.message?.includes("JSON")) {
-      return { success: false, error: "Failed to parse AI response. Please try again." };
-    }
-    if (error.message?.includes("Validation Failed")) {
-      return { success: false, error: "AI response validation failed. Please try again." };
-    }
-    return { success: false, error: "Something went wrong. Please try again." };
   }
 
   // ===== PHASE 3: CACHE WRITE =====
@@ -214,7 +372,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     console.error("[Insights] ⚠️ Cache write error (returning AI result anyway):", error);
   }
 
-  return { success: true, data: insight };
+  return { success: true, data: insight, modelUsed };
 }
 
 function validateInsight(data) {
