@@ -97,7 +97,7 @@ export default function VideoModal({ isOpen, onClose }) {
   return (
     <div
       ref={overlayRef}
-      className="absolute inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/10 backdrop-blur-sm"
+      className="absolute inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6 dark:bg-black/5 backdrop-blur-sm"
       onClick={handleClose}
     >
       {/* Modal Content */}
