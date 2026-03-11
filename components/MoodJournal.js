@@ -50,11 +50,11 @@ export default function MoodJournal({
 
   // Sync if parent changes initialMood / initialText (draft hydration)
   useEffect(() => {
-    if (initialMood !== null) setSelectedMood(initialMood);
+    setSelectedMood(initialMood);
   }, [initialMood]);
 
   useEffect(() => {
-    if (initialText) setGuestJournalText(initialText);
+    setGuestJournalText(initialText ?? "");
   }, [initialText]);
 
   // ---------- mood click handler ----------
@@ -103,6 +103,8 @@ export default function MoodJournal({
             <button
               onClick={() => handleMoodClick(currentMood)}
               key={idx}
+              aria-pressed={isSelected}
+              aria-label={`${mood} mood${isSelected ? " selected" : ""}`}
               style={{
                 outline: isSelected
                   ? "2px solid var(--outline-color)"
@@ -124,6 +126,8 @@ export default function MoodJournal({
 
         <button
           onClick={() => setShowAllMoods((prev) => !prev)}
+          aria-expanded={showAllMoods}
+          aria-label={showAllMoods ? "Show fewer moods" : "Show more moods"}
           className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px] flex items-center justify-center"
         >
           {showAllMoods ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
