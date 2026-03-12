@@ -26,20 +26,20 @@ function calculateStreakFromData(dataObj) {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const entryDates = [];
+  const entryDateSet = new Set();
   for (let year in dataObj)
     for (let month in dataObj[year])
       for (let day in dataObj[year][month]) {
         const value = dataObj[year][month][day];
         if (typeof value === "number") {
-          const dateObj = new Date(Number(year), Number(month), Number(day));
-          entryDates.push(dateObj);
+          // Skip non-mood numeric fields like updatedAt_
+          if (day.startsWith('updatedAt_')) continue;
+          entryDateSet.add(`${year}-${month}-${day}`);
         }
       }
 
-  const entryDateSet = new Set(entryDates.map(e => e.toDateString()));
-  const hasTodayEntry = entryDateSet.has(today.toDateString());
-  const hasYesterdayEntry = entryDateSet.has(yesterday.toDateString());
+  const hasTodayEntry = entryDateSet.has(`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`);
+  const hasYesterdayEntry = entryDateSet.has(`${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`);
 
   let current;
   if (hasTodayEntry) current = new Date(today);
@@ -47,7 +47,7 @@ function calculateStreakFromData(dataObj) {
   else return 0;
 
   let streak = 0;
-  while (entryDateSet.has(current.toDateString())) {
+  while (entryDateSet.has(`${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`)) {
     streak++;
     current.setDate(current.getDate() - 1);
   }

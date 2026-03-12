@@ -268,7 +268,6 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     const isLastModel = i === availableModels.length - 1;
 
     try {
-      console.log(`[Insights] Attempting ${modelLabel} (${modelId})...`);
       const model = getModelInstance(modelId);
 
       // Abort controller to prevent Netlify 504 Gateway Timeout
@@ -321,7 +320,6 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
       insight = parsed;
       modelUsed = modelId;
-      console.log(`[Insights] 🤖 AI response received from ${modelLabel}, parsed, and validated`);
       break; // Success — exit the fallback loop
 
     } catch (error) {
