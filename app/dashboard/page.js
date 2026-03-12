@@ -1,5 +1,4 @@
 import Dashboard from '@/components/Dashboard';
-import Main from '@/components/Main';
 
 export const metadata = {
   title: "Moody ⋅ Dashboard",
@@ -11,8 +10,8 @@ export const maxDuration = 60;
 
 export default function DashboardPage() {
   return (
-    <Main>
+    <main className="flex-1 flex flex-col p-4 sm:p-8 relative overflow-x-clip">
       <Dashboard />
-    </Main>
+    </main>
   )
 }
