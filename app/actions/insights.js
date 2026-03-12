@@ -1,8 +1,8 @@
 "use server";
 
 import { redis } from "@/lib/redis";
+import { hashText } from "@/utils/hash";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import crypto from "crypto";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 const GLOBAL_TIMEOUT_MS = 50_000; // 50s total deadline
@@ -130,13 +130,6 @@ function isQuotaError(error) {
     msg.includes("Resource has been exhausted") ||
     msg.includes("rate limit")
   );
-}
-
-/**
- * Generate SHA-256 hash of journal text for cache key.
- */
-function hashText(text) {
-  return crypto.createHash("sha256").update(text.trim()).digest("hex").slice(0, 16);
 }
 
 /**
