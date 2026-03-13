@@ -24,11 +24,11 @@ This document outlines the development plan and future vision for **Moody**. Our
 - [ ] **📊 Advanced Analytics**
   - Weekly and monthly mood graphs.
   - Correlation between specific triggers and moods over time.
-- [ ] **📱 Mobile Responsiveness Polish**
-  - Better touch targets and gestures for mobile users.
-  - PWA (Progressive Web App) installation support.
+- [ ] **🤖 AI Chat Companion**
+  - Chat with an AI about your day and get personalized insights.
 - [ ] **✨ Premium Mode**
   - Ad-free experience and exclusive themes.
+  - Chat with the AI companion forever to get personalized insights.
 
 ### Q2 2026
 
@@ -36,10 +36,11 @@ This document outlines the development plan and future vision for **Moody**. Our
   - Allow users to download their journal history and photos (JSON/PDF).
 - [ ] **🎵 Soothing Background Music**
   - Option to play calming music while journaling.
+- [ ] **📱 Mobile Responsiveness Polish**
+  - Better touch targets and gestures for mobile users.
+  - PWA (Progressive Web App) installation support.
 - [ ] **🔔 Reminders**
   - Optional browser notifications to log your mood.
-- [ ] **🤖 AI Chat Companion**
-  - Chat with an AI about your day and get personalized insights.
 
 ### Q3 2026
 

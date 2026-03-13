@@ -9,9 +9,10 @@ Moody is an open-source, AI-powered mood tracking application built with:
 
 * Next.js
 * Firebase (Authentication + Firestore)
-* Tailwind CSS
 * Cloudinary
+* Upstash (Redis)
 * AI-based mood analysis
+* Tailwind CSS
 
 The focus is on creating a calm, reliable, and user-friendly journaling experience.
 
@@ -101,7 +102,7 @@ npm run dev
    * Screenshots for UI-related updates
    * A linked issue, if applicable
 
-## 🤖 Automated Reviews & Checks
+## Automated Reviews & Checks
 
 To ensure high code quality and security, every Pull Request is automatically analyzed by:
 
@@ -132,7 +133,7 @@ Have ideas or questions?
 Join the discussion here:
 👉 **[GitHub Discussions](https://github.com/aditya-2k23/moody/discussions)**
 
-## 🤖 Docker Automation & Versioning
+## Docker Automation & Versioning
 
 This project uses GitHub Actions to automatically build and push Docker images to Docker Hub whenever changes are merged into the `main` branch.
 
