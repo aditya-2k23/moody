@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.5.2] - 2026-03-13
+
+### 🧹 Cleanup
+
+- Removed unnecessary files that were no longer used to keep the codebase lean.
+- Removed the `DashboardContent` component along with its associated logic and dependencies.
+- Removed the `quotes` array from `utils/index.js` to streamline utility code.
+
+### 🔧 Improvements
+
+- Refactored `DashboardPage` to use more semantic HTML and eliminated unnecessary code paths.
+
+---
+
 ## [2.5.1] - 2026-03-12
 
 ### 🚀 New Features
