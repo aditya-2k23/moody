@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [2.5.3] - 2026-03-14
+
+### ⚡ Performance
+
+- **Major Docker image reduction**:
+  - Reduced production image size from **1.07 GB** to **288.71 MB**.
+  - Switched runtime to **distroless Node 20** for a significantly leaner and more secure container.
+- **Faster container builds**:
+  - Migrated Docker build to multi-stage with Next.js standalone output.
+  - Added BuildKit cache mounts for npm and Next.js build cache:
+    - `--mount=type=cache,target=/root/.npm`
+    - `--mount=type=cache,target=/app/.next/cache`
+  - Disabled Next telemetry in builder (`NEXT_TELEMETRY_DISABLED=1`).
+- **Build resilience in containerized environments**:
+  - Added build-safe Firebase public config fallbacks to prevent prerender failures when client env vars are not injected during image build.
+
+### 🔧 Improvements
+
+- **Docker workflow simplification**:
+  - Removed Firebase public build args from Docker build path to keep images environment-agnostic.
+  - Added conditional Next build validation toggle (`SKIP_NEXT_VALIDATION`) for faster Docker builds.
+- **Dependency cleanup**:
+  - Removed unused dependency `use-local-storage-state`.
+
+### 🐳 Developer Experience
+
+- Added a ready-to-use `docker-compose.yml` so contributors can run the app with:
+  - `docker compose up --build`
+- Included sensible defaults, built-in port mapping (`3000:3000`), and environment wiring for easier onboarding.
+
+### 🤖 CI/CD
+
+- Optimized Docker GitHub Actions workflow:
+  - Switched fully to `docker/build-push-action@v5` with Buildx caching.
+  - Added cache scopes for better reuse across runs.
+  - Added `concurrency` cancellation for redundant in-progress builds.
+  - Added `paths-ignore` for docs-only changes.
+  - Pinned build platform to `linux/amd64`.
+  - Disabled provenance/SBOM generation to reduce push overhead.
+
+### 📚 Documentation
+
+- Updated Docker docs in `README.md` and `CONTRIBUTING.md`:
+  - Promoted Docker Compose as the recommended contributor workflow.
+  - Clarified Docker log hostname behavior (`<container-id>:3000`) vs host access URL (`localhost:3000`).
+
 ## [2.5.2] - 2026-03-13
 
 ### 🧹 Cleanup
