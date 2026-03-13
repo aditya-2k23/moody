@@ -43,18 +43,39 @@ git clone https://github.com/YOUR_USERNAME/moody.git
 cd moody
 ```
 
-### 3. Install Dependencies
+### 3. Preferred: Run with Docker Compose
+
+The easiest contributor workflow is Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+This automatically maps `3000:3000` and uses defaults so the app starts without manually passing env vars.
+
+If you want all integrations enabled (Firebase Admin, Cloudinary deletion, AI insights, Redis cache), create `.env` from [`.env.example`](./.env.example) and fill real values.
+
+Note: container logs can show a URL like `http://<container-id>:3000`. That is Docker-internal. Open `http://localhost:3000` on your host machine.
+
+### 4. Alternative: Run with local Node.js
+
+If you prefer not to use Docker:
+
+* install Node.js 20+
+* run the setup steps below (`npm install`, env setup, `npm run dev`)
+
+### 5. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 4. Environment Setup
+### 6. Environment Setup
 
 Create a `.env.local` file and add the required Firebase and Cloudinary credentials.
 Refer to [`.env.example`](./.env.example) for the required variables.
 
-### 5. Run the Development Server
+### 7. Run the Development Server
 
 ```bash
 npm run dev

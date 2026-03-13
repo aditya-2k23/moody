@@ -67,6 +67,18 @@ A prebuilt Docker image is available for easier setup and consistent environment
 docker pull temaroon/moody:latest
 ```
 
+### One-command local run (recommended for contributors)
+
+If you cloned this repository, you can start Moody with Docker Compose:
+
+```sh
+docker compose up --build
+```
+
+This maps port `3000:3000` automatically and includes safe defaults so the app can boot without manually passing env vars. If you want full integrations (Firebase Admin, Cloudinary deletion, AI insights, Redis cache), create a `.env` from `.env.example` and fill the real values.
+
+Note: container logs may print a URL like `http://<container-id>:3000`. That is the internal Docker hostname. On your machine, open [http://localhost:3000](http://localhost:3000).
+
 ### Run the container
 
 You must provide the required environment variables. You can pass them individually or use an `.env` file.
