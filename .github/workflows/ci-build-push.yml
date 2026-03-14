@@ -9,6 +9,9 @@ on:
       - "LICENSE"
       - ".vscode/**"
 
+permissions:
+  contents: read
+
 concurrency:
   group: docker-build-${{ github.ref }}
   cancel-in-progress: true
