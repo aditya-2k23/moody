@@ -1,4 +1,4 @@
-# Moody: Your Personal AI Powered Mood Tracker
+# Moody: Scalable AI Mood Tracking Platform
 
 [![GitHub](https://img.shields.io/badge/Repository-blue?logo=github)](https://github.com/aditya-2k23/moody)
 [![License](https://img.shields.io/badge/LICENSE-MIT-yellow?logo=license.svg)](https://github.com/aditya-2k23/moody/blob/main/LICENSE)
@@ -56,6 +56,48 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **lucide-react** (Icons)
 - **Tailwind CSS**
 - **react-hot-toast**
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+
+%% Client Layer
+User["User Device / Browser"]
+CDN["Edge CDN (Cloudinary + Static Assets)"]
+
+%% Application Layer
+NextApp["Next.js App Router (Client + Server Components)"]
+ServerActions["Server Actions / API Routes (Stateless Compute)"]
+
+%% Service Layer
+Auth["Firebase Authentication"]
+DB["Firestore (Mood & Journal Data)"]
+Cache["Upstash Redis (AI Cache Layer)"]
+AI["Google Gemini API (AI Insights Engine)"]
+Media["Cloudinary Media Storage"]
+
+%% Flow
+User --> CDN
+CDN --> NextApp
+
+NextApp --> Auth
+NextApp --> ServerActions
+
+ServerActions --> DB
+ServerActions --> Media
+
+ServerActions --> Cache
+
+Cache -- Cache Hit --> ServerActions
+Cache -- Cache Miss --> AI
+
+AI --> Cache
+AI --> ServerActions
+
+ServerActions --> NextApp
+NextApp --> User
+```
 
 ## 🐳 Docker Support
 
