@@ -135,7 +135,7 @@ Join the discussion here:
 
 ## Docker Automation & Versioning
 
-This project uses GitHub Actions to automatically build and push Docker images to Docker Hub whenever changes are merged into the `main` branch.
+This project uses GitHub Actions to automatically build and push Docker images to both Docker Hub and GitHub Container Registry (GHCR) whenever changes are merged into the `main` branch.
 
 * **Version Management**: The Docker image version is tied directly to the `version` field in `package.json`.
 * **Contributor Requirement**: When submitting a Pull Request that introduces new features or fixes, please **increment the version** in `package.json` (following [SemVer](https://semver.org/)). This ensures that the new Docker image is correctly tagged and available for users.

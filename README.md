@@ -105,8 +105,16 @@ A prebuilt Docker image is available for easier setup and consistent environment
 
 ### Pull the image
 
+You can pull the prebuilt image from Docker Hub or GitHub Container Registry (GHCR):
+
+**Docker Hub:**
 ```sh
 docker pull temaroon/moody:latest
+```
+
+**GitHub Container Registry (GHCR):**
+```sh
+docker pull ghcr.io/aditya-2k23/moody:latest
 ```
 
 ### One-command local run (recommended for contributors)
