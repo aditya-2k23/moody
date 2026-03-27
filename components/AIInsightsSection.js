@@ -2,43 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { moods } from "@/utils";
-import { Check, Sparkles, MessageCircle } from "lucide-react";
+import { Check, Sparkles, MessageCircle, Bot } from "lucide-react";
 import AIChatBox from "./AIChatBox";
 
 /**
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
- * 
- * States:
- * - isGenerating: true while fetching AI results (shows skeleton/loading)
- * - hasResult: true when insights data is available
- * 
- * Animations:
- * - Section entrance: fade + slide up (200-300ms)
- * - Loading: blur + shimmer effect on skeleton
- * - Results: smooth blur removal + content fade-in
  */
 export default function AIInsightsSection({ insights, isLoading, userId }) {
-  // Track if component should be visible (for entrance animation)
   const [isVisible, setIsVisible] = useState(false);
-  // Track if content has finished loading (for blur transition)
   const [showContent, setShowContent] = useState(false);
-
-  // Chat integration states
   const [chatId, setChatId] = useState("");
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // When a new insight arrives, generate a fresh chat ID and close any open chat
+  // When a new insight arrives, generate a fresh chat ID
   useEffect(() => {
     if (insights && (insights.response || insights.insight) && !isLoading) {
       setChatId(crypto.randomUUID());
-      setIsChatOpen(false);
     }
   }, [insights, isLoading]);
 
-  // Handle entrance animation
   useEffect(() => {
     if (isLoading || insights) {
-      // Small delay to ensure DOM is ready for animation
       const timer = setTimeout(() => setIsVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
@@ -47,10 +30,8 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
     }
   }, [isLoading, insights]);
 
-  // Handle content reveal after loading completes
   useEffect(() => {
     if (insights && !isLoading) {
-      // Small delay for smooth blur-to-content transition
       const timer = setTimeout(() => setShowContent(true), 50);
       return () => clearTimeout(timer);
     } else if (isLoading) {
@@ -58,157 +39,113 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
     }
   }, [insights, isLoading]);
 
-  // Don't render if neither loading nor has insights
   if (!isLoading && !insights) return null;
 
   return (
     <div
-      className={`transition-all duration-300 ease-out ${isVisible
+      className={`transition-all duration-500 ease-out ${isVisible
         ? "opacity-100 translate-y-0"
-        : "opacity-0 translate-y-2"
+        : "opacity-0 translate-y-4"
         }`}
     >
       {/* Section Header */}
-      <h2 className="text-xl md:text-2xl flex gap-1 md:gap-2 mt-2 md:mt-4 mb-6 font-bold text-gray-800 dark:text-gray-200 fugaz">
-        <Sparkles size={20} />
-        AI Insights
+      <h2 className="text-xl md:text-2xl flex items-center gap-2 mt-2 md:mt-4 mb-6 font-bold text-gray-800 dark:text-gray-200 fugaz">
+        <Sparkles size={24} className="text-indigo-500" />
+        Reflections with Lumi
         {showContent && insights && (
-          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/40 dark:text-green-300 animate-insights-badge">
-            <Check className="mr-1" size={10} />
-            Analysis Complete
+          <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 animate-insights-badge shadow-sm">
+            <Check className="mr-1" size={12} />
+            Lumi is ready
           </span>
         )}
       </h2>
 
-      {/* Emotional Triggers Card */}
+      {/* Unified Insight Card */}
       <InsightCard
         isLoading={isLoading}
         showContent={showContent}
         gradientPositions={{
           top: "top-0 left-10",
-          topColors: "from-yellow-400/40 to-orange-400/30 dark:from-purple-400/40 dark:to-indigo-400/40"
-        }}
-      >
-        {insights && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-500/75 sm:bg-purple-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">🧩</span>
-                </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">
-                  emotional triggers
-                </h3>
-              </div>
-
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">
-                  {insights.mood}
-                </span>
-              </div>
-            </div>
-
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-              What Influenced your Mood
-            </h4>
-
-            {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {insights.triggers.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-block bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 dark:border-none shadow-sm hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-all duration-150"
-                    style={{ animationDelay: `${idx * 50}ms` }}
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </InsightCard>
-
-      {/* Personalized Insight Card */}
-      <InsightCard
-        isLoading={isLoading}
-        showContent={showContent}
-        className="mt-6"
-        gradientPositions={{
-          top: "top-0 left-10",
-          topColors: "from-yellow-400/40 to-orange-400/30 dark:from-cyan-400/30 dark:to-sky-400/30",
+          topColors: "from-yellow-300/35 to-orange-300/25 dark:from-purple-400/30 dark:to-indigo-400/30",
           bottom: "bottom-1 right-12",
-          bottomColors: "from-lime-400/50 to-green-500/40 dark:from-lime-400/30 dark:to-green-300/30"
+          bottomColors: "from-lime-400/40 to-green-500/30 dark:from-lime-400/20 dark:to-green-300/20"
         }}
       >
         {insights && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/75 sm:bg-blue-500/90 rounded-xl flex items-center justify-center cursor-default glow">
-                  <span className="text-2xl">💡</span>
+          <div className="flex flex-col xl:flex-row gap-8 lg:gap-10">
+            {/* Left side: Analysis & Triggers */}
+            <div className="flex-1 space-y-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 glow">
+                    <Bot size={20} className="text-white" />
+                  </div>
+                  <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest dark:text-indigo-400">
+                    Lumi's Thoughts
+                  </h3>
                 </div>
-                <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400">
-                  PERSONALIZED INSIGHT
-                </h3>
+
+                <div className="flex bg-indigo-50 dark:bg-slate-800/80 rounded-2xl p-2 items-center gap-2 shadow-sm border border-indigo-100 dark:border-slate-700/50">
+                  <span className="text-2xl">{moods[insights.mood] || '😄'}</span>
+                  <span className="text-sm px-1 font-bold text-indigo-600 dark:text-indigo-400 capitalize fugaz pr-2">
+                    {insights.mood}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col items-center justify-between min-w-[90px]">
-                <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">
-                  {insights.mood}
-                </span>
+              <div>
+                <h4 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 leading-tight">
+                  {insights.headline || "Your Personalized Insight"}
+                </h4>
+
+                <p className="text-gray-600 dark:text-gray-300 text-base md:text-lg leading-relaxed">
+                  {insights.response || insights.insight}
+                </p>
               </div>
+
+              {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
+                <div className="pt-2">
+                  <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Key Influences</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {insights.triggers.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center bg-white dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5"
+                        style={{ animationDelay: `${idx * 50}ms` }}
+                      >
+                        <span className="text-indigo-400 dark:text-indigo-500 mr-1">#</span>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(insights.followUpQuestion || insights.pro_tip) && (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                  <div className="flex items-start gap-3 relative z-10">
+                    <span className="text-xl mt-0.5">💡</span>
+                    <div>
+                      <h5 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 mb-1">
+                        {insights.followUpQuestion ? 'For Your Reflection' : 'Pro Tip'}
+                      </h5>
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+                        {insights.followUpQuestion || insights.pro_tip}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-              {insights.headline || "Personalized Insight"}
-            </h4>
-
-            <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed mb-4">
-              {insights.response || insights.insight}
-            </p>
-
-            {/* Backwards compatibility for old insights with 'pro_tip', and new insights with 'followUpQuestion' */}
-            {insights.followUpQuestion && (
-              <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3 mb-4">
-                <p className="text-sm text-lime-600 dark:text-lime-300">
-                  <span className="font-semibold dark:font-bold">💡 Follow Up:</span> {insights.followUpQuestion}
-                </p>
-              </div>
-            )}
-            
-            {!insights.followUpQuestion && insights.pro_tip && (
-              <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3 mb-4">
-                <p className="text-sm text-lime-600 dark:text-lime-300">
-                  <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
-                </p>
-              </div>
-            )}
-
-            {/* Continue Conversation Chat CTA */}
-            {userId && (insights.response || insights.insight) && !isChatOpen && (
-              <div className="flex justify-center mt-6">
-                <button
-                  onClick={() => setIsChatOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium transition-colors"
-                >
-                  <MessageCircle size={16} />
-                  Continue Conversation
-                </button>
-              </div>
-            )}
-
-            {isChatOpen && (
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
-                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400 mb-2">
-                  Chat with AI
-                </h4>
+            {/* Right side: AI Chat Component */}
+            {userId && (insights.response || insights.insight) && (
+              <div className="flex-1 xl:max-w-md w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-100 dark:border-slate-800/80 xl:pl-8">
                 <AIChatBox chatId={chatId} userId={userId} />
               </div>
             )}
-          </>
+          </div>
         )}
       </InsightCard>
     </div>
@@ -227,51 +164,54 @@ function InsightCard({
 }) {
   return (
     <div
-      className={`bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden ${className}`}
+      className={`bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden ${className}`}
     >
       {/* Background gradients */}
       {gradientPositions.top && (
-        <div className={`absolute ${gradientPositions.top} w-28 h-28 bg-gradient-to-tr ${gradientPositions.topColors} rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute ${gradientPositions.top} w-40 h-40 bg-gradient-to-tr ${gradientPositions.topColors} rounded-full blur-3xl pointer-events-none`} />
       )}
       {gradientPositions.bottom && (
-        <div className={`absolute ${gradientPositions.bottom} w-28 h-28 bg-gradient-to-tr ${gradientPositions.bottomColors} rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute ${gradientPositions.bottom} w-40 h-40 bg-gradient-to-tr ${gradientPositions.bottomColors} rounded-full blur-3xl pointer-events-none`} />
       )}
 
       {/* Loading Skeleton */}
       {isLoading && (
-        <div className="relative z-10 animate-insights-skeleton">
+        <div className="relative z-10 animate-insights-skeleton space-y-8">
           {/* Shimmer overlay */}
-          <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent" />
+          <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20" />
 
-          {/* Skeleton content */}
-          <div className="space-y-4 opacity-70">
-            {/* Header skeleton */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse" />
-                <div className="h-4 w-32 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+          <div className="flex flex-col xl:flex-row gap-8 lg:gap-10 opacity-70">
+            {/* Left Skeleton */}
+            <div className="flex-1 space-y-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                  <div className="h-4 w-32 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+                </div>
+                <div className="w-20 h-10 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
               </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-slate-700 rounded-full animate-pulse" />
-                <div className="h-3 w-12 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+
+              <div className="h-8 w-3/4 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+
+              <div className="space-y-3">
+                <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <div className="h-3 w-24 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="flex gap-2">
+                  <div className="h-8 w-20 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+                  <div className="h-8 w-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+                  <div className="h-8 w-16 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+                </div>
               </div>
             </div>
 
-            {/* Title skeleton */}
-            <div className="h-6 w-48 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-
-            {/* Content skeleton */}
-            <div className="space-y-2">
-              <div className="h-4 w-full bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-              <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-              <div className="h-4 w-4/6 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-            </div>
-
-            {/* Tags skeleton */}
-            <div className="flex gap-2 mt-4">
-              <div className="h-6 w-16 bg-gray-200 dark:bg-slate-700 rounded-full animate-pulse" />
-              <div className="h-6 w-20 bg-gray-200 dark:bg-slate-700 rounded-full animate-pulse" />
-              <div className="h-6 w-14 bg-gray-200 dark:bg-slate-700 rounded-full animate-pulse" />
+            {/* Right chat skeleton */}
+            <div className="flex-1 xl:max-w-md w-full">
+              <div className="h-96 w-full bg-gray-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
             </div>
           </div>
         </div>
@@ -286,7 +226,7 @@ function InsightCard({
 
       {/* Blur overlay during loading (applied to content area only) */}
       {isLoading && (
-        <div className="absolute inset-0 backdrop-blur-[2px] bg-white/10 dark:bg-slate-900/10 rounded-2xl transition-all duration-300 pointer-events-none" />
+        <div className="absolute inset-0 backdrop-blur-[4px] bg-white/30 dark:bg-slate-900/40 rounded-[2rem] transition-all duration-300 pointer-events-none" />
       )}
     </div>
   );
