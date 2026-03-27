@@ -6,6 +6,7 @@ import Input from "./Input";
 import Link from "next/link";
 import { useAuth } from "@/context/authContext";
 import toast, { Toaster } from "react-hot-toast";
+import GlowBackground from "./GlowBackground";
 
 export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [email, setEmail] = useState("");
@@ -70,12 +71,14 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
   };
 
   return (
-    <div
-      className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4'
-      onKeyDown={handleKeyDown}
-      tabIndex={-1}
-    >
-      <Toaster position="top-center" />
+    <>
+      <GlowBackground />
+      <div
+        className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4 z-10'
+        onKeyDown={handleKeyDown}
+        tabIndex={-1}
+      >
+        <Toaster position="top-center" />
 
       <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
       <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
@@ -134,5 +137,6 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         isRegister ? "Already have an account?" : "Don't have an account?"
       } <Button onClick={() => setIsRegister(!isRegister)} className="text-indigo-600 dark:text-indigo-400 hover:opacity-80" text={isRegister ? "Sign In" : "Sign Up"} normal={false} /></p>
     </div>
+    </>
   )
 }
