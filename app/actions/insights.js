@@ -1,48 +1,31 @@
 "use server";
 
 import { redis } from "@/lib/redis";
-import { hashText } from "@/utils/hash";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
-const GLOBAL_TIMEOUT_MS = 50_000; // 50s total deadline
-const AI_TIMEOUT_MS = 15_000; // 15s timeout per model attempt
+const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
+const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
+const SIMILARITY_THRESHOLD = 0.85; // 0.85 indicates semantic similarity
+const GLOBAL_TIMEOUT_MS = 90_000; // 90s total deadline
+const AI_TIMEOUT_MS = 30_000; // 30s timeout per model attempt
 
 // ===== MODEL FALLBACK CHAIN =====
-// Ordered by preference: newest first, highest-capacity last as safety net.
-// Daily free-tier limits: 3-Flash ~20 RPD, 2.5-Flash ~20 RPD, 2.0-Flash ~1500 RPD.
-// Total effective capacity: ~1540 requests/day.
 const MODEL_CHAIN = [
   { id: "gemini-3-flash-preview", label: "3-Flash" },
   { id: "gemini-2.5-flash", label: "2.5-Flash" },
   { id: "gemini-2.0-flash", label: "2.0-Flash" },
 ];
 
-// ===== MODEL INSTANCE HELPERS =====
-
-/**
- * Validate that the GEMINI_API_KEY is present.
- * Throws a user-friendly error if missing.
- */
 function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
-
   if (!apiKey || apiKey.trim() === "") {
-    console.error(
-      "[Gemini] GEMINI_API_KEY environment variable is missing or empty. " +
-      "Please set it to your Google Gemini API key."
-    );
+    console.error("[Gemini] GEMINI_API_KEY environment variable is missing.");
     throw new Error("AI service is not configured. Please contact support.");
   }
-
   return apiKey;
 }
 
-/**
- * Create a Gemini model instance for the given model ID.
- * Instances are lightweight, so we create fresh ones per request
- * to allow seamless fallback between models.
- */
 function getModelInstance(modelId) {
   const apiKey = getApiKey();
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -51,56 +34,35 @@ function getModelInstance(modelId) {
 
 // ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
 
-/**
- * Calculate seconds remaining until the next midnight in Pacific Time (America/Los_Angeles).
- * Used as TTL so exhaustion flags auto-reset when Google's daily quotas reset.
- */
 function secondsUntilMidnight() {
   const now = new Date();
   const options = { timeZone: "America/Los_Angeles", hour12: false };
   const ptTime = new Date(now.toLocaleString("en-US", options));
   const ptMidnight = new Date(ptTime);
   ptMidnight.setHours(24, 0, 0, 0);
-  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60); // minimum 60s to avoid edge cases
+  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60); 
 }
 
-/**
- * Mark a model as exhausted in Redis. The key expires at midnight
- * so the model becomes available again when Google resets daily quotas.
- */
 async function markModelExhausted(modelId) {
   try {
     const ttl = secondsUntilMidnight();
     await redis.set(`model:exhausted:${modelId}`, "1", { ex: ttl });
     console.warn(`[Insights] Marked ${modelId} as exhausted (TTL: ${ttl}s until midnight)`);
   } catch (error) {
-    // Non-critical: if Redis fails, we'll just retry the model next time
     console.error("[Insights] Failed to mark model exhausted in Redis:", error.message);
   }
 }
 
-/**
- * Return the ordered list of models that are NOT currently marked as exhausted.
- * Uses a single redis.mget() call for efficiency.
- */
 async function getAvailableModels() {
   try {
     const keys = MODEL_CHAIN.map((m) => `model:exhausted:${m.id}`);
     const results = await redis.mget(...keys);
-
     return MODEL_CHAIN.filter((_, index) => !results[index]);
   } catch (error) {
-    // If Redis is down, return the full chain — we'll discover exhaustion via API errors
-    console.error("[Insights] Failed to check model exhaustion (using full chain):", error.message);
     return [...MODEL_CHAIN];
   }
 }
 
-/**
- * Determine if an error is retryable (model-specific issue that another model may not have).
- * Includes: quota/rate limits, access errors, and timeouts.
- * A timeout on one model doesn't mean the next one will also timeout.
- */
 function isRetryableError(error) {
   const msg = error.message || "";
   const isQuotaOrAccess =
@@ -117,11 +79,6 @@ function isRetryableError(error) {
   return isQuotaOrAccess || isTimeout || isFormat;
 }
 
-/**
- * Determine if a retryable error is specifically a quota error
- * (should mark the model as exhausted) vs a transient error like a timeout
- * (should try next model but NOT mark as exhausted since it may work later).
- */
 function isQuotaError(error) {
   const msg = error.message || "";
   return (
@@ -132,24 +89,87 @@ function isQuotaError(error) {
   );
 }
 
-/**
- * Generate cache key for insights.
- * Format: insight:{userId}:{YYYY-MM-DD}:{hash}
- * Uses local date to align with Firestore's client-local daily entry logic.
- */
-function generateCacheKey(userId, journalText) {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const localDate = `${year}-${month}-${day}`;
-  const contentHash = hashText(journalText);
-  return `insight:${userId}:${localDate}:${contentHash}`;
+// ===== SEMANTIC CACHING UTILITIES =====
+
+async function getEmbedding(text) {
+  try {
+    const apiKey = getApiKey();
+    const ai = new GoogleGenAI({ apiKey });
+    let result;
+    try {
+      result = await ai.models.embedContent({
+        model: 'gemini-embedding-001',
+        contents: [text],
+        config: { taskType: 'SEMANTIC_SIMILARITY' }
+      });
+    } catch (err) {
+      if (err.message?.includes("404") || err.message?.includes("not found")) {
+        console.warn("[Insights] gemini-embedding-001 not found, falling back to gemini-embedding-2-preview...");
+        result = await ai.models.embedContent({
+          model: 'gemini-embedding-2-preview',
+          contents: [text],
+          config: { taskType: 'SEMANTIC_SIMILARITY' }
+        });
+      } else {
+        throw err;
+      }
+    }
+    // Result has `embeddings` array
+    return result.embeddings[0].values;
+  } catch (error) {
+    console.error("[Insights] Embedding generation failed:", error.message);
+    return null; // Silent fail gracefully
+  }
 }
 
-/**
- * AI prompt for journal analysis.
- */
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function fetchUserEmbeddings(userId) {
+  try {
+    const raw = await redis.get(`embeddings:${userId}`);
+    const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (Array.isArray(data)) return data;
+    return [];
+  } catch (error) {
+    console.error("[Insights] Redis embedding fetch failed:", error.message);
+    return [];
+  }
+}
+
+async function storeUserEmbedding(userId, embedding, response) {
+  if (!embedding) return;
+  try {
+    const key = `embeddings:${userId}`;
+    let data = await fetchUserEmbeddings(userId);
+    data.push({
+      embedding,
+      response,
+      createdAt: Date.now()
+    });
+    // Slice to limit size and maintain performance
+    if (data.length > MAX_EMBEDDINGS) {
+      data = data.slice(data.length - MAX_EMBEDDINGS);
+    }
+    await redis.set(key, data, { ex: CACHE_TTL_SECONDS });
+  } catch (error) {
+    console.error("[Insights] Redis embedding store failed:", error.message);
+  }
+}
+
+// ===== PROMPT BUILDERS =====
+
 function buildPrompt(journalEntry) {
   return `You are a deeply empathetic AI companion inside a journaling app.
 
@@ -194,67 +214,139 @@ Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, T
 `;
 }
 
-/**
- * Generate AI insight with Redis cache-first strategy.
- * 
- * CONTROL FLOW:
- * - Phase 1: Cache read (EARLY RETURN on hit)
- * - Phase 2: AI generation (ONLY on miss or forceRegenerate)
- * These phases are mutually exclusive.
- * 
- * @param {string} userId - Firebase user ID
- * @param {string} journalText - Journal entry text
- * @param {boolean} forceRegenerate - Skip cache and regenerate
- * @returns {Promise<object>} - AI insight object
- */
+function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline) {
+  return `You are a deeply empathetic AI companion inside a journaling app.
+The user wrote a journal entry that is semantically similar to a recent one. 
+Your task is to generate ONLY a fresh, non-repetitive response and a brand new follow-up question.
+
+PREVIOUSLY DETECTED MOOD: ${cachedMood}
+PREVIOUS TRIGGERS: ${cachedTriggers.join(", ")}
+PREVIOUS HEADLINE: ${cachedHeadline}
+
+CURRENT JOURNAL ENTRY:
+"""
+${journalEntry}
+"""
+
+TASK:
+1. Write a response (3-5 sentences):
+- Acknowledge that the feeling or situation is recurring or similar to before, but maintain a deeply supportive, empathetic friend persona.
+- Keep it highly natural and human. Avoid sounding automated or clinical.
+
+2. Identify ONE key focus (problem or positive moment) from the current entry.
+
+3. Generate ONE followUpQuestion:
+- Keep it grounded in the current entry.
+- Try a slightly different angle from what you normally ask, to encourage new exploration.
+- Avoid multiple questions.
+`;
+}
+
+// ===== CORE GENERATOR =====
+
 export async function generateInsight(userId, journalText, forceRegenerate = false) {
-  // ===== VALIDATION =====
   if (!userId || !journalText?.trim()) {
     return { success: false, error: "User ID and journal text are required." };
   }
 
-  const cacheKey = generateCacheKey(userId, journalText);
+  let embedding = null;
+  let cachedData = null;
+  let isCacheHit = false;
 
-  // ===== PHASE 1: CACHE READ (EARLY RETURN) =====
-  // If forceRegenerate is false, check cache and return immediately if found
+  let pureMaxSimilarity = -1; // To check deduplication limit
+
+  // ===== PHASE 1: SEMANTIC CACHING =====
   if (!forceRegenerate) {
-    try {
-      const cached = await redis.get(cacheKey);
+    embedding = await getEmbedding(journalText);
+    
+    if (embedding) {
+      const stored = await fetchUserEmbeddings(userId);
+      let bestMatch = null;
+      let highestSimilarityScore = -1;
 
-      if (cached && typeof cached === "object" && cached.mood) {
-        return { success: true, data: cached };
+      const dynamicThreshold = journalText.length < 50 ? 0.80 : SIMILARITY_THRESHOLD;
+      const now = Date.now();
+      const maxAgeMs = CACHE_TTL_SECONDS * 1000;
+
+      // Find highest similarity vector
+      for (const item of stored) {
+        if (!item.embedding) continue;
+        const sim = cosineSimilarity(embedding, item.embedding);
+        
+        // Track raw similarity for exact-duplicate logic
+        if (sim > pureMaxSimilarity) pureMaxSimilarity = sim;
+
+        // Apply recency factoring (80% similarity, 20% recency)
+        const itemAgeMs = now - (item.createdAt || now);
+        const recencyWeight = Math.max(0, 1 - (itemAgeMs / maxAgeMs));
+        const finalScore = (sim * 0.8) + (recencyWeight * 0.2);
+
+        if (finalScore > highestSimilarityScore) {
+          highestSimilarityScore = finalScore;
+          bestMatch = item;
+        }
       }
-    } catch (error) {
-      console.error("[Insights] Cache read error (proceeding to AI generation):", error);
-      // Fall through to AI generation
+
+      if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
+        isCacheHit = true;
+        cachedData = bestMatch.response;
+        console.log(`[Insights] Semantic cache hit. Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
+      } else {
+        console.log(`[Insights] Semantic cache miss. Highest Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
+      }
     }
   }
 
-  // ===== PHASE 2: AI GENERATION WITH CASCADING MODEL FALLBACK =====
-  // Try each model in the chain until one succeeds.
-  // Retryable errors (429/403/timeout) fall through to the next model.
-  // Quota errors (429/403) also mark the model as exhausted.
-  // Non-retryable errors (parse, validation) return immediately.
-
+  // ===== PHASE 2: GENERATION ======
   const availableModels = await getAvailableModels();
 
   if (availableModels.length === 0) {
-    console.error("[Insights] All models are exhausted for today");
-    return {
-      success: false,
-      error: "All AI models are currently at capacity. Please try again tomorrow.",
-    };
+    return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
   }
 
-  const prompt = buildPrompt(journalText);
   let insight;
   let modelUsed = null;
   const startTime = Date.now();
 
+  const prompt = isCacheHit 
+    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline)
+    : buildPrompt(journalText);
+
+  // Define dynamic schema based on cache miss/hit
+  const fullSchemaProperties = {
+    mood: {
+      type: "string",
+      enum: [
+        "Elated", "Good", "Existing", "Sad", "Awful", "Angry",
+        "Anxious", "Unsure", "Excited", "Grateful", "Tired",
+        "Stressed", "Neutral",
+      ],
+    },
+    triggers: { type: "array", items: { type: "string" } },
+    response: { type: "string" },
+    focus: { type: "string" },
+    followUpQuestion: { type: "string" },
+    headline: { type: "string" },
+  };
+
+  const currentSchema = isCacheHit 
+    ? {
+        type: "object",
+        properties: {
+          response: { type: "string" },
+          focus: { type: "string" },
+          followUpQuestion: { type: "string" }
+        },
+        required: ["response", "focus", "followUpQuestion"],
+      }
+    : {
+        type: "object",
+        properties: fullSchemaProperties,
+        required: ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"],
+      };
+
   for (let i = 0; i < availableModels.length; i++) {
-    // Check global deadline
     if (Date.now() - startTime >= GLOBAL_TIMEOUT_MS) {
-      console.error("[Insights] Global timeout exceeded across fallback loop.");
       return { success: false, error: "AI request timed out due to slow models. Please try again." };
     }
 
@@ -263,8 +355,6 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
     try {
       const model = getModelInstance(modelId);
-
-      // Abort controller to prevent Netlify 504 Gateway Timeout
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
@@ -274,25 +364,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: "application/json",
-            responseSchema: {
-              type: "object",
-              properties: {
-                mood: {
-                  type: "string",
-                  enum: [
-                    "Elated", "Good", "Existing", "Sad", "Awful", "Angry",
-                    "Anxious", "Unsure", "Excited", "Grateful", "Tired",
-                    "Stressed", "Neutral",
-                  ],
-                },
-                triggers: { type: "array", items: { type: "string" } },
-                response: { type: "string" },
-                focus: { type: "string" },
-                followUpQuestion: { type: "string" },
-                headline: { type: "string" },
-              },
-              required: ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"],
-            },
+            responseSchema: currentSchema,
           },
         }, { signal: controller.signal });
       } finally {
@@ -300,8 +372,6 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       }
 
       let text = result.response.text();
-
-      // Clean up response
       text = text.trim();
       if (text.startsWith("```")) {
         text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
@@ -309,80 +379,53 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
       const parsed = JSON.parse(text);
 
-      if (!validateInsight(parsed)) {
-        throw new Error("Validation Failed");
+      // Simple validation mapping structure
+      const requiredFields = isCacheHit ? ["response", "focus", "followUpQuestion"] : ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
+      
+      for (const field of requiredFields) {
+        if (!(field in parsed)) throw new Error("Validation Failed");
       }
 
-      insight = parsed;
-      modelUsed = modelId;
-      break; // Success — exit the fallback loop
+      // Merge on hit, map completely on miss
+      if (isCacheHit) {
+        insight = {
+          ...cachedData,
+          response: parsed.response,
+          focus: parsed.focus,
+          followUpQuestion: parsed.followUpQuestion
+        };
+      } else {
+        insight = parsed;
+      }
 
+      modelUsed = modelId;
+      break; 
     } catch (error) {
       console.error(`[Insights] ${modelLabel} error:`, error.message);
 
-      // --- RETRYABLE ERRORS: try next model ---
       if (isRetryableError(error)) {
-        // Only mark as exhausted for quota/access errors, not timeouts
-        if (isQuotaError(error)) {
-          await markModelExhausted(modelId);
-        }
+        if (isQuotaError(error)) await markModelExhausted(modelId);
 
-        if (!isLastModel) {
-          const nextLabel = availableModels[i + 1].label;
-          let reason = "timed out";
-          if (isQuotaError(error)) reason = "exhausted";
-          else if (error.message?.includes("JSON") || error.message?.includes("Validation Failed")) reason = "format error";
+        if (!isLastModel) continue;
 
-          console.warn(`[Insights] ${modelLabel} ${reason}, falling through to ${nextLabel}...`);
-          continue; // Try next model
-        }
-
-        // Last model also failed
-        if (isQuotaError(error)) {
-          return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
-        }
-        if (error.message?.includes("JSON")) {
-          return { success: false, error: "Failed to parse AI response. Please try again." };
-        }
-        if (error.message?.includes("Validation Failed")) {
-          return { success: false, error: "AI response validation failed. Please try again." };
-        }
+        if (isQuotaError(error)) return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
+        if (error.message?.includes("JSON") || error.message?.includes("Validation Failed")) return { success: false, error: "AI response validation failed. Please try again." };
         return { success: false, error: "AI request timed out across all models. Please try again." };
       }
 
-      // --- NON-RETRYABLE ERRORS: return immediately (no point trying another model) ---
-      if (error.message?.includes("not configured")) {
-        return { success: false, error: "AI service is not configured. Please contact support." };
-      }
+      if (error.message?.includes("not configured")) return { success: false, error: "AI service is not configured. Please contact support." };
       return { success: false, error: "Something went wrong. Please try again." };
     }
   }
 
-  // ===== PHASE 3: CACHE WRITE =====
-  try {
-    await redis.set(cacheKey, insight, { ex: CACHE_TTL_SECONDS });
-  } catch (error) {
-    console.error("[Insights] ⚠️ Cache write error (returning AI result anyway):", error);
+  // ===== PHASE 3: CACHE PERSISTENCE =====
+  // We only store the new embedding on a pure cache miss and if it's not a near-exact duplicate
+  const isDuplicate = pureMaxSimilarity > 0.95;
+  if (!isCacheHit && !isDuplicate && insight && embedding) {
+    await storeUserEmbedding(userId, embedding, insight);
+  } else if (!isCacheHit && isDuplicate) {
+    console.log("[Insights] Skipping cache store: Entry is a highly similar duplicate.");
   }
 
   return { success: true, data: insight, modelUsed };
-}
-
-function validateInsight(data) {
-  if (!data || typeof data !== "object") return false;
-
-  const requiredFields = ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
-
-  for (const field of requiredFields) {
-    if (!(field in data)) return false;
-  }
-
-  if (typeof data.mood !== "string") return false;
-  if (!Array.isArray(data.triggers)) return false;
-  if (typeof data.response !== "string") return false;
-  if (typeof data.focus !== "string") return false;
-  if (typeof data.followUpQuestion !== "string") return false;
-  if (typeof data.headline !== "string") return false;
-
-  return true;
 }
