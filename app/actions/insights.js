@@ -151,45 +151,46 @@ function generateCacheKey(userId, journalText) {
  * AI prompt for journal analysis.
  */
 function buildPrompt(journalEntry) {
-  return `You are an empathetic AI journal assistant analyzing emotional well-being.
+  return `You are a deeply empathetic AI companion inside a journaling app.
+
+Your role is to:
+- Act like a close, emotionally intelligent friend
+- Respond naturally, not like a therapist or report generator
+- Be warm, human, and specific to what the user shared
+- Celebrate wins enthusiastically but genuinely
+- Comfort difficult emotions without being preachy or generic
 
 JOURNAL ENTRY:
 """
 ${journalEntry}
 """
 
-ANALYSIS REQUIREMENTS:
+TASK:
 
-1. MOOD (select exactly one):
-${["Elated", "Good", "Existing", "Sad", "Awful", "Angry", "Anxious",
-      "Unsure", "Excited", "Grateful", "Tired", "Stressed", "Neutral"].join(", ")}
+1. Detect the user's primary mood (choose one):
+Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral
 
-2. TRIGGERS:
-- Extract 2-4 specific words/events/themes from the entry
-- Must be directly referenced in the text
-- Keep concise (1-3 words each)
-- Examples: "work deadline", "friend conflict", "poor sleep"
+2. Extract 2-4 short triggers (1-3 words each)
 
-3. INSIGHT (2-3 sentences):
-- Reflect on what the user expressed
-- Use warm, non-clinical language
-- Acknowledge their experience without judgment
-- Avoid: "It's okay to feel...", "Remember that...", generic therapy phrases
+3. Write a response (3-5 sentences):
+- Start with emotional acknowledgment
+- Reflect something specific from the entry
+- React (celebrate OR support)
+- Keep it natural and human
 
-4. PRO TIP (1 sentence):
-- Actionable and achievable today
-- Tailored to their specific mood/situation
-- Practical, not aspirational
+4. Identify ONE key focus:
+- Either a problem OR a positive moment from the journal
 
-5. HEADLINE (4-8 words):
+5. Generate ONE followUpQuestion:
+- Must feel natural, like a friend asking
+- Should connect to the key focus
+- Should encourage the user to open up more
+- Avoid yes/no questions
+- IMPORTANT: Ask exactly ONE thoughtful question. Do not ask multiple questions.
+
+6. Create a short headline (4-8 words):
 - Creative and personal
 - Match the emotional tone
-- Avoid: "You've Got This", "Stay Strong", generic motivational phrases
-
-CONSTRAINTS:
-- Base analysis ONLY on explicit content in the entry
-- If entry is vague, acknowledge uncertainty in insight
-- Maintain supportive but honest tone
 `;
 }
 
@@ -285,11 +286,12 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
                   ],
                 },
                 triggers: { type: "array", items: { type: "string" } },
-                insight: { type: "string" },
-                pro_tip: { type: "string" },
+                response: { type: "string" },
+                focus: { type: "string" },
+                followUpQuestion: { type: "string" },
                 headline: { type: "string" },
               },
-              required: ["mood", "triggers", "insight", "pro_tip", "headline"],
+              required: ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"],
             },
           },
         }, { signal: controller.signal });
@@ -369,7 +371,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 function validateInsight(data) {
   if (!data || typeof data !== "object") return false;
 
-  const requiredFields = ["mood", "triggers", "insight", "pro_tip", "headline"];
+  const requiredFields = ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
 
   for (const field of requiredFields) {
     if (!(field in data)) return false;
@@ -377,8 +379,9 @@ function validateInsight(data) {
 
   if (typeof data.mood !== "string") return false;
   if (!Array.isArray(data.triggers)) return false;
-  if (typeof data.insight !== "string") return false;
-  if (typeof data.pro_tip !== "string") return false;
+  if (typeof data.response !== "string") return false;
+  if (typeof data.focus !== "string") return false;
+  if (typeof data.followUpQuestion !== "string") return false;
   if (typeof data.headline !== "string") return false;
 
   return true;

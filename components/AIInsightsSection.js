@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { moods } from "@/utils";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, MessageCircle } from "lucide-react";
+import AIChatBox from "./AIChatBox";
 
 /**
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
@@ -16,11 +17,23 @@ import { Check, Sparkles } from "lucide-react";
  * - Loading: blur + shimmer effect on skeleton
  * - Results: smooth blur removal + content fade-in
  */
-export default function AIInsightsSection({ insights, isLoading }) {
+export default function AIInsightsSection({ insights, isLoading, userId }) {
   // Track if component should be visible (for entrance animation)
   const [isVisible, setIsVisible] = useState(false);
   // Track if content has finished loading (for blur transition)
   const [showContent, setShowContent] = useState(false);
+
+  // Chat integration states
+  const [chatId, setChatId] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // When a new insight arrives, generate a fresh chat ID and close any open chat
+  useEffect(() => {
+    if (insights && (insights.response || insights.insight) && !isLoading) {
+      setChatId(crypto.randomUUID());
+      setIsChatOpen(false);
+    }
+  }, [insights, isLoading]);
 
   // Handle entrance animation
   useEffect(() => {
@@ -154,14 +167,47 @@ export default function AIInsightsSection({ insights, isLoading }) {
             </h4>
 
             <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed mb-4">
-              {insights.insight}
+              {insights.response || insights.insight}
             </p>
 
-            <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3">
-              <p className="text-sm text-lime-600 dark:text-lime-300">
-                <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
-              </p>
-            </div>
+            {/* Backwards compatibility for old insights with 'pro_tip', and new insights with 'followUpQuestion' */}
+            {insights.followUpQuestion && (
+              <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3 mb-4">
+                <p className="text-sm text-lime-600 dark:text-lime-300">
+                  <span className="font-semibold dark:font-bold">💡 Follow Up:</span> {insights.followUpQuestion}
+                </p>
+              </div>
+            )}
+            
+            {!insights.followUpQuestion && insights.pro_tip && (
+              <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3 mb-4">
+                <p className="text-sm text-lime-600 dark:text-lime-300">
+                  <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
+                </p>
+              </div>
+            )}
+
+            {/* Continue Conversation Chat CTA */}
+            {userId && (insights.response || insights.insight) && !isChatOpen && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium transition-colors"
+                >
+                  <MessageCircle size={16} />
+                  Continue Conversation
+                </button>
+              </div>
+            )}
+
+            {isChatOpen && (
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide dark:text-gray-400 mb-2">
+                  Chat with AI
+                </h4>
+                <AIChatBox chatId={chatId} userId={userId} />
+              </div>
+            )}
           </>
         )}
       </InsightCard>

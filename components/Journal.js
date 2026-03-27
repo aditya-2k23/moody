@@ -628,7 +628,7 @@ export default function Journal({
       </div>
 
       {/* AI Insights Section */}
-      <AIInsightsSection insights={insights} isLoading={loadingInsights} />
+      <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} />
     </div>
   );
 }
