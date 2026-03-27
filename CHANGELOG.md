@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Next.js Pre-rendering Environment Injection**:
   - Passed Firebase `NEXT_PUBLIC_*` arguments into the Docker `build-args` inside `docker-compose.yml` and `Dockerfile`.
   - Added the corresponding Firebase `build-args` to the GitHub Actions CI workflow (`ci-build-push.yml`).
-  - Fixed an issue where Next.js baked the `AIzaSyDUMMYKEYFORBUILDTIMEONLY000000000` fallback key into the static bundle during container builds.
+  - Fixed an issue where Next.js baked the fallback key into the static bundle during container builds.
 
 ### 📚 Documentation
 
