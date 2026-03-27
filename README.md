@@ -27,7 +27,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **User Authentication**: Sign Up, Log In, and Log Out securely using Firebase Authentication.
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
-- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching for instant repeat lookups.
+- **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching and **Semantic Similarity Search** (Embeddings) for context-aware repeat lookups.
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
@@ -35,7 +35,8 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 ### 🆕 Recent Features & Improvements (v2.5.1)
 
 - **🌟 Interactive Landing Page**: An entirely new landing page experience with `ScrollAnimations`, `ComparisonSection`, `FeaturesGrid`, and a `ScrollToTopButton`.
-- **🤖 AI Insights with Redis Cache**: Journal insights are now generated server-side via Next.js Server Actions and cached in Upstash Redis with content-hash keys and a 7-day TTL — eliminating redundant API calls.
+- **🤖 AI Insights with Semantic Caching**: Journal insights are now generated server-side via Next.js Server Actions and cached in Upstash Redis. We use **Gemini Embeddings (`gemini-embedding-001`)** and Cosine Similarity to find past similar journal entries.
+- **🧠 Context-Aware AI**: If a semantic cache hit occurs (with a dynamic similarity threshold + recency factoring), the app utilizes a distinct lightweight prompt. It reuses the past mood and headline while generating a fresh, supportive response and a new follow-up question, saving API tokens and improving latency while remaining conversational.
 - **👤 Guest Experience**: Try the `GuestMoodSection` right from the landing page. It uses local storage (`hooks/useGuestDraft.js`) to save your draft so you don't lose your entry if you decide to log in.
 - **🤖 Server-Side AI Insights**: Removed the client-side `utils/analyzeJournal.js` utility, transitioning fully to server-side AI generation for enhanced security and performance.
 - **⚖️ Legal Pages**: Added dedicated `Privacy Policy` and `Terms of Service` pages.
@@ -73,8 +74,8 @@ ServerActions["Server Actions / API Routes (Stateless Compute)"]
 %% Service Layer
 Auth["Firebase Authentication"]
 DB["Firestore (Mood & Journal Data)"]
-Cache["Upstash Redis (AI Cache Layer)"]
-AI["Google Gemini API (AI Insights Engine)"]
+Cache["Upstash Redis (Vector Embeddings & AI Cache)"]
+AI["Google Gemini API (Insights & Embeddings)"]
 Media["Cloudinary Media Storage"]
 
 %% Flow
@@ -87,14 +88,18 @@ NextApp --> ServerActions
 ServerActions --> DB
 ServerActions --> Media
 
-ServerActions --> Cache
+ServerActions --> AI (Embeddings Model)
+AI (Embeddings Model) --> ServerActions
 
-Cache -- Cache Hit --> ServerActions
-Cache -- Cache Miss --> AI
+ServerActions --> Cache (Cosine Similarity Search)
 
-AI --> Cache
-AI --> ServerActions
+Cache (Cosine Similarity Search) -- Cache Hit (Sim > 0.85) --> ServerActions (Partial Prompt)
+Cache (Cosine Similarity Search) -- Cache Miss --> AI (Insights Generation)
 
+AI (Insights Generation) --> Cache (Save Embedding)
+AI (Insights Generation) --> ServerActions
+
+ServerActions (Partial Prompt) --> AI (Insights Generation)
 ServerActions --> NextApp
 NextApp --> User
 ```
