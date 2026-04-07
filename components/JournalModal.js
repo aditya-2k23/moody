@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { AlertTriangle, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import { AlertTriangle, Loader2, Pencil, Save, Trash2, X, Sparkles, Bot, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import convertMood, { moods } from "@/utils";
 import RadialMoodMenu from "./RadialMoodMenu";
 import NewFeatureDot from "./NewFeatureDot";
+import ChatContainer from "./chat/ChatContainer";
+import { db } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function JournalModal({
   isOpen,
@@ -16,6 +19,7 @@ export default function JournalModal({
   mood,
   journal,
   isAuthed,
+  userId,
   onSave,
   onDelete,
   onClose,
@@ -29,6 +33,12 @@ export default function JournalModal({
   const [deleting, setDeleting] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
+  // Insights panel state
+  const [showInsights, setShowInsights] = useState(false);
+  const [dayInsights, setDayInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [chatFullscreen, setChatFullscreen] = useState(false);
+
   const modalRef = useRef(null);
 
   // Reset state when modal opens with new data
@@ -39,6 +49,9 @@ export default function JournalModal({
       setDraftMood(mood);
       setConfirmDelete(false);
       setConfirmDiscard(false);
+      setShowInsights(false);
+      setDayInsights(null);
+      setChatFullscreen(false);
     }
   }, [isOpen, day, month, year, journal, mood]);
 
@@ -214,15 +227,12 @@ export default function JournalModal({
         {/* Modal Content */}
         <div
           ref={modalRef}
-          className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-indigo-300/50 dark:border-indigo-500/30 animate-modal-content"
+          className={`relative w-full ${chatFullscreen ? 'max-w-none h-full' : showInsights ? 'max-w-4xl' : 'max-w-lg'} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl animate-modal-content transition-all duration-300 ${chatFullscreen ? 'h-[calc(100vh-3rem)]' : 'max-h-[90vh]'} overflow-hidden flex flex-col`}
           style={{
             background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245,243,255,0.98) 100%)",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Gradient border glow effect */}
-          <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-br from-purple-400 via-indigo-400 to-purple-500 opacity-60 blur-[1px] -z-10" />
-
           {/* Dark mode background override */}
           <div className="absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 -z-[5]" />
 
@@ -238,7 +248,10 @@ export default function JournalModal({
           </button>
 
           {/* Modal body */}
-          <div className="p-5 md:p-6">
+          <div className={`p-5 md:p-6 ${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'overflow-y-auto chat-scrollbar flex-1'}`}>
+            {/* Journal content — hidden when chat is fullscreen */}
+            {!chatFullscreen && (
+              <>
             {/* Date header */}
             <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
               {day} {monthName}, {year}
@@ -313,85 +326,203 @@ export default function JournalModal({
             )}
 
             {/* Action buttons */}
-            <div className="flex items-center justify-end gap-2 mt-5">
-              {!isEditing ? (
-                hasEntry ? (
-                  <>
+            <div className="flex items-center justify-between gap-2 mt-5">
+              {/* View Insights button (left side) */}
+              <div>
+                {isAuthed && userId && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (showInsights) {
+                        setShowInsights(false);
+                        return;
+                      }
+                      setLoadingInsights(true);
+                      setShowInsights(true);
+                      try {
+                        const docRef = doc(db, "users", userId);
+                        const snapshot = await getDoc(docRef);
+                        if (snapshot.exists()) {
+                          const data = snapshot.data();
+                          const stored = data?.[year]?.[month]?.[`insights_${day}`];
+                          if (stored && typeof stored === "object") {
+                            setDayInsights(stored);
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Failed to load insights:", err);
+                      } finally {
+                        setLoadingInsights(false);
+                      }
+                    }}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
+                      ? "bg-indigo-600 text-white"
+                      : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
+                      }`}
+                  >
+                    <Sparkles size={14} />
+                    {showInsights ? "Hide Insights" : "View Insights"}
+                  </button>
+                )}
+              </div>
+
+              {/* Edit/Delete/Save buttons (right side) */}
+              <div className="flex items-center gap-2">
+                {!isEditing ? (
+                  hasEntry ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (saving || deleting) return;
+                          setIsEditing(true);
+                          setDraftJournal(journal || "");
+                          setDraftMood(mood);
+                        }}
+                        disabled={!isAuthed || saving || deleting}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (saving || deleting) return;
+                          setConfirmDelete(true);
+                        }}
+                        disabled={!isAuthed || saving || deleting}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </>
+                  ) : (
                     <button
                       type="button"
                       onClick={() => {
                         if (saving || deleting) return;
                         setIsEditing(true);
-                        setDraftJournal(journal || "");
+                        setDraftJournal("");
                         setDraftMood(mood);
                       }}
                       disabled={!isAuthed || saving || deleting}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
                     >
                       <Pencil size={16} />
-                      Edit
+                      Write Journal
+                    </button>
+                  )
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                    >
+                      {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                      Save
                     </button>
                     <button
                       type="button"
                       onClick={() => {
-                        if (saving || deleting) return;
-                        setConfirmDelete(true);
+                        if (saving) return;
+                        if (hasUnsavedChanges) {
+                          setConfirmDiscard(true);
+                          return;
+                        }
+                        setIsEditing(false);
+                        setDraftJournal("");
+                        setDraftMood(null);
                       }}
-                      disabled={!isAuthed || saving || deleting}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
                     >
-                      <Trash2 size={16} />
-                      Delete
+                      <X size={16} />
+                      Cancel
                     </button>
                   </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (saving || deleting) return;
-                      setIsEditing(true);
-                      setDraftJournal("");
-                      setDraftMood(mood);
-                    }}
-                    disabled={!isAuthed || saving || deleting}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-                  >
-                    <Pencil size={16} />
-                    Write Journal
-                  </button>
-                )
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
-                  >
-                    {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (saving) return;
-                      if (hasUnsavedChanges) {
-                        setConfirmDiscard(true);
-                        return;
-                      }
-                      setIsEditing(false);
-                      setDraftJournal("");
-                      setDraftMood(null);
-                    }}
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
-                  >
-                    <X size={16} />
-                    Cancel
-                  </button>
-                </>
-              )}
+                )}
+              </div>
             </div>
+            </>
+            )}
+
+            {/* Insights & Chat Panel */}
+            {showInsights && (
+              <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'mt-5 pt-5 border-t border-indigo-100 dark:border-slate-700/50'} animate-chat-fade-in`}>
+                {loadingInsights ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 size={24} className="animate-spin text-indigo-400" />
+                    <span className="ml-2 text-sm text-gray-400">Loading insights...</span>
+                  </div>
+                ) : dayInsights ? (
+                  <div className="space-y-4">
+                    {/* Insight summary */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                        <Bot size={16} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                          {dayInsights.headline || "Lumi's Thoughts"}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          {dayInsights.response || dayInsights.insight}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Triggers */}
+                    {Array.isArray(dayInsights.triggers) && dayInsights.triggers.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {dayInsights.triggers.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center text-[11px] font-semibold px-2 py-1 rounded-md bg-indigo-50 dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 border border-indigo-100/80 dark:border-slate-700/80"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Follow-up question */}
+                    {dayInsights.followUpQuestion && (
+                      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
+                        <div className="flex items-start gap-2">
+                          <MessageCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                          <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                            {dayInsights.followUpQuestion}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Chat for this day */}
+                    <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'pt-2'}`}>
+                      <ChatContainer
+                        chatId={`chat_${userId}_${year}_${month}_${day}`}
+                        userId={userId}
+                        onFullscreenChange={setChatFullscreen}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <Sparkles size={24} className="text-gray-300 dark:text-gray-600 mb-2" />
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
+                      No insights generated for this day.
+                    </p>
+                    <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
+                      Write a journal entry and click &ldquo;Generate Insights&rdquo; to get Lumi&apos;s thoughts.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
@@ -36,6 +36,36 @@ export default function Journal({
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+
+  // Auto-load previously generated insights for today from Firestore
+  const insightsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (isGuest || !currentUser?.uid || insightsLoadedRef.current) return;
+    insightsLoadedRef.current = true;
+
+    const loadTodaysInsights = async () => {
+      try {
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth();
+        const year = now.getFullYear();
+
+        const docRef = doc(db, "users", currentUser.uid);
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          const storedInsights = data?.[year]?.[month]?.[`insights_${day}`];
+          if (storedInsights && typeof storedInsights === "object") {
+            setInsights(storedInsights);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load today's insights:", error);
+      }
+    };
+
+    loadTodaysInsights();
+  }, [currentUser, isGuest]);
 
   // Cloud save status: 'idle' | 'saving' | 'saved'
   const [cloudStatus, setCloudStatus] = useState("idle");
@@ -485,6 +515,26 @@ export default function Journal({
       }
 
       setInsights(result.data);
+
+      // Persist insights to Firestore for the current day
+      try {
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth();
+        const year = now.getFullYear();
+
+        const docRef = doc(db, "users", currentUser.uid);
+        await setDoc(docRef, {
+          [year]: {
+            [month]: {
+              [`insights_${day}`]: result.data
+            }
+          }
+        }, { merge: true });
+      } catch (err) {
+        console.error("Failed to save insights to Firestore:", err);
+        // Non-blocking — insights are already in state
+      }
     } catch (error) {
       console.error("Error generating insights:", error);
       toast.error("Failed to generate insights. Please try again.");
