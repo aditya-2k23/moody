@@ -4,9 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide default cursor when custom cursor is enabled */
+/* Custom Cursor Styles */
 html {
-  cursor: none;
+  cursor: url('/cursor.png') 16 16, auto;
+}
+
+/* Custom cursor on interactive elements */
+button,
+a,
+input,
+textarea,
+select,
+[role="button"],
+.cursor-pointer {
+  cursor: url('/cursor.png') 16 16, auto;
 }
 
 @property --r {
