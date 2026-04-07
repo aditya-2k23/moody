@@ -33,8 +33,11 @@ export function useCursor() {
       ).matches;
 
       const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
+      const isTouch = isTouchDevice();
+      const enabled = isDesktop && !isTouch && !prefersReducedMotion;
 
-      setShouldEnable(isDesktop && !isTouchDevice() && !prefersReducedMotion);
+      console.log('[v0] useCursor check - isDesktop:', isDesktop, 'isTouch:', isTouch, 'prefersReducedMotion:', prefersReducedMotion, 'enabled:', enabled);
+      setShouldEnable(enabled);
     };
 
     checkCursorSupport();
@@ -55,10 +58,14 @@ export function useCursor() {
 
   // Pointer move handler with smooth interpolation
   const handlePointerMove = useCallback((e) => {
-    if (!shouldEnable || !innerRef.current || !outerRef.current) return;
+    if (!shouldEnable || !innerRef.current || !outerRef.current) {
+      console.log('[v0] handlePointerMove - refs not ready. shouldEnable:', shouldEnable, 'innerRef:', !!innerRef.current, 'outerRef:', !!outerRef.current);
+      return;
+    }
 
     const { clientX, clientY } = e;
     mousePos.current = { x: clientX, y: clientY };
+    console.log('[v0] Cursor position:', clientX, clientY);
     setIsVisible(true);
 
     // Immediate position for inner cursor

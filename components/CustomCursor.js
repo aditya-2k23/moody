@@ -18,12 +18,23 @@ export function CustomCursor() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    console.log('[v0] CustomCursor mounted. shouldEnable:', shouldEnable, 'theme:', theme);
+  }, [shouldEnable, theme]);
 
-  if (!mounted || !shouldEnable) return null;
+  if (!mounted) {
+    console.log('[v0] CustomCursor not mounted yet');
+    return null;
+  }
+
+  if (!shouldEnable) {
+    console.log('[v0] CustomCursor disabled - shouldEnable is false');
+    return null;
+  }
 
   const isDark = theme === 'dark';
   const cursorTheme = isDark ? 'dark' : 'light';
+
+  console.log('[v0] Rendering CustomCursor with theme:', cursorTheme);
 
   return (
     <>
