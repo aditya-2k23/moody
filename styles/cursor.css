@@ -1,65 +1,3 @@
-:root {
-  --cursor-start: #a78bfa;
-  --cursor-mid: #60a5fa;
-  --cursor-end: #f472b6;
-  --cursor-glow: rgba(167, 139, 250, 0.25);
-  --cursor-size: 26px;
-  /* Increased default size */
-}
-
-.dark {
-  --cursor-start: #c4b5fd;
-  --cursor-mid: #818cf8;
-  --cursor-end: #f9a8d4;
-  --cursor-glow: rgba(167, 139, 250, 0.85);
-  /* Much brighter glow for dark mode */
-}
-
-.custom-cursor-glow {
-  position: fixed;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--cursor-glow) 0%, transparent 60%);
-  /* Less transparent gradient */
-  filter: blur(12px);
-  /* Tighter blur makes glow more solid */
-  pointer-events: none;
-  z-index: 9998;
-  left: -30px;
-  top: -30px;
-  transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
-  /* Excluded transform from CSS transition so JS translation is flush */
-  mix-blend-mode: screen;
-}
-
-.dark .custom-cursor-glow {
-  mix-blend-mode: screen;
-  filter: blur(12px);
-  /* Sharpish blur for visibility */
-  width: 70px;
-  height: 70px;
-  left: -35px;
-  top: -35px;
-}
-
-.custom-cursor-glow.hover {
-  width: 80px;
-  height: 80px;
-  left: -40px;
-  top: -40px;
-  opacity: 1.5;
-}
-
-.custom-cursor-glow.click {
-  width: 100px;
-  height: 100px;
-  left: -50px;
-  top: -50px;
-  opacity: 2;
-  transition: width 0.1s ease, height 0.1s ease, left 0.1s ease, top 0.1s ease, opacity 0.1s ease;
-}
-
 .custom-cursor-svg {
   position: fixed;
   pointer-events: none;
@@ -68,7 +6,6 @@
   left: 0;
   top: 0;
   color: var(--cursor-start);
-  transition: transform 0.05s linear;
   /* Adjust transform origin closer to the tip of cursors */
   transform-origin: 4px 4px;
 }
@@ -79,36 +16,4 @@
   height: var(--cursor-size);
   /* Scale transitions */
   transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-/* For pointer slightly scale up */
-.type-pointer .cursor-image {
-  transform: scale(1.15);
-}
-
-/* For text caret slightly scale down or keep it */
-.type-text .cursor-image {
-  transform: scale(1.05);
-}
-
-/* Additional scaling on clicking */
-.custom-cursor-svg.click .cursor-image {
-  transform: scale(0.9);
-  transition: transform 0.1s ease;
-}
-
-@keyframes cursor-breathe {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.custom-cursor-svg.idle:not(.click) .cursor-image {
-  animation: cursor-breathe 3s infinite ease-in-out;
 }

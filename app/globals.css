@@ -76,6 +76,8 @@ textarea,
   --cursor-start: #a78bfa;
   --cursor-mid: #60a5fa;
   --cursor-end: #f472b6;
+  --cursor-glow: rgba(167, 139, 250, 0.35);
+  --cursor-size: 26px;
 }
 
 .fugaz {
@@ -529,6 +531,11 @@ textarea,
   --theme-reveal-bg: var(--color-theme-reveal-dark);
   --color-blob-bg: var(--color-blob-bg-dark);
   --color-blob-text: var(--color-white);
+
+  --cursor-start: #c4b5fd;
+  --cursor-mid: #818cf8;
+  --cursor-end: #f9a8d4;
+  --cursor-glow: rgba(167, 139, 250, 0.85);
 }
 
 .dark .purpleShadow {

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from 'react';
 
 export function useCursor() {
@@ -69,8 +71,8 @@ export function useCursor() {
       if (elem) {
         const isText = elem.matches('textarea, input[type="text"], input[type="email"], input[type="password"], [role="textbox"], [contenteditable="true"]') ||
           elem.closest('textarea, input[type="text"], [contenteditable="true"]');
-        const isInteractive = elem.matches('button, a, select, [role="button"], .cursor-pointer') ||
-          elem.closest('button, a, select, [role="button"], .cursor-pointer');
+        const isInteractive = elem.matches('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger') ||
+          elem.closest('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger');
 
         if (isText) {
           setCursorType('text');
@@ -99,7 +101,7 @@ export function useCursor() {
       document.removeEventListener('mouseleave', mouseLeave);
       clearTimeout(idleTimeout.current);
     };
-  }, [target.x, target.y]);
+  }, []);
 
   useEffect(() => {
     if (isHidden) return;
@@ -111,17 +113,19 @@ export function useCursor() {
       return start + (end - start) * factor;
     };
 
-    let prevPos = { x: target.x, y: target.y };
+    let prevPos = { x: lastTarget.current.x, y: lastTarget.current.y };
 
     const animate = () => {
+      const currentTarget = lastTarget.current;
+
       if (prefersReducedMotion) {
-        setPosition({ x: target.x, y: target.y });
+        setPosition({ x: currentTarget.x, y: currentTarget.y });
         requestRef.current = requestAnimationFrame(animate);
         return;
       }
 
-      prevPos.x = lerp(prevPos.x, target.x, 0.12);
-      prevPos.y = lerp(prevPos.y, target.y, 0.12);
+      prevPos.x = lerp(prevPos.x, currentTarget.x, 0.12);
+      prevPos.y = lerp(prevPos.y, currentTarget.y, 0.12);
 
       setPosition({ x: prevPos.x, y: prevPos.y });
       requestRef.current = requestAnimationFrame(animate);
@@ -132,7 +136,7 @@ export function useCursor() {
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [target.x, target.y, isHidden]);
+  }, [isHidden]);
 
   return { position, target, isHovering, isClicking, isIdle, isHidden, cursorType, rotation };
 }
