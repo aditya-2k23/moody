@@ -84,7 +84,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
       >
         {insights && (
           <>
-            <div className="flex flex-col xl:flex-row gap-8 lg:gap-10">
+            <div className="flex flex-col xl:flex-row gap-8 md:gap-4">
               {/* Left side: Analysis & Triggers */}
               <div className="flex-1 space-y-6">
                 <div className="flex items-start justify-between">
@@ -139,7 +139,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                     onClick={() => handleReflectionClick(insights.followUpQuestion || insights.pro_tip)}
                     className="w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-4 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700/60 transition-all duration-200 cursor-pointer"
                   >
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl" />
                     <div className="flex items-start gap-3 relative z-10">
                       <span className="text-xl mt-0.5">💡</span>
                       <div className="flex-1">
@@ -152,7 +152,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                       </div>
                       <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
-                    <p className="text-[10px] text-emerald-500/70 dark:text-emerald-500/50 mt-2 ml-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-[10px] text-emerald-500/70 dark:text-emerald-500/50 mt-1 ml-10 opacity-65 group-hover:opacity-100 transition-opacity">
                       Click to ask Lumi about this →
                     </p>
                   </button>
@@ -170,20 +170,6 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                   />
                 </div>
               )}
-            </div>
-
-            <h4 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-              {insights.headline || "Personalized Insight"}
-            </h4>
-
-            <p className="text-gray-600 dark:text-gray-300/90 leading-relaxed mb-4">
-              {insights.insight}
-            </p>
-
-            <div className="bg-lime-50/90 dark:bg-lime-400/35 border border-lime-400/70 dark:border-lime-200/70 rounded-xl p-3">
-              <p className="text-sm text-lime-600 dark:text-lime-300">
-                <span className="font-semibold dark:font-bold">💡 Pro tip:</span> {insights.pro_tip}
-              </p>
             </div>
           </>
         )}
