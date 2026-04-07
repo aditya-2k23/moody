@@ -12,8 +12,8 @@
   z-index: 10000;
   opacity: 0;
   transition: opacity 0.3s ease;
-  transform: translate(-50%, -50%) translate3d(0, 0, 0);
-  will-change: transform, scale;
+  margin: -20px 0 0 -20px;
+  will-change: left, top, scale;
 }
 
 .cursor-outer.cursor-visible {
@@ -60,8 +60,8 @@
   z-index: 10001;
   opacity: 0;
   transition: opacity 0.3s ease;
-  transform: translate(-50%, -50%) translate3d(0, 0, 0);
-  will-change: transform;
+  margin: -4px 0 0 -4px;
+  will-change: left, top;
 }
 
 .cursor-inner.cursor-visible {
@@ -89,12 +89,12 @@
 @keyframes cursor-breathing {
   0%,
   100% {
-    transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1);
+    transform: scale(1);
     opacity: 1;
   }
 
   50% {
-    transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1.15);
+    transform: scale(1.15);
     opacity: 0.8;
   }
 }

@@ -67,6 +67,12 @@ export function useCursor() {
       y: clientY,
       duration: 0,
       overwrite: 'auto',
+      onUpdate: () => {
+        if (innerRef.current) {
+          innerRef.current.style.left = `${innerPos.current.x}px`;
+          innerRef.current.style.top = `${innerPos.current.y}px`;
+        }
+      },
     });
 
     // Smooth interpolation for outer cursor (trailing effect)
@@ -77,16 +83,12 @@ export function useCursor() {
       ease: 'sine.out',
       onUpdate: () => {
         if (outerRef.current) {
-          outerRef.current.style.transform = `translate3d(${outerPos.current.x}px, ${outerPos.current.y}px, 0)`;
+          outerRef.current.style.left = `${outerPos.current.x}px`;
+          outerRef.current.style.top = `${outerPos.current.y}px`;
         }
       },
       overwrite: 'auto',
     });
-
-    // Update inner cursor position
-    if (innerRef.current) {
-      innerRef.current.style.transform = `translate3d(${innerPos.current.x}px, ${innerPos.current.y}px, 0)`;
-    }
   }, [shouldEnable]);
 
   // Handle hover state for interactive elements
