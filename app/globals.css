@@ -4,20 +4,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Cursor Styles */
+/* Global Styles */
 html {
-  cursor: url('/cursor.svg') 16 16, auto;
+  cursor: url('/cursor.svg') 14 14, auto;
 }
 
 /* Custom cursor on interactive elements */
 button,
 a,
 input,
-textarea,
 select,
 [role="button"],
-.cursor-pointer {
-  cursor: url('/cursor.svg') 16 16, auto;
+.cursor-pointer,
+.blob-btn,
+.hand-drawn-btn,
+.radial-trigger {
+  cursor: url('/cursor-pointer.svg') 8 8, pointer !important;
+}
+
+button:disabled,
+.radial-trigger:disabled {
+  cursor: url('/cursor.svg') 6 6, not-allowed !important;
+}
+
+textarea,
+[role="textbox"],
+[contenteditable="true"] {
+  cursor: url('/cursor-text-caret.svg') 14 14, text !important;
 }
 
 @property --r {
@@ -58,6 +71,11 @@ select,
   --color-blob-text: var(--color-brand-500);
   --color-blob-text-hover: var(--color-white);
   --color-blob-bg: var(--color-blob-bg-light);
+
+  /* Cursor Theme Awareness */
+  --cursor-start: #a78bfa;
+  --cursor-mid: #60a5fa;
+  --cursor-end: #f472b6;
 }
 
 .fugaz {
@@ -639,11 +657,11 @@ select,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  cursor: grab;
+  cursor: url('/cursor.svg') 18 18, grab !important;
 }
 
 .circular-gallery:active {
-  cursor: grabbing;
+  cursor: url('/cursor.svg') 18 18, grabbing !important;
 }
 
 .memories-circular-gallery canvas {
