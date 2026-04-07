@@ -18,14 +18,24 @@ export function useCursor() {
   // Check if cursor should be enabled (desktop, no touch)
   useEffect(() => {
     const checkCursorSupport = () => {
-      const isTouchDevice = () => {
-        return (
-          (typeof window !== 'undefined' &&
-            ('ontouchstart' in window ||
-              navigator.maxTouchPoints > 0 ||
-              navigator.msMaxTouchPoints > 0)) ||
-          false
-        );
+      const isMobileDevice = () => {
+        if (typeof window === 'undefined') return false;
+        
+        // Check user agent for mobile/tablet devices
+        const userAgent = navigator.userAgent.toLowerCase();
+        const mobilePatterns = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+        
+        // If user agent indicates mobile device, it's mobile
+        if (mobilePatterns.test(userAgent)) return true;
+        
+        // For devices with touch but not identified as mobile via user agent,
+        // check viewport width as secondary indicator
+        const maxTouchPoints = navigator.maxTouchPoints || 0;
+        if (maxTouchPoints > 0 && window.innerWidth < 768) {
+          return true;
+        }
+        
+        return false;
       };
 
       const prefersReducedMotion = window.matchMedia(
@@ -33,10 +43,10 @@ export function useCursor() {
       ).matches;
 
       const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
-      const isTouch = isTouchDevice();
-      const enabled = isDesktop && !isTouch && !prefersReducedMotion;
+      const isMobile = isMobileDevice();
+      const enabled = isDesktop && !isMobile && !prefersReducedMotion;
 
-      console.log('[v0] useCursor check - isDesktop:', isDesktop, 'isTouch:', isTouch, 'prefersReducedMotion:', prefersReducedMotion, 'enabled:', enabled);
+      console.log('[v0] useCursor check - isDesktop:', isDesktop, 'isMobile:', isMobile, 'prefersReducedMotion:', prefersReducedMotion, 'enabled:', enabled);
       setShouldEnable(enabled);
     };
 
