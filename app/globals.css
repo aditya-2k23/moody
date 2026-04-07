@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide default cursor when custom cursor is enabled */
+html {
+  cursor: none;
+}
+
 @property --r {
   syntax: "<length>";
   inherits: false;

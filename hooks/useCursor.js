@@ -172,45 +172,26 @@ export function useCursor() {
   useEffect(() => {
     if (!shouldEnable) return;
 
-    window.addEventListener('pointermove', (e) => {
+    const handlePointerMoveWithActivity = (e) => {
       handlePointerMove(e);
       handleActivity();
-    });
-    window.addEventListener('pointerenter', handleMouseEnter);
-    window.addEventListener('pointerleave', handleMouseLeave);
+    };
+
+    window.addEventListener('pointermove', handlePointerMoveWithActivity);
+    window.addEventListener('mouseover', handleMouseEnter, true);
+    window.addEventListener('mouseleave', handleMouseLeave, true);
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
 
     return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerenter', handleMouseEnter);
-      window.removeEventListener('pointerleave', handleMouseLeave);
+      window.removeEventListener('pointermove', handlePointerMoveWithActivity);
+      window.removeEventListener('mouseover', handleMouseEnter, true);
+      window.removeEventListener('mouseleave', handleMouseLeave, true);
       window.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointerup', handlePointerUp);
       clearTimeout(idleTimeoutRef.current);
     };
   }, [shouldEnable, handlePointerMove, handleMouseEnter, handleMouseLeave, handlePointerDown, handlePointerUp, handleActivity]);
-
-  // Event delegation for hover detection
-  useEffect(() => {
-    if (!shouldEnable) return;
-
-    const handleMouseEnterEvent = (e) => {
-      handleMouseEnter(e);
-    };
-
-    const handleMouseLeaveEvent = () => {
-      handleMouseLeave();
-    };
-
-    document.addEventListener('mouseover', handleMouseEnterEvent, true);
-    document.addEventListener('mouseleave', handleMouseLeaveEvent, true);
-
-    return () => {
-      document.removeEventListener('mouseover', handleMouseEnterEvent, true);
-      document.removeEventListener('mouseleave', handleMouseLeaveEvent, true);
-    };
-  }, [shouldEnable, handleMouseEnter, handleMouseLeave]);
 
   return {
     innerRef,
