@@ -6,7 +6,7 @@
 
 /* Custom Cursor Styles */
 html {
-  cursor: url('/cursor.png') 16 16, auto;
+  cursor: url('/cursor.svg') 16 16, auto;
 }
 
 /* Custom cursor on interactive elements */
@@ -17,7 +17,7 @@ textarea,
 select,
 [role="button"],
 .cursor-pointer {
-  cursor: url('/cursor.png') 16 16, auto;
+  cursor: url('/cursor.svg') 16 16, auto;
 }
 
 @property --r {
