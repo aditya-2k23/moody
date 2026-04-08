@@ -678,7 +678,7 @@ export default function Journal({
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
                 <Sparkles size={20} />
-                {loadingInsights ? "Generating..." : "Generate Insights"}
+                {loadingInsights ? "Asking..." : "Ask Lumi"}
               </span>
             }
             onClick={() => handleGenerateInsights()}

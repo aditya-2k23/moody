@@ -6,42 +6,47 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/**
- * ScrollAnimations — Adds fade-in-from-bottom GSAP ScrollTrigger
- * animations to every <section> inside the landing page.
- *
- * Drop this component anywhere inside the page; it targets all
- * `section` elements within `main` and staggers the child elements.
- */
 export default function ScrollAnimations() {
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const sections = gsap.utils.toArray("main section");
+    let ctx;
 
-      sections.forEach((section, index) => {
-        // Set initial state — invisible + pushed down
-        gsap.set(section, {
-          autoAlpha: 0,
-          y: 60,
+    const timer = setTimeout(() => {
+      ctx = gsap.context(() => {
+        // Target all sections and the footer cleanly
+        const elements = gsap.utils.toArray("main section, main footer");
+
+        elements.forEach((el, index) => {
+          gsap.fromTo(
+            el,
+            { opacity: 0, y: 50 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: el,
+                // Triggers when the top of the element hits 95% of the viewport from the top.
+                start: "top 95%",
+                toggleActions: "play none none none",
+              },
+            }
+          );
         });
 
-        gsap.to(section, {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.5,
-          ease: "power2.inOut",
-          stagger: 0.5,
-          scrollTrigger: {
-            trigger: section,
-            start: "top 75%",    // trigger when top of section hits 75% of viewport
-          },
-          delay: index === 0 ? 0.2 : 0, // slight delay for hero so it feels intentional
-        });
+        // Force recalculation of scroll trigger positions once all initial 
+        // components (like the ChatContainer) have established their layout heights
+        setTimeout(() => {
+          ScrollTrigger.refresh();
+        }, 500);
       });
-    });
+    }, 100);
 
-    return () => ctx.revert(); // cleanup all GSAP animations on unmount
+    return () => {
+      clearTimeout(timer);
+      if (ctx) ctx.revert();
+    };
   }, []);
 
-  return null; // purely side-effect, renders nothing
+  return null;
 }

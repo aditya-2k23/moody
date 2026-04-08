@@ -77,7 +77,7 @@ function DashboardContent() {
   // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
+  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching Lumi's thoughts...");
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null

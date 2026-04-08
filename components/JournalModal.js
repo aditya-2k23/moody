@@ -518,7 +518,7 @@ export default function JournalModal({
                       No insights generated for this day.
                     </p>
                     <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
-                      Write a journal entry and click &ldquo;Generate Insights&rdquo; to get Lumi&apos;s thoughts.
+                      Write a journal entry and click &ldquo;Ask Lumi&rdquo; to get Lumi&apos;s thoughts.
                     </p>
                   </div>
                 )}

@@ -25,13 +25,15 @@ export async function POST(req) {
     let previousMessages = [];
 
     // 1. Fetch short-term history from Redis
-    try {
-      const stored = await redis.get(redisKey);
-      if (stored && Array.isArray(stored)) {
-        previousMessages = stored;
+    if (userId !== "demo-user") {
+      try {
+        const stored = await redis.get(redisKey);
+        if (stored && Array.isArray(stored)) {
+          previousMessages = stored;
+        }
+      } catch (e) {
+        console.warn("[Chat API] Failed to fetch from Redis", e);
       }
-    } catch (e) {
-      console.warn("[Chat API] Failed to fetch from Redis", e);
     }
 
     // 2. Format history for Gemini
@@ -82,43 +84,47 @@ ${journalText ? `\nHere is the user's current journal entry that they are referr
     }
 
     // Attempt Redis update
-    try {
-      await redis.set(redisKey, updatedMessages, { ex: REDIS_TTL_SECONDS });
-    } catch (e) {
-      console.error("[Chat API] Failed to save to Redis", e);
+    if (userId !== "demo-user") {
+      try {
+        await redis.set(redisKey, updatedMessages, { ex: REDIS_TTL_SECONDS });
+      } catch (e) {
+        console.error("[Chat API] Failed to save to Redis", e);
+      }
     }
 
-    // 5. Store to Firestore for long-term history
-    try {
-      const db = getAdminDb();
-      const messagesRef = db
-        .collection("users")
-        .doc(userId)
-        .collection("chats")
-        .doc(chatId)
-        .collection("messages");
+    // 5. Store to Firestore for long-term history (skip for demo users)
+    if (userId !== "demo-user") {
+      try {
+        const db = getAdminDb();
+        const messagesRef = db
+          .collection("users")
+          .doc(userId)
+          .collection("chats")
+          .doc(chatId)
+          .collection("messages");
 
-      const batch = db.batch();
+        const batch = db.batch();
 
-      const now = Date.now();
+        const now = Date.now();
 
-      const userMsgRef = messagesRef.doc();
-      batch.set(userMsgRef, {
-        role: "user",
-        content: message,
-        createdAt: new Date(now),
-      });
+        const userMsgRef = messagesRef.doc();
+        batch.set(userMsgRef, {
+          role: "user",
+          content: message,
+          createdAt: new Date(now),
+        });
 
-      const assistantMsgRef = messagesRef.doc();
-      batch.set(assistantMsgRef, {
-        role: "assistant",
-        content: replyText,
-        createdAt: new Date(now + 1), // ensure strict sorting
-      });
+        const assistantMsgRef = messagesRef.doc();
+        batch.set(assistantMsgRef, {
+          role: "assistant",
+          content: replyText,
+          createdAt: new Date(now + 1), // ensure strict sorting
+        });
 
-      await batch.commit();
-    } catch (e) {
-      console.error("[Chat API] Failed to save to Firestore", e);
+        await batch.commit();
+      } catch (e) {
+        console.error("[Chat API] Failed to save to Firestore", e);
+      }
     }
 
     // 6. Return response

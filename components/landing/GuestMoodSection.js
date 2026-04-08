@@ -109,10 +109,6 @@ export default function GuestMoodSection() {
     }
   }, [showAuth]);
 
-  // Already signed in → don't render the guest section
-  // (The HeroSection CTA handles authenticated users)
-  if (currentUser) return null;
-
   return (
     <section className="py-12 md:py-20" id="guest-mood">
       <div className="max-w-4xl mx-auto">

@@ -17,12 +17,37 @@ export default function ChatContainer({
   reflectionQuestion,
   onReflectionConsumed,
   onFullscreenChange,
+  isDemo = false,
 }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef(null);
+
+  // Load demo messages on mount
+  useEffect(() => {
+    if (isDemo) {
+      try {
+        const saved = localStorage.getItem("lumi-demo-messages");
+        if (saved) {
+          setMessages(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Failed to parse demo messages", e);
+      }
+    }
+  }, [isDemo]);
+
+  // Save demo messages
+  useEffect(() => {
+    if (isDemo && messages.length > 0) {
+      localStorage.setItem("lumi-demo-messages", JSON.stringify(messages));
+    }
+  }, [messages, isDemo]);
+
+  const demoMessageCount = messages.filter((m) => m.role === "user").length;
+  const isDemoLimitReached = isDemo && demoMessageCount >= 3;
 
   // ─── Fullscreen Toggle ──────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -80,7 +105,8 @@ export default function ChatContainer({
   // ─── Send Message ───────────────────────────────────────────────
   const sendMessage = useCallback(
     async (messageText) => {
-      if (!messageText.trim() || !userId) return;
+      if (!messageText.trim() || (!userId && !isDemo)) return;
+      if (isDemo && demoMessageCount >= 3) return;
 
       const now = new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -102,8 +128,8 @@ export default function ChatContainer({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            chatId,
-            userId,
+            chatId: isDemo ? "demo-chat" : chatId,
+            userId: isDemo ? "demo-user" : userId,
             message: messageText,
             journalText,
           }),
@@ -133,7 +159,7 @@ export default function ChatContainer({
         setIsTyping(false);
       }
     },
-    [chatId, userId]
+    [chatId, userId, isDemo, demoMessageCount, journalText]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -192,12 +218,14 @@ export default function ChatContainer({
 
   return (
     <div ref={containerRef} className={containerClasses} onScroll={(e) => e.stopPropagation()}>
-      <ChatHeader
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={toggleFullscreen}
-        onClearChat={clearChat}
-        hasMessages={messages.length > 0}
-      />
+      {!isDemo && (
+        <ChatHeader
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
+          onClearChat={clearChat}
+          hasMessages={messages.length > 0}
+        />
+      )}
 
       <MessageList
         messages={messages}
@@ -205,13 +233,27 @@ export default function ChatContainer({
         isFullscreen={isFullscreen}
       />
 
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        onSend={sendMessage}
-        isTyping={isTyping}
-        isFullscreen={isFullscreen}
-      />
+      {isDemoLimitReached ? (
+        <div className="p-4 border-t border-gray-200/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+            You&apos;ve reached the end of the demo! Sign in to continue chatting with Lumi.
+          </p>
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-medium transition-colors"
+          >
+            Create Free Account
+          </button>
+        </div>
+      ) : (
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSend={sendMessage}
+          isTyping={isTyping}
+          isFullscreen={isFullscreen}
+        />
+      )}
     </div>
   );
 }
