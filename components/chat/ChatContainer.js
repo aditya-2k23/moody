@@ -42,7 +42,7 @@ export default function ChatContainer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen]);
+  }, [isFullscreen, onFullscreenChange]);
 
   // Lock body scroll when fullscreen (only in standalone mode, not modal)
   useEffect(() => {

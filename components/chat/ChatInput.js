@@ -70,8 +70,8 @@ export default function ChatInput({
   return (
     <div className="p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-slate-800/80">
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <div className="relative flex-1 bg-gray-50 dark:bg-slate-800/70 rounded-2xl border border-transparent focus-within:border-indigo-300 dark:focus-within:border-indigo-500/40 focus-within:bg-white dark:focus-within:bg-slate-800 transition-all overflow-hidden">
-          <div className="flex items-end">
+        <div className="relative flex-1 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-indigo-100 dark:border-none focus-within:border-indigo-300 dark:focus-within:border-indigo-500/40 focus-within:bg-slate-100 dark:focus-within:bg-slate-800 transition-all overflow-hidden">
+          <div className="flex items-center">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -86,7 +86,7 @@ export default function ChatInput({
               disabled={isTyping}
               aria-label="Chat message input"
             />
-            <div className="flex items-center gap-1 pr-2 pb-2">
+            <div className="flex items-center gap-1 pr-2">
               <VoiceButton
                 isListening={isListening}
                 onToggle={() => toggleVoiceInput(input)}
@@ -104,7 +104,7 @@ export default function ChatInput({
         <button
           type="submit"
           disabled={!input.trim() || isTyping}
-          className="w-11 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 transition-all flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/20 disabled:shadow-none hover:shadow-lg hover:shadow-indigo-600/30 hover:scale-105 active:scale-95 disabled:hover:scale-100"
+          className="w-11 h-11 rounded-xl bg-indigo-500 hover:bg-indigo-700 dark:bg-indigo-600 disabled:bg-gray-100 dark:disabled:bg-slate-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/20 disabled:shadow-none hover:shadow-lg hover:shadow-indigo-600/30 hover:scale-105 active:scale-95 disabled:hover:scale-100"
           aria-label={isTyping ? "Waiting for response" : "Send message"}
         >
           {isTyping ? (

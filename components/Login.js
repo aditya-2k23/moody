@@ -72,7 +72,9 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
 
   return (
     <>
-      <GlowBackground />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <GlowBackground />
+      </div>
       <div
         className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4 z-10'
         onKeyDown={handleKeyDown}
@@ -80,63 +82,63 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
       >
         <Toaster position="top-center" />
 
-      <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
-      <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
+        <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
+        <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
-      <Input
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-        }}
-        inputType="email"
-        placeholderText="Email"
-      />
-      <div className="relative w-full max-w-[400px] mx-auto">
         <Input
-          value={password}
+          value={email}
           onChange={(e) => {
-            setPassword(e.target.value);
+            setEmail(e.target.value);
           }}
-          inputType={showPassword ? "text" : "password"}
-          placeholderText="Password"
+          inputType="email"
+          placeholderText="Email"
         />
-        <button
-          type="button"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-75 transition"
-          onClick={() => setShowPassword((prev) => !prev)}
-          tabIndex={0}
-          aria-label={showPassword ? "Hide password" : "Show password"}
-          title={showPassword ? "Hide password" : "Show password"}
-        >
-          {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
-        </button>
-      </div>
-
-      <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
-        <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
-        <div className="flex items-center justify-center gap-2 text-slate-700 font-semibold">
-          <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-          OR
-          <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+        <div className="relative w-full max-w-[400px] mx-auto">
+          <Input
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            inputType={showPassword ? "text" : "password"}
+            placeholderText="Password"
+          />
+          <button
+            type="button"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-75 transition"
+            onClick={() => setShowPassword((prev) => !prev)}
+            tabIndex={0}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
+          </button>
         </div>
-        <Button onClick={handleGoogleSignIn} disabled={authenticating} text={
-          <><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="25" height="25" viewBox="0 0 48 48">
-            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-          </svg> Continue with Google</>} full />
+
+        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
+          <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
+          <div className="flex items-center justify-center gap-2 text-slate-700 font-semibold">
+            <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+            OR
+            <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+          </div>
+          <Button onClick={handleGoogleSignIn} disabled={authenticating} text={
+            <><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="25" height="25" viewBox="0 0 48 48">
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+            </svg> Continue with Google</>} full />
+        </div>
+
+        <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-[400px] mx-auto font-sans">
+          By {isRegister ? "creating an account" : "signing in"}, you agree to our{" "}
+          <Link href="/terms" className="text-indigo-600 dark:text-indigo-400 underline hover:opacity-80">Terms of Service</Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 underline hover:opacity-80">Privacy Policy</Link>.
+          Your data is private and will not be shared with third parties without your consent.
+        </p>
+
+        <p className="text-center font-sans">{
+          isRegister ? "Already have an account?" : "Don't have an account?"
+        } <Button onClick={() => setIsRegister(!isRegister)} className="text-indigo-600 dark:text-indigo-400 hover:opacity-80" text={isRegister ? "Sign In" : "Sign Up"} normal={false} /></p>
       </div>
-
-      <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-[400px] mx-auto font-sans">
-        By {isRegister ? "creating an account" : "signing in"}, you agree to our{" "}
-        <Link href="/terms" className="text-indigo-600 dark:text-indigo-400 underline hover:opacity-80">Terms of Service</Link>{" "}
-        and{" "}
-        <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 underline hover:opacity-80">Privacy Policy</Link>.
-        Your data is private and will not be shared with third parties without your consent.
-      </p>
-
-      <p className="text-center font-sans">{
-        isRegister ? "Already have an account?" : "Don't have an account?"
-      } <Button onClick={() => setIsRegister(!isRegister)} className="text-indigo-600 dark:text-indigo-400 hover:opacity-80" text={isRegister ? "Sign In" : "Sign Up"} normal={false} /></p>
-    </div>
     </>
   )
 }

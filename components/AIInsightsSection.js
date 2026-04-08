@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { moods } from "@/utils";
-import { Check, Sparkles, Bot, MessageCircle } from "lucide-react";
+import { Check, Sparkles, Bot, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
 
 /**
@@ -90,7 +90,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 glow">
-                      <Bot size={20} className="text-white" />
+                      <MessageCircleMoreIcon size={20} className="text-white" />
                     </div>
                     <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest dark:text-indigo-400">
                       Lumi&apos;s Thoughts
@@ -137,22 +137,22 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                 {(insights.followUpQuestion || insights.pro_tip) && (
                   <button
                     onClick={() => handleReflectionClick(insights.followUpQuestion || insights.pro_tip)}
-                    className="w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-4 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700/60 transition-all duration-200 cursor-pointer"
+                    className="w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-3 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700/60 transition-all duration-200 cursor-pointer"
                   >
                     <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl" />
-                    <div className="flex items-start gap-3 relative z-10">
-                      <span className="text-xl mt-0.5">💡</span>
+                    <div className="flex items-start gap-2 relative z-10">
+                      <span className="text-xl mt-0.5"><LightbulbIcon size={24} className="text-yellow-500" /></span>
                       <div className="flex-1">
-                        <h5 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 mb-1">
+                        <h5 className="text-xs font-bold text-emerald-800 dark:text-emerald-400 mb-1">
                           {insights.followUpQuestion ? 'For Your Reflection' : 'Pro Tip'}
                         </h5>
                         <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
                           {insights.followUpQuestion || insights.pro_tip}
                         </p>
                       </div>
-                      <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
-                    <p className="text-[10px] text-emerald-500/70 dark:text-emerald-500/50 mt-1 ml-10 opacity-65 group-hover:opacity-100 transition-opacity">
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
                       Click to ask Lumi about this →
                     </p>
                   </button>
@@ -161,7 +161,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
 
               {/* Right side: AI Chat */}
               {userId && (insights.response || insights.insight) && (
-                <div className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-100 dark:border-slate-800/80 xl:pl-8">
+                <div className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8">
                   <ChatContainer
                     chatId={chatId}
                     userId={userId}

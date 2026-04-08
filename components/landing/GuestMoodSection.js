@@ -147,7 +147,7 @@ export default function GuestMoodSection() {
           >
             <div
               ref={modalRef}
-              className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-indigo-500/40 dark:shadow-indigo-600/20 p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-indigo-600"
+              className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-indigo-500/40 dark:shadow-indigo-600/20 p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-hidden border border-indigo-600"
             >
               {/* Close button */}
               <button

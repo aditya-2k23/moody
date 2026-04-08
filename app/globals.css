@@ -848,7 +848,7 @@
 
 /* Firefox */
 .chat-scrollbar {
-  scrollbar-width: thin;
+  scrollbar-width: auto;
   scrollbar-color: rgba(129, 140, 248, 0.3) transparent;
 }
 

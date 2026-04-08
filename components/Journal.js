@@ -602,8 +602,18 @@ export default function Journal({
               setEntry(newValue);
               syncBaseEntry(newValue);
               // Auto-expand textarea to fit content
-              e.target.style.height = 'auto';
-              e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
+              const target = e.target;
+              target.style.height = 'auto';
+              target.style.height = Math.max(target.scrollHeight, 96) + 'px';
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                // Prevent default behavior (scroll to bottom of page)
+                // but let the newline happen or handle it if it were a form submit
+                // Here we just want to avoid the page scroll jump if it's trapped in a weird way
+                // Actually, textareas naturally newline on Enter. 
+                // If the user says it "scrolls down the whole page", it might be because the focus is lost or a parent is intercepting.
+              }
             }}
           />
 

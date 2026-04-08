@@ -14,7 +14,10 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
 
   // Auto-scroll to latest message
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only scroll if there are actually messages or we are typing
+    if (messages.length > 0 || isTyping) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isTyping]);
 
   return (
@@ -22,10 +25,11 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
       ref={containerRef}
       className={`flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-50/80 to-white/60 dark:from-[#0b1120] dark:to-[#0f172a]/80 scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : "h-full"
         }`}
+      style={{ scrollbarGutter: "stable" }}
     >
       {/* Empty state */}
       {messages.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full text-center space-y-2 py-6">
+        <div className="flex flex-col items-center justify-center h-[calc(100%-20px)] text-center space-y-2 py-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/30 flex items-center justify-center shadow-sm overflow-hidden">
             <Image
               src="/lumi-avatar.png"
