@@ -9,7 +9,7 @@ const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { chatId, userId, message, journalText } = body;
+    const { chatId, userId, message, journalText, sessionId = "default" } = body;
 
     if (!chatId || !userId || !message) {
       return NextResponse.json({ error: "Missing required fields: chatId, userId, and message" }, { status: 400 });
@@ -21,7 +21,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "AI service is not configured" }, { status: 500 });
     }
 
-    const redisKey = `chat:${chatId}`;
+    const redisKey = `chat:${chatId}:${sessionId}`;
     let previousMessages = [];
 
     // 1. Fetch short-term history from Redis
@@ -112,6 +112,7 @@ ${journalText ? `\nHere is the user's current journal entry that they are referr
           role: "user",
           content: message,
           createdAt: new Date(now),
+          sessionId,
         });
 
         const assistantMsgRef = messagesRef.doc();
@@ -119,6 +120,7 @@ ${journalText ? `\nHere is the user's current journal entry that they are referr
           role: "assistant",
           content: replyText,
           createdAt: new Date(now + 1), // ensure strict sorting
+          sessionId,
         });
 
         await batch.commit();
@@ -132,6 +134,6 @@ ${journalText ? `\nHere is the user's current journal entry that they are referr
 
   } catch (error) {
     console.error("[Chat API] Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
