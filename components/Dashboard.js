@@ -584,10 +584,12 @@ function DashboardContent() {
     }
   }
 
-  // Get today's mood if already set
+  // Get today's mood and journal if already set
   let todaysMood = null;
+  let todaysJournal = "";
   if (data && data[now.getFullYear()] && data[now.getFullYear()][now.getMonth()]) {
     todaysMood = data[now.getFullYear()][now.getMonth()][now.getDate()] || null;
+    todaysJournal = data[now.getFullYear()][now.getMonth()][`journal_${now.getDate()}`] || "";
   }
 
   // Pre-calculate dependency for useMemo
@@ -696,7 +698,7 @@ function DashboardContent() {
         <MoodJournal
           mode="auth"
           initialMood={todaysMood}
-          initialText={hydratedJournalText}
+          initialText={hydratedJournalText || todaysJournal}
           user={currentUser}
           onMoodChange={handleSetMood}
           onMemoryAdded={refetchMemories}
