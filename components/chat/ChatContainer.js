@@ -137,11 +137,38 @@ export default function ChatContainer({
   // ─── Reflection Question Integration ────────────────────────────
   useEffect(() => {
     if (reflectionQuestion && !isTyping) {
-      // Auto-send the reflection question as a user message
-      sendMessage(reflectionQuestion);
-      onReflectionConsumed?.();
+      setMessages((prev) => {
+        // Prevent duplicate reflection questions from being injected twice in a row
+        const isDuplicate = prev.length > 0 && prev[prev.length - 1].content === reflectionQuestion;
+
+        if (!isDuplicate) {
+          const now = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          return [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: reflectionQuestion,
+              timestamp: now,
+            },
+          ];
+        }
+        return prev;
+      });
+
+      // Auto-focus chat input right after clicking the follow-up wrapper
+      setTimeout(() => {
+        if (containerRef.current) {
+          const textarea = containerRef.current.querySelector("textarea");
+          if (textarea) {
+            textarea.focus({ preventScroll: true });
+          }
+        }
+      }, 100);
     }
-    // Only trigger when reflectionQuestion changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reflectionQuestion]);
 
@@ -162,7 +189,7 @@ export default function ChatContainer({
     : "flex flex-col mt-4 bg-white/90 dark:bg-[#0f172a]/95 rounded-2xl border border-gray-200/80 dark:border-slate-800/60 shadow-xl overflow-hidden relative z-10 backdrop-blur-sm h-[550px] w-full transform transition-all duration-300";
 
   return (
-    <div ref={containerRef} className={containerClasses}>
+    <div ref={containerRef} className={containerClasses} onScroll={(e) => e.stopPropagation()}>
       <ChatHeader
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}

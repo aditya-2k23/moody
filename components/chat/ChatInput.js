@@ -63,14 +63,14 @@ export default function ChatInput({
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleSubmit(e);
     }
   };
 
   return (
     <div className="p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-slate-800/80">
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <div className="relative flex-1 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-indigo-100 dark:border-none focus-within:border-indigo-300 dark:focus-within:border-indigo-500/40 focus-within:bg-slate-100 dark:focus-within:bg-slate-800 transition-all overflow-hidden">
+        <div className="relative flex-1 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-indigo-100 dark:border-none focus-within:border-indigo-300 dark:focus-within:border-indigo-500/40 focus-within:bg-slate-100 dark:focus-within:bg-slate-800 transition-all overflow-hidden" onScroll={(e) => e.stopPropagation()}>
           <div className="flex items-center">
             <textarea
               ref={textareaRef}

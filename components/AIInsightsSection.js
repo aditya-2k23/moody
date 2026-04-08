@@ -14,6 +14,14 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
   const [showContent, setShowContent] = useState(false);
   const [chatId, setChatId] = useState("");
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
+  const [wasJustGenerated, setWasJustGenerated] = useState(false);
+
+  // Track if insights were actively generated in this session (vs loaded from cache)
+  useEffect(() => {
+    if (isLoading) {
+      setWasJustGenerated(true);
+    }
+  }, [isLoading]);
 
   // Generate a deterministic chat ID per day so chat history persists
   useEffect(() => {
@@ -38,12 +46,28 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
 
   useEffect(() => {
     if (insights && !isLoading) {
-      const timer = setTimeout(() => setShowContent(true), 50);
+      const timer = setTimeout(() => {
+        setShowContent(true);
+        // Automatically focus chat input if the user explicitly clicked "Generate Insights"
+        if (wasJustGenerated) {
+          setTimeout(() => {
+            const container = document.getElementById(`insights-chat-${chatId}`);
+            if (container) {
+              const textarea = container.querySelector("textarea");
+              if (textarea) {
+                textarea.focus({ preventScroll: true });
+                container.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
+            }
+          }, 300);
+          setWasJustGenerated(false);
+        }
+      }, 50);
       return () => clearTimeout(timer);
     } else if (isLoading) {
       setShowContent(false);
     }
-  }, [insights, isLoading]);
+  }, [insights, isLoading, wasJustGenerated, chatId]);
 
   if (!isLoading && !insights) return null;
 
@@ -161,7 +185,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
 
               {/* Right side: AI Chat */}
               {userId && (insights.response || insights.insight) && (
-                <div className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8">
+                <div id={`insights-chat-${chatId}`} className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8">
                   <ChatContainer
                     chatId={chatId}
                     userId={userId}

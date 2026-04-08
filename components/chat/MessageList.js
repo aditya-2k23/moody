@@ -16,7 +16,12 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
   useEffect(() => {
     // Only scroll if there are actually messages or we are typing
     if (messages.length > 0 || isTyping) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (containerRef.current) {
+        containerRef.current.scrollTo({
+          top: containerRef.current.scrollHeight,
+          behavior: "smooth"
+        });
+      }
     }
   }, [messages, isTyping]);
 
@@ -26,6 +31,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
       className={`flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-50/80 to-white/60 dark:from-[#0b1120] dark:to-[#0f172a]/80 scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : "h-full"
         }`}
       style={{ scrollbarGutter: "stable" }}
+      onScroll={(e) => e.stopPropagation()}
     >
       {/* Empty state */}
       {messages.length === 0 && (

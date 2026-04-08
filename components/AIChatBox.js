@@ -9,9 +9,18 @@ export default function AIChatBox({ chatId, userId }) {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0 || isTyping) {
+      // explicitly scroll the container to prevent page jump
+      if (containerRef.current) {
+        containerRef.current.scrollTo({
+          top: containerRef.current.scrollHeight,
+          behavior: "smooth"
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -24,7 +33,7 @@ export default function AIChatBox({ chatId, userId }) {
 
     const userMessage = input.trim();
     setInput("");
-    
+
     // Add user message with timestamp
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages((prev) => [...prev, { role: "user", content: userMessage, time: now }]);
@@ -55,7 +64,7 @@ export default function AIChatBox({ chatId, userId }) {
   };
 
   return (
-    <div className="flex flex-col mt-4 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl overflow-hidden relative z-10">
+    <div className="flex flex-col mt-4 bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xl overflow-hidden relative z-10" onScroll={(e) => e.stopPropagation()}>
       {/* Chat Header */}
       <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -76,7 +85,12 @@ export default function AIChatBox({ chatId, userId }) {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto max-h-[400px] min-h-[250px] p-5 space-y-5 bg-slate-50/50 dark:bg-[#0b1120] scroll-smooth">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto max-h-[400px] min-h-[250px] p-5 space-y-5 bg-slate-50/50 dark:bg-[#0b1120] scroll-smooth"
+        style={{ scrollbarGutter: "stable" }}
+        onScroll={(e) => e.stopPropagation()}
+      >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 mt-8">
             <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-2">
@@ -90,13 +104,12 @@ export default function AIChatBox({ chatId, userId }) {
             </p>
           </div>
         )}
-        
+
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex items-end gap-2 ${
-              msg.role === "user" ? "flex-row-reverse" : "flex-row"
-            }`}
+            className={`flex items-end gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"
+              }`}
           >
             {/* Avatar only for assistant */}
             {msg.role === "assistant" && (
@@ -104,14 +117,13 @@ export default function AIChatBox({ chatId, userId }) {
                 <Bot size={14} />
               </div>
             )}
-            
+
             <div className={`flex flex-col max-w-[75%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
-              <div 
-                className={`relative px-4 py-2.5 text-sm shadow-sm ${
-                  msg.role === "user" 
-                    ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm" 
+              <div
+                className={`relative px-4 py-2.5 text-sm shadow-sm ${msg.role === "user"
+                    ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
                     : "bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-100 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700"
-                }`}
+                  }`}
               >
                 {msg.content}
               </div>
@@ -123,9 +135,9 @@ export default function AIChatBox({ chatId, userId }) {
             </div>
           </div>
         ))}
-        
+
         {isTyping && (
-           <div className="flex items-end gap-2 flex-row">
+          <div className="flex items-end gap-2 flex-row">
             <div className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-sm mb-1">
               <Bot size={14} />
             </div>
