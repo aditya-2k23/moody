@@ -252,202 +252,202 @@ export default function JournalModal({
             {/* Journal content — hidden when chat is fullscreen */}
             {!chatFullscreen && (
               <>
-            {/* Date header */}
-            <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
-              {day} {monthName}, {year}
-            </h3>
+                {/* Date header */}
+                <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
+                  {day} {monthName}, {year}
+                </h3>
 
-            {/* Mood display */}
-            <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-4 flex items-center gap-1">
-              <span className="font-semibold">You felt:</span>
-              {!isEditing ? (
-                selectedMoodLabel ? (
-                  <span className="inline-flex items-center gap-1 ml-1">
-                    <span className="text-xl leading-none">{selectedMoodEmoji}</span>
-                    <span className="capitalize">{selectedMoodLabel}</span>
-                  </span>
-                ) : (
-                  <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
-                )
-              ) : (
-                <span className="inline-flex items-center gap-2 ml-1">
-                  <span className="relative">
-                    <RadialMoodMenu
-                      moods={moodOptions}
-                      currentMoodEmoji={draftMoodEmoji}
-                      currentMoodLabel={draftMoodLabel}
-                      onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
-                      disabled={saving}
-                    />
-                    <NewFeatureDot className="-right-[-3px]" />
-                  </span>
-                  <span className="inline-flex flex-col leading-tight">
-                    {draftMoodLabel ? (
-                      <>
-                        <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
-                          {draftMoodLabel}
-                        </span>
-
-                        <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
-                          hover to change
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
-                        pick a mood
+                {/* Mood display */}
+                <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-4 flex items-center gap-1">
+                  <span className="font-semibold">You felt:</span>
+                  {!isEditing ? (
+                    selectedMoodLabel ? (
+                      <span className="inline-flex items-center gap-1 ml-1">
+                        <span className="text-xl leading-none">{selectedMoodEmoji}</span>
+                        <span className="capitalize">{selectedMoodLabel}</span>
                       </span>
-                    )}
-                  </span>
-                </span>
-              )}
-            </div>
-
-            {/* Journal content */}
-            {!isEditing ? (
-              <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
-                {journal ? (
-                  <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                    {journal}
-                  </p>
-                ) : (
-                  <p className="text-gray-400 dark:text-gray-500 italic text-sm">
-                    No journal entry for this day.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <textarea
-                className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
-                value={draftJournal}
-                onChange={(e) => setDraftJournal(e.target.value)}
-                disabled={saving}
-                placeholder="Write your thoughts..."
-              />
-            )}
-
-            {/* Action buttons */}
-            <div className="flex items-center justify-between gap-2 mt-5">
-              {/* View Insights button (left side) */}
-              <div>
-                {isAuthed && userId && !isEditing && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (showInsights) {
-                        setShowInsights(false);
-                        return;
-                      }
-                      setLoadingInsights(true);
-                      setShowInsights(true);
-                      try {
-                        const docRef = doc(db, "users", userId);
-                        const snapshot = await getDoc(docRef);
-                        if (snapshot.exists()) {
-                          const data = snapshot.data();
-                          const stored = data?.[year]?.[month]?.[`insights_${day}`];
-                          if (stored && typeof stored === "object") {
-                            setDayInsights(stored);
-                          }
-                        }
-                      } catch (err) {
-                        console.error("Failed to load insights:", err);
-                      } finally {
-                        setLoadingInsights(false);
-                      }
-                    }}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
-                      ? "bg-indigo-600 text-white"
-                      : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
-                      }`}
-                  >
-                    <Sparkles size={14} />
-                    {showInsights ? "Hide Insights" : "View Insights"}
-                  </button>
-                )}
-              </div>
-
-              {/* Edit/Delete/Save buttons (right side) */}
-              <div className="flex items-center gap-2">
-                {!isEditing ? (
-                  hasEntry ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (saving || deleting) return;
-                          setIsEditing(true);
-                          setDraftJournal(journal || "");
-                          setDraftMood(mood);
-                        }}
-                        disabled={!isAuthed || saving || deleting}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
-                      >
-                        <Pencil size={16} />
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (saving || deleting) return;
-                          setConfirmDelete(true);
-                        }}
-                        disabled={!isAuthed || saving || deleting}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
-                      >
-                        <Trash2 size={16} />
-                        Delete
-                      </button>
-                    </>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
+                    )
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (saving || deleting) return;
-                        setIsEditing(true);
-                        setDraftJournal("");
-                        setDraftMood(mood);
-                      }}
-                      disabled={!isAuthed || saving || deleting}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-                    >
-                      <Pencil size={16} />
-                      Write Journal
-                    </button>
-                  )
+                    <span className="inline-flex items-center gap-2 ml-1">
+                      <span className="relative">
+                        <RadialMoodMenu
+                          moods={moodOptions}
+                          currentMoodEmoji={draftMoodEmoji}
+                          currentMoodLabel={draftMoodLabel}
+                          onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
+                          disabled={saving}
+                        />
+                        <NewFeatureDot className="-right-[-3px]" />
+                      </span>
+                      <span className="inline-flex flex-col leading-tight">
+                        {draftMoodLabel ? (
+                          <>
+                            <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
+                              {draftMoodLabel}
+                            </span>
+
+                            <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
+                              hover to change
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
+                            pick a mood
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Journal content */}
+                {!isEditing ? (
+                  <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
+                    {journal ? (
+                      <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        {journal}
+                      </p>
+                    ) : (
+                      <p className="text-gray-400 dark:text-gray-500 italic text-sm">
+                        No journal entry for this day.
+                      </p>
+                    )}
+                  </div>
                 ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
-                    >
-                      {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (saving) return;
-                        if (hasUnsavedChanges) {
-                          setConfirmDiscard(true);
-                          return;
-                        }
-                        setIsEditing(false);
-                        setDraftJournal("");
-                        setDraftMood(null);
-                      }}
-                      disabled={saving}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
-                    >
-                      <X size={16} />
-                      Cancel
-                    </button>
-                  </>
+                  <textarea
+                    className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
+                    value={draftJournal}
+                    onChange={(e) => setDraftJournal(e.target.value)}
+                    disabled={saving}
+                    placeholder="Write your thoughts..."
+                  />
                 )}
-              </div>
-            </div>
-            </>
+
+                {/* Action buttons */}
+                <div className="flex items-center justify-between gap-2 mt-5">
+                  {/* View Insights button (left side) */}
+                  <div>
+                    {isAuthed && userId && !isEditing && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (showInsights) {
+                            setShowInsights(false);
+                            return;
+                          }
+                          setLoadingInsights(true);
+                          setShowInsights(true);
+                          try {
+                            const docRef = doc(db, "users", userId);
+                            const snapshot = await getDoc(docRef);
+                            if (snapshot.exists()) {
+                              const data = snapshot.data();
+                              const stored = data?.[year]?.[month]?.[`insights_${day}`];
+                              if (stored && typeof stored === "object") {
+                                setDayInsights(stored);
+                              }
+                            }
+                          } catch (err) {
+                            console.error("Failed to load insights:", err);
+                          } finally {
+                            setLoadingInsights(false);
+                          }
+                        }}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
+                          ? "bg-indigo-600 text-white"
+                          : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
+                          }`}
+                      >
+                        <Sparkles size={14} />
+                        {showInsights ? "Hide Insights" : "View Insights"}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Edit/Delete/Save buttons (right side) */}
+                  <div className="flex items-center gap-2">
+                    {!isEditing ? (
+                      hasEntry ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (saving || deleting) return;
+                              setIsEditing(true);
+                              setDraftJournal(journal || "");
+                              setDraftMood(mood);
+                            }}
+                            disabled={!isAuthed || saving || deleting}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                          >
+                            <Pencil size={16} />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (saving || deleting) return;
+                              setConfirmDelete(true);
+                            }}
+                            disabled={!isAuthed || saving || deleting}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                          >
+                            <Trash2 size={16} />
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (saving || deleting) return;
+                            setIsEditing(true);
+                            setDraftJournal("");
+                            setDraftMood(mood);
+                          }}
+                          disabled={!isAuthed || saving || deleting}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+                        >
+                          <Pencil size={16} />
+                          Write Journal
+                        </button>
+                      )
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                        >
+                          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (saving) return;
+                            if (hasUnsavedChanges) {
+                              setConfirmDiscard(true);
+                              return;
+                            }
+                            setIsEditing(false);
+                            setDraftJournal("");
+                            setDraftMood(null);
+                          }}
+                          disabled={saving}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
+                        >
+                          <X size={16} />
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Insights & Chat Panel */}
@@ -506,6 +506,7 @@ export default function JournalModal({
                       <ChatContainer
                         chatId={`chat_${userId}_${year}_${month}_${day}`}
                         userId={userId}
+                        journalText={journal}
                         onFullscreenChange={setChatFullscreen}
                       />
                     </div>
