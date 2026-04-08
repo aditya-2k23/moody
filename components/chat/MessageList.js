@@ -28,32 +28,32 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-50/80 to-white/60 dark:from-[#0b1120] dark:to-[#0f172a]/80 scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : "h-full"
+      className={`flex-1 flex flex-col overflow-y-auto px-5 py-2 space-y-4 bg-transparent scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : ""
         }`}
-      style={{ scrollbarGutter: "stable" }}
       onScroll={(e) => e.stopPropagation()}
     >
       {/* Empty state */}
       {messages.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-[calc(100%-20px)] text-center space-y-2 py-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/30 flex items-center justify-center shadow-sm overflow-hidden">
-            <Image
-              src="/lumi-avatar.png"
-              alt="Lumi"
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
+        <div className="m-auto flex flex-col items-center justify-center text-center space-y-3">
+          <div className="w-20 h-20 rounded-full p-[3px] bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.15)] overflow-hidden mb-2">
+            <div className="w-full h-full rounded-full overflow-hidden relative">
+              <Image
+                src="/lumi-avatar.png"
+                alt="Lumi"
+                width={80}
+                height={80}
+                className="w-full h-full object-cover bg-[#0a0c16]"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            </div>
           </div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+          <p className="text-base font-medium text-slate-800 dark:text-gray-100 tracking-wide">
             I&apos;m Lumi. I&apos;m here to listen and help you reflect.
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-[70%]">
-            Ask me anything, share how you&apos;re feeling, or
-            just chat. I&apos;m all ears.
+          <p className="text-sm font-normal text-slate-500 dark:text-gray-500 max-w-[80%] leading-relaxed">
+            Ask me anything, share how you&apos;re feeling, or<br />just chat. I&apos;m all ears.
           </p>
         </div>
       )}

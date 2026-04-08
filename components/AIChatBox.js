@@ -25,6 +25,7 @@ export default function AIChatBox({ chatId, userId }) {
 
   useEffect(() => {
     scrollToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, isTyping]);
 
   const handleSend = async (e) => {
@@ -97,7 +98,7 @@ export default function AIChatBox({ chatId, userId }) {
               <Bot size={28} className="text-indigo-500 dark:text-indigo-400" />
             </div>
             <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              I'm Lumi. I'm here to listen and help you reflect.
+              I&apos;m Lumi. I&apos;m here to listen and help you reflect.
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 max-w-[80%]">
               Feel free to ask questions about your journal entry or share more about your day.
@@ -121,8 +122,8 @@ export default function AIChatBox({ chatId, userId }) {
             <div className={`flex flex-col max-w-[75%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
               <div
                 className={`relative px-4 py-2.5 text-sm shadow-sm ${msg.role === "user"
-                    ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
-                    : "bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-100 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700"
+                  ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm"
+                  : "bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-100 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700"
                   }`}
               >
                 {msg.content}
