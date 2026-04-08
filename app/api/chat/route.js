@@ -3,13 +3,13 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const HISTORY_LIMIT = 10;
+const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { chatId, userId, message } = body;
+    const { chatId, userId, message, journalText } = body;
 
     if (!chatId || !userId || !message) {
       return NextResponse.json({ error: "Missing required fields: chatId, userId, and message" }, { status: 400 });
@@ -60,7 +60,8 @@ Your role is to:
 - Keep responses relatively brief (2-4 sentences) unless the user writes a lot
 - You can ask one thoughtful question to keep the conversation going naturally, but avoid firing off multiple questions.
 - Comfort difficult emotions without being preachy or generic
-- Celebrate wins enthusiastically but genuinely`,
+- Celebrate wins enthusiastically but genuinely
+${journalText ? `\nHere is the user's current journal entry that they are referring to or thinking about right now. Be sure to anchor your conversation in this context:\n"""\n${journalText}\n"""\n` : ''}`,
           },
         ],
       },
@@ -98,7 +99,7 @@ Your role is to:
         .collection("messages");
 
       const batch = db.batch();
-      
+
       const now = Date.now();
 
       const userMsgRef = messagesRef.doc();

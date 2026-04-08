@@ -51,7 +51,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
           <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
             I&apos;m Lumi. I&apos;m here to listen and help you reflect.
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-[80%]">
+          <p className="text-xs text-gray-400 dark:text-gray-500 max-w-[70%]">
             Ask me anything, share how you&apos;re feeling, or
             just chat. I&apos;m all ears.
           </p>
@@ -85,7 +85,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
           <div className="bg-white dark:bg-slate-800/90 border border-gray-100 dark:border-slate-700/80 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-400 dark:text-gray-500 mr-1.5 font-medium">
-                Lumi is thinking
+                Lumi is typing
               </span>
               <span
                 className="w-1.5 h-1.5 bg-indigo-400 dark:bg-indigo-400 rounded-full animate-bounce"

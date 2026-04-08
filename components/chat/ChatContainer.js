@@ -13,6 +13,7 @@ import ChatInput from "./ChatInput";
 export default function ChatContainer({
   chatId,
   userId,
+  journalText,
   reflectionQuestion,
   onReflectionConsumed,
   onFullscreenChange,
@@ -104,6 +105,7 @@ export default function ChatContainer({
             chatId,
             userId,
             message: messageText,
+            journalText,
           }),
         });
 

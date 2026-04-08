@@ -37,6 +37,8 @@ export default function Journal({
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
 
+  const insightsRef = useRef(null);
+
   // Auto-load previously generated insights for today from Firestore
   const insightsLoadedRef = useRef(false);
   useEffect(() => {
@@ -516,6 +518,11 @@ export default function Journal({
 
       setInsights(result.data);
 
+      // Scroll to insights section after a short delay to ensure DOM is updated
+      setTimeout(() => {
+        insightsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+
       // Persist insights to Firestore for the current day
       try {
         const now = new Date();
@@ -688,7 +695,9 @@ export default function Journal({
       </div>
 
       {/* AI Insights Section */}
-      <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} />
+      <div ref={insightsRef} className="scroll-mt-10">
+        <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} journalText={entry} />
+      </div>
     </div>
   );
 }

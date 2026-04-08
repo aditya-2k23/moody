@@ -9,7 +9,7 @@ import ChatContainer from "./chat/ChatContainer";
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
  * and an integrated chat experience with Lumi
  */
-export default function AIInsightsSection({ insights, isLoading, userId }) {
+export default function AIInsightsSection({ insights, isLoading, userId, journalText }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [chatId, setChatId] = useState("");
@@ -25,24 +25,24 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
 
   // Generate a deterministic chat ID per day so chat history persists
   useEffect(() => {
-    if (insights && (insights.response || insights.insight) && !isLoading && userId) {
+    if (userId) {
       const now = new Date();
       const day = now.getDate();
       const month = now.getMonth();
       const year = now.getFullYear();
       setChatId(`chat_${userId}_${year}_${month}_${day}`);
     }
-  }, [insights, isLoading, userId]);
+  }, [userId]);
 
   useEffect(() => {
-    if (isLoading || insights) {
+    if (userId || isLoading || insights) {
       const timer = setTimeout(() => setIsVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
       setIsVisible(false);
       setShowContent(false);
     }
-  }, [isLoading, insights]);
+  }, [userId, isLoading, insights]);
 
   useEffect(() => {
     if (insights && !isLoading) {
@@ -69,7 +69,7 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
     }
   }, [insights, isLoading, wasJustGenerated, chatId]);
 
-  if (!isLoading && !insights) return null;
+  if (!userId && !isLoading && !insights) return null;
 
   // Handle reflection question click → send to chat
   const handleReflectionClick = (question) => {
@@ -106,10 +106,27 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
           bottomColors: "from-lime-400/40 to-green-500/30 dark:from-lime-400/20 dark:to-green-300/20"
         }}
       >
-        {insights && (
-          <>
-            <div className="flex flex-col xl:flex-row gap-8 md:gap-4">
-              {/* Left side: Analysis & Triggers */}
+        {/* Scenario 1: No insights and not loading -> Full width Chat container */}
+        {!insights && !isLoading && userId && (
+          <div id={`insights-chat-${chatId}`} className="w-full flex flex-col min-h-[500px]">
+            <ChatContainer
+              chatId={chatId}
+              userId={userId}
+              journalText={journalText}
+              reflectionQuestion={reflectionQuestion}
+              onReflectionConsumed={() => setReflectionQuestion(null)}
+            />
+          </div>
+        )}
+
+        {/* Scenario 2 & 3: Loading insights, or insights already loaded -> Split View */}
+        {(isLoading || insights) && (
+          <div className="flex flex-col xl:flex-row gap-8 md:gap-4">
+
+            {/* Left side: Triggers or Skeleton */}
+            {isLoading ? (
+              <InsightSkeletonLeft />
+            ) : (
               <div className="flex-1 space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -121,12 +138,14 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                     </h3>
                   </div>
 
-                  <div className="flex flex-col items-center justify-between min-w-[90px]">
-                    <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
-                    <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">
-                      {insights.mood}
-                    </span>
-                  </div>
+                  {insights.mood && (
+                    <div className="flex flex-col items-center justify-between min-w-[90px]">
+                      <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
+                      <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">
+                        {insights.mood}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -182,20 +201,21 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
                   </button>
                 )}
               </div>
+            )}
 
-              {/* Right side: AI Chat */}
-              {userId && (insights.response || insights.insight) && (
-                <div id={`insights-chat-${chatId}`} className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8">
-                  <ChatContainer
-                    chatId={chatId}
-                    userId={userId}
-                    reflectionQuestion={reflectionQuestion}
-                    onReflectionConsumed={() => setReflectionQuestion(null)}
-                  />
-                </div>
-              )}
-            </div>
-          </>
+            {/* Right side: AI Chat */}
+            {userId && (
+              <div id={`insights-chat-${chatId}`} className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8 min-h-[400px]">
+                <ChatContainer
+                  chatId={chatId}
+                  userId={userId}
+                  journalText={journalText}
+                  reflectionQuestion={reflectionQuestion}
+                  onReflectionConsumed={() => setReflectionQuestion(null)}
+                />
+              </div>
+            )}
+          </div>
         )}
       </InsightCard>
     </div>
@@ -203,14 +223,14 @@ export default function AIInsightsSection({ insights, isLoading, userId }) {
 }
 
 /**
- * InsightCard - Reusable card component with loading skeleton
+ * InsightCard - Reusable card component container
  */
 function InsightCard({
-  isLoading,
-  showContent,
   children,
   className = "",
-  gradientPositions = {}
+  gradientPositions = {},
+  isLoading = false,
+  showContent = false
 }) {
   return (
     <div
@@ -224,60 +244,49 @@ function InsightCard({
         <div className={`absolute ${gradientPositions.bottom} w-40 h-40 bg-gradient-to-tr ${gradientPositions.bottomColors} rounded-full blur-3xl pointer-events-none`} />
       )}
 
-      {/* Loading Skeleton */}
-      {isLoading && (
-        <div className="relative z-10 animate-insights-skeleton space-y-8">
-          {/* Shimmer overlay */}
-          <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20" />
+      {/* Actual Content */}
+      <div className={`relative z-10 w-full h-full ${!isLoading && showContent ? 'animate-insights-content' : ''}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
-          <div className="flex flex-col xl:flex-row gap-8 lg:gap-10 opacity-70">
-            {/* Left Skeleton */}
-            <div className="flex-1 space-y-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-                  <div className="h-4 w-32 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-                </div>
-                <div className="w-20 h-10 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
-              </div>
+function InsightSkeletonLeft() {
+  return (
+    <div className="flex-1 space-y-6 relative overflow-hidden z-10 animate-insights-skeleton">
+      {/* Blur overlay for the skeleton side only */}
+      <div className="absolute inset-0 backdrop-blur-[2px] bg-white/10 dark:bg-slate-900/20 rounded-2xl transition-all duration-300 pointer-events-none z-30" />
 
-              <div className="h-8 w-3/4 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+      {/* Shimmer overlay */}
+      <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20 pointer-events-none" />
 
-              <div className="space-y-3">
-                <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-              </div>
+      <div className="opacity-70">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          </div>
+          <div className="w-20 h-10 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+        </div>
 
-              <div className="space-y-3 pt-4">
-                <div className="h-3 w-24 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="flex gap-2">
-                  <div className="h-8 w-20 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-                  <div className="h-8 w-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-                  <div className="h-8 w-16 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-                </div>
-              </div>
-            </div>
+        <div className="h-8 w-3/4 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse mb-6" />
 
-            {/* Right chat skeleton */}
-            <div className="flex-1 w-full">
-              <div className="h-[550px] w-full bg-gray-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
-            </div>
+        <div className="space-y-3 mb-6">
+          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+        </div>
+
+        <div className="space-y-3 pt-4">
+          <div className="h-3 w-24 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="flex flex-wrap gap-2">
+            <div className="h-8 w-20 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+            <div className="h-8 w-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+            <div className="h-8 w-16 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
           </div>
         </div>
-      )}
-
-      {/* Actual Content */}
-      {!isLoading && showContent && (
-        <div className="relative z-10 animate-insights-content">
-          {children}
-        </div>
-      )}
-
-      {/* Blur overlay during loading (applied to content area only) */}
-      {isLoading && (
-        <div className="absolute inset-0 backdrop-blur-[4px] bg-white/30 dark:bg-slate-900/40 rounded-[2rem] transition-all duration-300 pointer-events-none" />
-      )}
+      </div>
     </div>
   );
 }

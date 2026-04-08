@@ -40,7 +40,7 @@ function secondsUntilMidnight() {
   const ptTime = new Date(now.toLocaleString("en-US", options));
   const ptMidnight = new Date(ptTime);
   ptMidnight.setHours(24, 0, 0, 0);
-  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60); 
+  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60);
 }
 
 async function markModelExhausted(modelId) {
@@ -162,7 +162,8 @@ async function storeUserEmbedding(userId, embedding, response) {
     if (data.length > MAX_EMBEDDINGS) {
       data = data.slice(data.length - MAX_EMBEDDINGS);
     }
-    await redis.set(key, data, { ex: CACHE_TTL_SECONDS });
+    // Stringify explicitly to ensure Upstash compatibility
+    await redis.set(key, JSON.stringify(data), { ex: CACHE_TTL_SECONDS });
   } catch (error) {
     console.error("[Insights] Redis embedding store failed:", error.message);
   }
@@ -258,11 +259,12 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   // ===== PHASE 1: SEMANTIC CACHING =====
   if (!forceRegenerate) {
     embedding = await getEmbedding(journalText);
-    
+
     if (embedding) {
       const stored = await fetchUserEmbeddings(userId);
       let bestMatch = null;
       let highestSimilarityScore = -1;
+      let exactMatchData = null;
 
       const dynamicThreshold = journalText.length < 50 ? 0.80 : SIMILARITY_THRESHOLD;
       const now = Date.now();
@@ -272,9 +274,12 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       for (const item of stored) {
         if (!item.embedding) continue;
         const sim = cosineSimilarity(embedding, item.embedding);
-        
+
         // Track raw similarity for exact-duplicate logic
-        if (sim > pureMaxSimilarity) pureMaxSimilarity = sim;
+        if (sim > pureMaxSimilarity) {
+          pureMaxSimilarity = sim;
+          exactMatchData = item.response;
+        }
 
         // Apply recency factoring (80% similarity, 20% recency)
         const itemAgeMs = now - (item.createdAt || now);
@@ -285,6 +290,13 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
           highestSimilarityScore = finalScore;
           bestMatch = item;
         }
+      }
+
+      // If it's effectively an exact duplicate, return the cached response immediately
+      // bypassing the Gemini generation entirely.
+      if (pureMaxSimilarity >= 0.95 && exactMatchData) {
+        console.log(`[Insights] Exact cache hit. Score: ${pureMaxSimilarity.toFixed(3)}`);
+        return { success: true, data: exactMatchData, modelUsed: "cache" };
       }
 
       if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
@@ -308,7 +320,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   let modelUsed = null;
   const startTime = Date.now();
 
-  const prompt = isCacheHit 
+  const prompt = isCacheHit
     ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline)
     : buildPrompt(journalText);
 
@@ -329,21 +341,21 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     headline: { type: "string" },
   };
 
-  const currentSchema = isCacheHit 
+  const currentSchema = isCacheHit
     ? {
-        type: "object",
-        properties: {
-          response: { type: "string" },
-          focus: { type: "string" },
-          followUpQuestion: { type: "string" }
-        },
-        required: ["response", "focus", "followUpQuestion"],
-      }
+      type: "object",
+      properties: {
+        response: { type: "string" },
+        focus: { type: "string" },
+        followUpQuestion: { type: "string" }
+      },
+      required: ["response", "focus", "followUpQuestion"],
+    }
     : {
-        type: "object",
-        properties: fullSchemaProperties,
-        required: ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"],
-      };
+      type: "object",
+      properties: fullSchemaProperties,
+      required: ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"],
+    };
 
   for (let i = 0; i < availableModels.length; i++) {
     if (Date.now() - startTime >= GLOBAL_TIMEOUT_MS) {
@@ -381,7 +393,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
       // Simple validation mapping structure
       const requiredFields = isCacheHit ? ["response", "focus", "followUpQuestion"] : ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
-      
+
       for (const field of requiredFields) {
         if (!(field in parsed)) throw new Error("Validation Failed");
       }
@@ -399,7 +411,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       }
 
       modelUsed = modelId;
-      break; 
+      break;
     } catch (error) {
       console.error(`[Insights] ${modelLabel} error:`, error.message);
 
@@ -419,12 +431,11 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   }
 
   // ===== PHASE 3: CACHE PERSISTENCE =====
-  // We only store the new embedding on a pure cache miss and if it's not a near-exact duplicate
-  const isDuplicate = pureMaxSimilarity > 0.95;
-  if (!isCacheHit && !isDuplicate && insight && embedding) {
+  // Store the newly generated insight to enable future caching.
+  // We reached here, so Gemini successfully generated a response (meaning we paid the token cost).
+  // We must store it so that future repeat entries will hit the `pureMaxSimilarity >= 0.95` check.
+  if (insight && embedding) {
     await storeUserEmbedding(userId, embedding, insight);
-  } else if (!isCacheHit && isDuplicate) {
-    console.log("[Insights] Skipping cache store: Entry is a highly similar duplicate.");
   }
 
   return { success: true, data: insight, modelUsed };
