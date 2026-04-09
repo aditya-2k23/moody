@@ -470,7 +470,9 @@ export default function JournalModal({
                           {dayInsights.headline || "Lumi's Thoughts"}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                          {dayInsights.response || dayInsights.insight}
+                          {Array.isArray(dayInsights.response)
+                            ? dayInsights.response.join(" ")
+                            : (dayInsights.response || dayInsights.insight)}
                         </p>
                       </div>
                     </div>

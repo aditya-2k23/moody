@@ -238,20 +238,35 @@ export default function ChatContainer({
         }
 
         const data = await res.json();
-        const replyTime = new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const replyBubbles = Array.isArray(data.reply)
+          ? data.reply
+            .map((bubble) => (typeof bubble === "string" ? bubble.trim() : ""))
+            .filter(Boolean)
+          : [typeof data.reply === "string" ? data.reply.trim() : ""];
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: data.reply,
-            timestamp: replyTime,
-          },
-        ]);
+        const normalizedBubbles = replyBubbles.length > 0
+          ? replyBubbles
+          : ["I am here with you."];
+
+        for (const bubble of normalizedBubbles) {
+          const replyTime = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: bubble,
+              timestamp: replyTime,
+            },
+          ]);
+
+          // Small stagger so bubble-array replies feel like a real chat cadence.
+          await new Promise((resolve) => setTimeout(resolve, 320));
+        }
       } catch (error) {
         console.error(error);
         toast.error("Lumi is busy! Try again later.");

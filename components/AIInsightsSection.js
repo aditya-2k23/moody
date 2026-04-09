@@ -154,7 +154,9 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                   </h4>
 
                   <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">
-                    {insights.response || insights.insight}
+                    {Array.isArray(insights.response)
+                      ? insights.response.join(" ")
+                      : (insights.response || insights.insight)}
                   </p>
                 </div>
 
