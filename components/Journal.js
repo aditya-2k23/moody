@@ -10,8 +10,6 @@ import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
-import Image from "next/image";
-import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -31,13 +29,13 @@ export default function Journal({
   onInsightsAutoTriggered,
 }) {
   const isGuest = mode === "guest";
-  const { resolvedTheme } = useTheme();
   const [entry, setEntry] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
 
   const insightsRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Auto-load previously generated insights for today from Firestore
   const insightsLoadedRef = useRef(false);
@@ -139,6 +137,15 @@ export default function Journal({
 
   // Compute display value with interim transcript
   const displayEntry = getDisplayValue(entry);
+
+  // Auto-resize journal textarea whenever its content changes programmatically or on load
+  useEffect(() => {
+    if (textareaRef.current) {
+      const target = textareaRef.current;
+      target.style.height = 'auto'; // Reset to get correct scrollHeight
+      target.style.height = Math.max(target.scrollHeight, 96) + 'px';
+    }
+  }, [displayEntry]);
 
   // Store onJournalSaved in a ref to keep dependency array stable
   const onJournalSavedRef = useRef(onJournalSaved);
@@ -599,16 +606,17 @@ export default function Journal({
             </div>
           )}
           <textarea
+            ref={textareaRef}
             name="journal"
             id="journal"
             aria-label={placeholder}
-            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 text-gray-700   text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs"
+            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 pb-12 sm:pb-12 md:pb-14 pr-20 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs resize-none"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;
               setEntry(newValue);
               syncBaseEntry(newValue);
-              // Auto-expand textarea to fit content
+              // Auto-expand textarea to fit content (also handled by useEffect for programmatic updates)
               const target = e.target;
               target.style.height = 'auto';
               target.style.height = Math.max(target.scrollHeight, 96) + 'px';
