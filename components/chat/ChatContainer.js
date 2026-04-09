@@ -27,31 +27,69 @@ export default function ChatContainer({
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [historySessions, setHistorySessions] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [demoCount, setDemoCount] = useState(0);
   const containerRef = useRef(null);
+  const chatContentRef = useRef(null);
+  const historyModalBackdropRef = useRef(null);
+  const historyModalContentRef = useRef(null);
 
-  // Load demo messages on mount
+  // GSAP for Modal Open
+  useEffect(() => {
+    if (showHistoryModal) {
+      import("gsap").then(({ default: gsap }) => {
+        if (historyModalBackdropRef.current && historyModalContentRef.current) {
+          gsap.fromTo(
+            historyModalBackdropRef.current,
+            { opacity: 0 },
+            { opacity: 1, duration: 0.3, ease: "power2.out" }
+          );
+          gsap.fromTo(
+            historyModalContentRef.current,
+            { opacity: 0, scale: 0.9, y: 20 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(1.2)", delay: 0.1 }
+          );
+        }
+      });
+    }
+  }, [showHistoryModal]);
+
+  const closeHistoryModal = useCallback(() => {
+    import("gsap").then(({ default: gsap }) => {
+      if (historyModalBackdropRef.current && historyModalContentRef.current) {
+        gsap.to(historyModalContentRef.current, {
+          opacity: 0,
+          scale: 0.95,
+          y: -10,
+          duration: 0.2,
+          ease: "power2.in"
+        });
+        gsap.to(historyModalBackdropRef.current, {
+          opacity: 0,
+          duration: 0.2,
+          delay: 0.1,
+          onComplete: () => setShowHistoryModal(false)
+        });
+      } else {
+        setShowHistoryModal(false);
+      }
+    });
+  }, []);
+
+  // Load demo count on mount
   useEffect(() => {
     if (isDemo) {
       try {
-        const saved = localStorage.getItem("lumi-demo-messages");
+        const saved = localStorage.getItem("lumi-demo-count");
         if (saved) {
-          setMessages(JSON.parse(saved));
+          setDemoCount(parseInt(saved, 10));
         }
       } catch (e) {
-        console.error("Failed to parse demo messages", e);
+        console.error("Failed to parse demo count", e);
       }
     }
   }, [isDemo]);
 
-  // Save demo messages
-  useEffect(() => {
-    if (isDemo && messages.length > 0) {
-      localStorage.setItem("lumi-demo-messages", JSON.stringify(messages));
-    }
-  }, [messages, isDemo]);
-
-  const demoMessageCount = messages.filter((m) => m.role === "user").length;
-  const isDemoLimitReached = isDemo && demoMessageCount >= 3;
+  const isDemoLimitReached = isDemo && demoCount >= 3;
 
   // ─── Fetch Today's History ───────────────────────────────────────
   useEffect(() => {
@@ -76,6 +114,28 @@ export default function ChatContainer({
 
   // ─── Fullscreen Toggle ──────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
+    import("gsap").then(({ default: gsap }) => {
+      if (containerRef.current) {
+        // A fun "squish" effect
+        gsap.timeline()
+          .to(containerRef.current, {
+            scaleX: 1.05,
+            scaleY: 0.95,
+            duration: 0.3,
+            ease: "power1.inOut"
+          })
+          .to(containerRef.current, {
+            scaleX: 1,
+            scaleY: 1,
+            duration: 0.8,
+            ease: "elastic.out(1, 0.4)",
+            onComplete: () => {
+              gsap.set(containerRef.current, { clearProps: "transform" });
+            }
+          });
+      }
+    });
+
     setIsFullscreen((prev) => {
       const next = !prev;
       onFullscreenChange?.(next);
@@ -88,16 +148,15 @@ export default function ChatContainer({
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         if (showHistoryModal) {
-          setShowHistoryModal(false);
+          closeHistoryModal();
         } else if (isFullscreen) {
-          setIsFullscreen(false);
-          onFullscreenChange?.(false);
+          toggleFullscreen();
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen, onFullscreenChange, showHistoryModal]);
+  }, [isFullscreen, showHistoryModal, closeHistoryModal, toggleFullscreen]);
 
   // Lock body scroll when fullscreen (only in standalone mode, not modal)
   useEffect(() => {
@@ -135,7 +194,15 @@ export default function ChatContainer({
   const sendMessage = useCallback(
     async (messageText) => {
       if (!messageText.trim() || (!userId && !isDemo)) return;
-      if (isDemo && demoMessageCount >= 3) return;
+      if (isDemo && demoCount >= 3) return;
+
+      if (isDemo) {
+        setDemoCount((prev) => {
+          const nextCount = prev + 1;
+          localStorage.setItem("lumi-demo-count", nextCount.toString());
+          return nextCount;
+        });
+      }
 
       const now = new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -187,12 +254,12 @@ export default function ChatContainer({
         ]);
       } catch (error) {
         console.error(error);
-        toast.error("Lumi is busy right now. Please try again.");
+        toast.error("Lumi is busy! Try again later.");
       } finally {
         setIsTyping(false);
       }
     },
-    [chatId, userId, isDemo, demoMessageCount, journalText, sessionId]
+    [chatId, userId, isDemo, demoCount, journalText, sessionId]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -239,8 +306,6 @@ export default function ChatContainer({
     setInput("");
 
     if (isDemo) {
-      localStorage.removeItem("lumi-demo-messages");
-      toast.success("Chat cleared");
       return;
     }
 
@@ -265,10 +330,17 @@ export default function ChatContainer({
 
   // ─── Handle New Chat Button ─────────────────────────────────────
   const startNewChat = useCallback(() => {
+    import("gsap").then(({ default: gsap }) => {
+      if (chatContentRef.current) {
+        gsap.fromTo(chatContentRef.current,
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
+        );
+      }
+    });
     setMessages([]);
     setInput("");
     setSessionId(crypto.randomUUID());
-    toast.success("Started a new session");
   }, []);
 
   // ─── Container Classes ──────────────────────────────────────────
@@ -278,16 +350,16 @@ export default function ChatContainer({
     ? onFullscreenChange
       ? `flex-1 flex flex-col bg-gradient-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] rounded-[2rem] overflow-hidden`
       : `fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] overflow-hidden rounded-3xl`
-    : `flex flex-col mt-4 bg-white/80 dark:bg-gradient-to-b dark:from-[#0b1021] dark:to-[#111526] rounded-[2rem] border border-gray-200/50 dark:border-white/5 shadow-2xl overflow-hidden relative z-10 backdrop-blur-xl h-[550px] w-full transform transition-all duration-300`;
+    : `flex flex-col mt-4 bg-white/80 dark:bg-gradient-to-b dark:from-[#0b1021] dark:to-[#111526] rounded-[2rem] border border-gray-200/50 dark:border-white/5 shadow-2xl overflow-hidden relative z-10 backdrop-blur-xl h-[550px] w-full transition-colors duration-300`;
 
   return (
     <div ref={containerRef} className={containerClasses} onScroll={(e) => e.stopPropagation()}>
       {isDemo ? (
         <div className="flex flex-col items-center justify-center p-3 border-b border-gray-100/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md shrink-0 mb-2 shadow-sm">
           <h3 className="font-semibold text-gray-800 dark:text-gray-100 flex items-center justify-center gap-1 text-sm leading-tight">
-            Lumi is 
+            Lumi is
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-            ONLINE</span>
+              ONLINE</span>
           </h3>
           <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
             Sign in to unlock full memory, daily history, and more
@@ -307,18 +379,20 @@ export default function ChatContainer({
 
       {/* History Modal Overlay */}
       {showHistoryModal && (
-        <div 
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-2xl p-4"
-          onClick={() => setShowHistoryModal(false)}
+        <div
+          ref={historyModalBackdropRef}
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-2xl p-4 opacity-0"
+          onClick={closeHistoryModal}
         >
-          <div 
-            className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 max-h-[80vh] flex flex-col"
+          <div
+            ref={historyModalContentRef}
+            className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 max-h-[80vh] flex flex-col opacity-0 scale-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4 shrink-0">
               <h3 className="font-semibold text-lg dark:text-white">Chat History</h3>
               <button
-                onClick={() => setShowHistoryModal(false)}
+                onClick={closeHistoryModal}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 transition-colors"
                 title="Close"
               >
@@ -334,7 +408,7 @@ export default function ChatContainer({
                     onClick={() => {
                       setSessionId(session.sessionId);
                       setMessages(session.messages);
-                      setShowHistoryModal(false);
+                      closeHistoryModal();
                     }}
                     className="w-full text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
@@ -359,33 +433,35 @@ export default function ChatContainer({
         </div>
       )}
 
-      <MessageList
-        messages={messages}
-        isTyping={isTyping}
-        isFullscreen={isFullscreen}
-      />
-
-      {isDemoLimitReached ? (
-        <div className="p-4 border-t border-gray-200/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-            You&apos;ve reached the end of the demo! Sign in to continue chatting with Lumi.
-          </p>
-          <button
-            onClick={() => window.location.href = '/dashboard'}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-medium transition-colors"
-          >
-            Create Free Account
-          </button>
-        </div>
-      ) : (
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          onSend={sendMessage}
+      <div ref={chatContentRef} className="flex flex-col flex-1 overflow-hidden">
+        <MessageList
+          messages={messages}
           isTyping={isTyping}
           isFullscreen={isFullscreen}
         />
-      )}
+
+        {isDemoLimitReached ? (
+          <div className="p-4 border-t border-gray-200/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur text-center w-full">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+              You&apos;ve reached the end of the demo! Sign in to continue chatting with Lumi.
+            </p>
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-medium transition-colors"
+            >
+              Create Free Account
+            </button>
+          </div>
+        ) : (
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            onSend={sendMessage}
+            isTyping={isTyping}
+            isFullscreen={isFullscreen}
+          />
+        )}
+      </div>
     </div>
   );
 }
