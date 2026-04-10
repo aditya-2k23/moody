@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { AlertTriangle, Loader2, Pencil, Save, Trash2, X, Sparkles, Bot, MessageCircle } from "lucide-react";
+import { AlertTriangle, Loader2, Pencil, Save, Trash2, X, Sparkles, MessageCircle, MessageCircleMoreIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import convertMood, { moods } from "@/utils";
 import RadialMoodMenu from "./RadialMoodMenu";
@@ -463,7 +463,7 @@ export default function JournalModal({
                     {/* Insight summary */}
                     <div className="flex items-start gap-3">
                       <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
-                        <Bot size={16} className="text-white" />
+                        <MessageCircleMoreIcon size={16} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">

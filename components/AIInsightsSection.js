@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { moods } from "@/utils";
-import { Check, Sparkles, Bot, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
+import { Check, Sparkles, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
 
 /**
