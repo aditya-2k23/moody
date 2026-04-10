@@ -1,4 +1,4 @@
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -13,6 +13,25 @@ export async function GET(req) {
 
     if (userId === "demo-user") {
       return NextResponse.json({ messages: [] });
+    }
+
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+    let decodedToken;
+
+    try {
+      decodedToken = await getAdminAuth().verifyIdToken(idToken);
+    } catch (error) {
+      console.error("[Chat History API] Token verification failed:", error);
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    if (decodedToken.uid !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const db = getAdminDb();

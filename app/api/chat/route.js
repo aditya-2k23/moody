@@ -1,5 +1,5 @@
 import { redis } from "@/lib/redis";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
@@ -10,6 +10,16 @@ const CHAT_MODEL_CHAIN = [
   "gemini-3-flash-preview",
   "gemini-2.0-flash",
 ];
+
+function isChatIdScopedToUser(chatId, uid) {
+  return (
+    typeof chatId === "string" &&
+    chatId.length >= 8 &&
+    chatId.length <= 200 &&
+    !chatId.includes("/") &&
+    chatId.startsWith(`chat_${uid}_`)
+  );
+}
 
 function isRetryableModelError(error) {
   const msg = (error?.message || "").toLowerCase();
@@ -74,10 +84,40 @@ function extractRetryDelaySeconds(errorMessage) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { chatId, userId, message, journalText, sessionId = "default" } = body;
+    const { chatId, userId: requestedUserId, message, journalText, sessionId = "default" } = body;
 
-    if (!chatId || !userId || !message) {
-      return NextResponse.json({ error: "Missing required fields: chatId, userId, and message" }, { status: 400 });
+    if (!chatId || !message) {
+      return NextResponse.json({ error: "Missing required fields: chatId and message" }, { status: 400 });
+    }
+
+    const isDemoUser = requestedUserId === "demo-user";
+    let effectiveUserId = requestedUserId;
+
+    if (!isDemoUser) {
+      const authHeader = req.headers.get("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const idToken = authHeader.split("Bearer ")[1];
+      let decodedToken;
+
+      try {
+        decodedToken = await getAdminAuth().verifyIdToken(idToken);
+      } catch (error) {
+        console.error("[Chat API] Token verification failed:", error);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
+
+      effectiveUserId = decodedToken.uid;
+
+      if (requestedUserId && requestedUserId !== effectiveUserId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      if (!isChatIdScopedToUser(chatId, effectiveUserId)) {
+        return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+      }
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -90,7 +130,7 @@ export async function POST(req) {
     let previousMessages = [];
 
     // 1. Fetch short-term history from Redis
-    if (userId !== "demo-user") {
+    if (!isDemoUser) {
       try {
         const stored = await redis.get(redisKey);
         if (stored && Array.isArray(stored)) {
@@ -279,7 +319,7 @@ export async function POST(req) {
     }
 
     // Attempt Redis update
-    if (userId !== "demo-user") {
+    if (!isDemoUser) {
       try {
         await redis.set(redisKey, updatedMessages, { ex: REDIS_TTL_SECONDS });
       } catch (e) {
@@ -288,12 +328,12 @@ export async function POST(req) {
     }
 
     // 5. Store to Firestore for long-term history (skip for demo users)
-    if (userId !== "demo-user") {
+    if (!isDemoUser) {
       try {
         const db = getAdminDb();
         const messagesRef = db
           .collection("users")
-          .doc(userId)
+          .doc(effectiveUserId)
           .collection("chats")
           .doc(chatId)
           .collection("messages");

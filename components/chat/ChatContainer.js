@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { auth } from "@/firebase";
 import toast from "react-hot-toast";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -110,7 +111,16 @@ export default function ChatContainer({
 
     const fetchHistory = async () => {
       try {
-        const res = await fetch(`/api/chat/history?chatId=${chatId}&userId=${userId}`);
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch(`/api/chat/history?chatId=${encodeURIComponent(chatId)}&userId=${encodeURIComponent(userId)}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
         if (res.ok) {
           const data = await res.json();
           if (data.historySessions) {
@@ -233,12 +243,18 @@ export default function ChatContainer({
       setIsTyping(true);
 
       try {
+        const currentUser = auth.currentUser;
+        const idToken = !isDemo && currentUser ? await currentUser.getIdToken() : null;
+
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(!isDemo && idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          },
           body: JSON.stringify({
             chatId: isDemo ? "demo-chat" : chatId,
-            userId: isDemo ? "demo-user" : userId,
+            ...(isDemo ? { userId: "demo-user" } : {}),
             message: messageText,
             journalText,
             sessionId,
@@ -341,12 +357,20 @@ export default function ChatContainer({
     }
 
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("User not authenticated");
+      }
+
+      const idToken = await currentUser.getIdToken();
       const res = await fetch("/api/chat/clear", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify({
           chatId,
-          userId,
           sessionId,
         }),
       });
@@ -357,7 +381,7 @@ export default function ChatContainer({
       console.error(error);
       toast.error("Failed to clear chat memory completely");
     }
-  }, [chatId, userId, isDemo, sessionId]);
+  }, [chatId, isDemo, sessionId]);
 
   // ─── Handle New Chat Button ─────────────────────────────────────
   const startNewChat = useCallback(() => {
