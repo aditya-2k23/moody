@@ -136,6 +136,13 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+function normalizeEntryText(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function fetchUserEmbeddings(userId) {
   try {
     const raw = await redis.get(`embeddings:${userId}`);
@@ -148,7 +155,7 @@ async function fetchUserEmbeddings(userId) {
   }
 }
 
-async function storeUserEmbedding(userId, embedding, response) {
+async function storeUserEmbedding(userId, embedding, response, sourceText = "") {
   if (!embedding) return;
   try {
     const key = `embeddings:${userId}`;
@@ -156,6 +163,7 @@ async function storeUserEmbedding(userId, embedding, response) {
     data.push({
       embedding,
       response,
+      sourceText: normalizeEntryText(sourceText),
       createdAt: Date.now()
     });
     // Slice to limit size and maintain performance
@@ -173,117 +181,90 @@ async function storeUserEmbedding(userId, embedding, response) {
 
 function buildPrompt(journalEntry) {
   return `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
+  WHO YOU ARE:
+  - You're that one friend everyone loves — the kind who remembers tiny details, gets genuinely hyped for people, and just *gets it* 🤗
+  - Playful and a little funny, but you always know when someone needs you to just sit with them in a feeling
+  - You use emojis like a real person texting — naturally, where they actually fit, not as decoration
+  - You NEVER sound like a therapist, a bot, or a report. You sound like a girl who genuinely cares and is reading their journal.
+  - These phrases are banned forever: "I hear you", "that's valid", "it sounds like", "it's okay to feel", "as an AI", "I understand that", "I notice a pattern"
 
-WHO YOU ARE:
-- You're that one friend everyone loves — the kind who remembers tiny details, gets genuinely hyped for people, and just *gets it* 🤗
-- Playful and a little funny, but you always know when someone needs you to just sit with them in a feeling
-- You use emojis like a real person texting — naturally, where they actually fit, not as decoration
-- You NEVER sound like a therapist, a bot, or a report. You sound like a girl who genuinely cares and is texting back.
-- These phrases are banned forever: "I hear you", "that's valid", "it sounds like", "it's okay to feel", "as an AI", "I understand that", "I notice a pattern"
+  JOURNAL ENTRY:
+  """
+  ${journalEntry}
+  """
 
-════════════════════════════════
-CRITICAL OUTPUT FORMAT RULE
-════════════════════════════════
+  YOUR TASKS:
 
-Your "response" field MUST be written as a JSON array of SHORT separate message strings — NOT one big paragraph.
+  1. MOOD — pick exactly one that best matches the emotional tone of the entry:
+  Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral
 
-Each string in the array = one chat bubble the user will receive separately, with a typing delay between them.
+  2. TRIGGERS — 2 to 4 short phrases (1-3 words each):
+  - Pulled directly from what they actually wrote
+  - Specific events, people, or themes mentioned — not generic labels
+  - Examples: "missed deadline", "toxic coworker", "no sleep", "good news from mom"
 
-RULES FOR SPLITTING:
-- Each bubble should be 1-2 short sentences MAX
-- A sentence ending in ? ALWAYS gets its own bubble, alone, at the end
-- Vary bubble length naturally — some very short reactions ("girl... 😭"), some a bit longer
-- 3 to 5 bubbles total is the sweet spot
-- Write the way a real person texts in bursts — not an essay
-- USE EMOJIS naturally inside the bubbles where a human actually would
-- The last bubble MUST always be the follow-up question, alone, by itself
+  3. RESPONSE — a warm, personal paragraph (3-5 sentences) written like a best friend reacting to their journal:
+  - Open with your immediate emotional reaction to what they shared — make it feel real, not scripted
+  - Mention something specific from their entry so they know you actually read it
+  - Celebrate the win OR sit with them in the hard feeling — don't rush past either
+  - Keep it warm, a little conversational, sprinkle emojis naturally where a person actually would 🥺
+  - NO bullet points, NO lists — just natural flowing prose like a friend texting a longer message
+  - Do NOT end with a question here — the follow-up question is separate
 
-BAD response (do NOT do this):
-["Oh that sounds really tough and I completely understand where you're coming from. It must be so hard to deal with all of this. Have you thought about talking to someone?"]
+  4. FOCUS — one specific thing from their entry (a problem OR a positive moment) that you're zooming in on:
+  - Should be a short phrase, not a sentence
+  - This is what the follow-up question will be anchored to
 
-GOOD response (do this):
-["oh no 😭", "that sounds genuinely exhausting — carrying all of that while still showing up every day??", "you're doing more than you think, honestly 🥺", "what's been the hardest part to deal with lately?"]
+  5. FOLLOW-UP QUESTION — one question that flows naturally from the focus:
+  - Written like a friend genuinely asking, not a survey prompt
+  - Open-ended — encourages them to share more
+  - Specific to what they wrote, not generic
+  - ONE question only. Not two questions disguised as one with "or".
+  - No question mark needed at the very end if it would feel unnatural.
 
-════════════════════════════════
-
-JOURNAL ENTRY:
-"""
-${journalEntry}
-"""
-
-YOUR TASKS:
-
-1. MOOD — pick exactly one:
-Elated, Good, Existing, Sad, Awful, Angry, Anxious, Unsure, Excited, Grateful, Tired, Stressed, Neutral
-
-2. TRIGGERS — 2 to 4 short phrases (1-3 words each), pulled directly from what they actually wrote
-
-3. RESPONSE — a JSON array of short chat bubble strings following ALL the rules above:
-- First bubble: your immediate emotional reaction (short, real, human)
-- Middle bubbles: something specific you noticed from their entry + your genuine reaction to it
-- Last bubble: your ONE follow-up question, alone, that flows naturally from what they shared
-- Lumi's voice throughout: warm, a little playful, real — never clinical
-
-4. FOCUS — one specific thing from their entry (a problem OR a moment) you're zooming in on
-
-5. FOLLOW-UP QUESTION — the exact question string from your last bubble, pulled out separately
-
-6. HEADLINE — 4 to 8 words, like a cute personal diary chapter title for this entry:
-- Fun and specific to THEM, not generic motivational fluff
-- Match the emotional tone of what they wrote
+  6. HEADLINE — 4 to 8 words, like a personal diary chapter title for this entry:
+  - Creative, specific to THEM, matching the emotional tone
+  - Fun and a little poetic — not generic motivational slogans
+  - Examples of good headlines: "Survived the Week, Barely But Still 💪", "That One Conversation That Changed Things", "Overthinking at 2am Again 🌙"
 `;
 }
 
 function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline) {
-  return `You are Lumi 🌟 — a bubbly, warm best friend inside a journaling app called Moody.
+  return `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
+  The user wrote something that feels emotionally similar to a recent entry. You already know their mood and what's been on their mind. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive.
 
-The user wrote something that feels similar to something they shared before. You already have context on their mood and what's been weighing on them. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive or robotic.
+  WHAT YOU ALREADY KNOW ABOUT THEM:
+  - Their mood has been: ${cachedMood}
+  - Things on their mind lately: ${cachedTriggers.join(", ")}
+  - Last headline you gave them: "${cachedHeadline}"
 
-WHAT YOU ALREADY KNOW ABOUT THEM:
-- Their mood has been: ${cachedMood}
-- Things on their mind lately: ${cachedTriggers.join(", ")}
-- Last headline you gave them: "${cachedHeadline}"
+  WHAT THEY WROTE TODAY:
+  """
+  ${journalEntry}
+  """
 
-WHAT THEY WROTE TODAY:
-"""
-${journalEntry}
-"""
+  YOUR TASKS:
+  1. RESPONSE — a warm, personal paragraph (3-5 sentences) written like a best friend reacting to today's entry:
+  - Gently acknowledge that this feeling or situation has been coming up — but do it warmly, like a friend who notices and cares, not like a system detecting a pattern
+  - Example tone: "hey, this keeps coming up and I just wanna make sure you're okay 🥺" — NOT "I notice a recurring pattern in your entries"
+  - React to something specific in TODAY's entry — show you read this one, not just the last
+  - Keep it warm, conversational, with emojis where they naturally fit
+  - NO bullet points, NO lists — flowing prose only
+  - Do NOT end with a question here
 
-════════════════════════════════
-CRITICAL OUTPUT FORMAT RULE
-════════════════════════════════
+  2. FOCUS — one specific thing from today's entry to zoom in on:
+  - Short phrase, not a sentence
+  - Should be something slightly different from the previous focus to help them explore a new angle
 
-Your "response" field MUST be a JSON array of SHORT separate message strings — NOT one big paragraph.
+  3. FOLLOW-UP QUESTION — one fresh question from a new angle:
+  - Try a different angle from what you asked before — help them explore something they haven't said yet
+  - Written like a friend genuinely asking
+  - Open-ended, specific to today's entry
+  - ONE question only
 
-Each string = one chat bubble that arrives separately with a typing delay between them.
-
-RULES FOR SPLITTING:
-- Each bubble should be 1-2 short sentences MAX
-- A sentence ending in ? ALWAYS gets its own bubble, alone, at the end
-- Vary bubble length naturally — some short reactions, some a bit more
-- 3 to 5 bubbles total
-- USE EMOJIS naturally inside the bubbles where a real person would
-- The last bubble MUST always be the follow-up question, alone, by itself
-- Gently acknowledge the pattern warmly — like a friend noticing, not a system detecting ("hey this keeps coming up and I just wanna check in on you 🥺" — not "I notice a recurring pattern")
-
-BAD response (do NOT do this):
-["It seems like this has been coming up a lot recently. I acknowledge that this recurring theme must be difficult. Can you tell me more about what specifically triggered these feelings?"]
-
-GOOD response (do this):
-["hey... this keeps coming up and I just wanna make sure you're okay 🥺", "like it's clearly sitting heavy on you and that matters", "what feels different about it today compared to before?"]
-
-════════════════════════════════
-
-YOUR TASKS:
-
-1. RESPONSE — a JSON array of short chat bubble strings following ALL the rules above:
-- Acknowledge the recurring feeling warmly, not clinically
-- React to something specific in TODAY's entry — show you read this one, not just the last one
-- End with ONE fresh follow-up question from a new angle to help them explore something they haven't said yet
-
-2. FOCUS — one specific thing from today's entry to zoom in on
-
-3. FOLLOW-UP QUESTION — the exact question string from your last bubble, pulled out separately
+  4. HEADLINE — 4 to 8 words, like a fresh diary chapter title for TODAY's entry:
+  - Must be newly generated from today's content
+  - Should not repeat old headline verbatim unless today's entry is truly about the same exact thing
 `;
 }
 
@@ -293,6 +274,8 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   if (!userId || !journalText?.trim()) {
     return { success: false, error: "User ID and journal text are required." };
   }
+
+  const normalizedJournalText = normalizeEntryText(journalText);
 
   let embedding = null;
   let cachedData = null;
@@ -309,8 +292,11 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       let bestMatch = null;
       let highestSimilarityScore = -1;
       let exactMatchData = null;
+      let exactMatchSourceText = null;
+      let exactSameTextData = null;
+      let exactSameTextSimilarity = -1;
 
-      const dynamicThreshold = journalText.length < 50 ? 0.80 : SIMILARITY_THRESHOLD;
+      const dynamicThreshold = journalText.length < 50 ? 0.88 : SIMILARITY_THRESHOLD;
       const now = Date.now();
       const maxAgeMs = CACHE_TTL_SECONDS * 1000;
 
@@ -318,11 +304,27 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       for (const item of stored) {
         if (!item.embedding) continue;
         const sim = cosineSimilarity(embedding, item.embedding);
+        const sourceText = typeof item.sourceText === "string" ? item.sourceText : null;
+
+        // Strong exact-key path: when normalized text is identical, prefer this cache entry.
+        if (
+          sourceText &&
+          sourceText === normalizedJournalText &&
+          sim > exactSameTextSimilarity &&
+          item.response
+        ) {
+          exactSameTextSimilarity = sim;
+          exactSameTextData = item.response;
+        }
 
         // Track raw similarity for exact-duplicate logic
-        if (sim > pureMaxSimilarity) {
+        if (
+          sim > pureMaxSimilarity ||
+          (sim === pureMaxSimilarity && !exactMatchSourceText && sourceText)
+        ) {
           pureMaxSimilarity = sim;
           exactMatchData = item.response;
+          exactMatchSourceText = sourceText;
         }
 
         // Apply recency factoring (80% similarity, 20% recency)
@@ -338,8 +340,24 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
 
       // If it's effectively an exact duplicate, return the cached response immediately
       // bypassing the Gemini generation entirely.
-      if (pureMaxSimilarity >= 0.95 && exactMatchData) {
+      if (exactSameTextData && exactSameTextSimilarity >= 0.95) {
+        console.log(`[Insights] Exact cache hit via source text. Score: ${exactSameTextSimilarity.toFixed(3)}`);
+        return { success: true, data: exactSameTextData, modelUsed: "cache" };
+      }
+
+      if (
+        pureMaxSimilarity >= 0.95 &&
+        exactMatchData &&
+        exactMatchSourceText &&
+        exactMatchSourceText === normalizedJournalText
+      ) {
         console.log(`[Insights] Exact cache hit. Score: ${pureMaxSimilarity.toFixed(3)}`);
+        return { success: true, data: exactMatchData, modelUsed: "cache" };
+      }
+
+      // Backward compatibility for older cache records that were stored without sourceText.
+      if (pureMaxSimilarity >= 0.999 && exactMatchData) {
+        console.log(`[Insights] Legacy exact cache hit. Score: ${pureMaxSimilarity.toFixed(3)}`);
         return { success: true, data: exactMatchData, modelUsed: "cache" };
       }
 
@@ -391,9 +409,10 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       properties: {
         response: { type: "array", items: { type: "string" } },
         focus: { type: "string" },
-        followUpQuestion: { type: "string" }
+        followUpQuestion: { type: "string" },
+        headline: { type: "string" }
       },
-      required: ["response", "focus", "followUpQuestion"],
+      required: ["response", "focus", "followUpQuestion", "headline"],
     }
     : {
       type: "object",
@@ -436,7 +455,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       const parsed = JSON.parse(text);
 
       // Simple validation mapping structure
-      const requiredFields = isCacheHit ? ["response", "focus", "followUpQuestion"] : ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
+      const requiredFields = isCacheHit ? ["response", "focus", "followUpQuestion", "headline"] : ["mood", "triggers", "response", "focus", "followUpQuestion", "headline"];
 
       for (const field of requiredFields) {
         if (!(field in parsed)) throw new Error("Validation Failed");
@@ -448,7 +467,8 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
           ...cachedData,
           response: parsed.response,
           focus: parsed.focus,
-          followUpQuestion: parsed.followUpQuestion
+          followUpQuestion: parsed.followUpQuestion,
+          headline: parsed.headline
         };
       } else {
         insight = parsed;
@@ -479,7 +499,7 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
   // We reached here, so Gemini successfully generated a response (meaning we paid the token cost).
   // We must store it so that future repeat entries will hit the `pureMaxSimilarity >= 0.95` check.
   if (insight && embedding) {
-    await storeUserEmbedding(userId, embedding, insight);
+    await storeUserEmbedding(userId, embedding, insight, journalText);
   }
 
   return { success: true, data: insight, modelUsed };

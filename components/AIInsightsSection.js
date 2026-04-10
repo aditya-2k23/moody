@@ -198,7 +198,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                       <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                      Click to ask Lumi about this →
+                      Click to chat with Lumi about this →
                     </p>
                   </button>
                 )}
