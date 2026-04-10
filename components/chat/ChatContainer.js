@@ -91,6 +91,18 @@ export default function ChatContainer({
 
   const isDemoLimitReached = isDemo && demoCount >= 3;
 
+  const getBubbleDelayMs = useCallback((bubbleText) => {
+    const normalized = (bubbleText || "").trim();
+    if (!normalized) return 320;
+
+    const wordCount = normalized.split(/\s+/).length;
+    const charCount = normalized.length;
+    const punctuationPause = /[?!.]$/.test(normalized) ? 120 : 0;
+
+    const delay = 220 + (wordCount * 90) + Math.floor(charCount * 8) + punctuationPause;
+    return Math.min(1800, Math.max(260, delay));
+  }, []);
+
   // ─── Fetch Today's History ───────────────────────────────────────
   useEffect(() => {
     if (!userId || isDemo) return;
@@ -248,7 +260,8 @@ export default function ChatContainer({
           ? replyBubbles
           : ["I am here with you."];
 
-        for (const bubble of normalizedBubbles) {
+        for (let i = 0; i < normalizedBubbles.length; i++) {
+          const bubble = normalizedBubbles[i];
           const replyTime = new Date().toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -264,8 +277,10 @@ export default function ChatContainer({
             },
           ]);
 
-          // Small stagger so bubble-array replies feel like a real chat cadence.
-          await new Promise((resolve) => setTimeout(resolve, 320));
+          if (i < normalizedBubbles.length - 1) {
+            const bubbleDelay = getBubbleDelayMs(bubble);
+            await new Promise((resolve) => setTimeout(resolve, bubbleDelay));
+          }
         }
       } catch (error) {
         console.error(error);
@@ -274,7 +289,7 @@ export default function ChatContainer({
         setIsTyping(false);
       }
     },
-    [chatId, userId, isDemo, demoCount, journalText, sessionId]
+    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs]
   );
 
   // ─── Reflection Question Integration ────────────────────────────

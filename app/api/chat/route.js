@@ -5,6 +5,71 @@ import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+const CHAT_MODEL_CHAIN = [
+  "gemini-2.5-flash",
+  "gemini-3-flash-preview",
+  "gemini-2.0-flash",
+];
+
+function isRetryableModelError(error) {
+  const msg = (error?.message || "").toLowerCase();
+  const status = error?.status;
+
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 503 ||
+    msg.includes("429") ||
+    msg.includes("500") ||
+    msg.includes("503") ||
+    msg.includes("service unavailable") ||
+    msg.includes("high demand") ||
+    msg.includes("resource has been exhausted") ||
+    msg.includes("rate limit") ||
+    msg.includes("timeout")
+  );
+}
+
+function isModelUnavailableError(error) {
+  const msg = (error?.message || "").toLowerCase();
+  const status = error?.status;
+
+  return (
+    status === 404 ||
+    msg.includes("404") ||
+    msg.includes("not found") ||
+    msg.includes("not supported for generatecontent")
+  );
+}
+
+function isQuotaError(error) {
+  const msg = (error?.message || "").toLowerCase();
+  const status = error?.status;
+
+  return (
+    status === 429 ||
+    msg.includes("429") ||
+    msg.includes("quota") ||
+    msg.includes("rate limit") ||
+    msg.includes("resource has been exhausted")
+  );
+}
+
+function extractRetryDelaySeconds(errorMessage) {
+  if (!errorMessage) return null;
+
+  const inTextMatch = errorMessage.match(/retry in\s+([\d.]+)s/i);
+  if (inTextMatch?.[1]) {
+    return Math.max(1, Math.ceil(Number(inTextMatch[1])));
+  }
+
+  const rpcMatch = errorMessage.match(/"retryDelay":"(\d+)s"/i);
+  if (rpcMatch?.[1]) {
+    return Math.max(1, Number(rpcMatch[1]));
+  }
+
+  return null;
+}
 
 export async function POST(req) {
   try {
@@ -47,15 +112,11 @@ export async function POST(req) {
 
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    const result = await model.generateContent({
-      contents,
-      systemInstruction: {
-        role: "system",
-        parts: [
-          {
-            text: `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's best friend inside Moody, a personal AI powered mood-tracking and journaling app.
+    const systemInstruction = {
+      role: "system",
+      parts: [
+        {
+          text: `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's best friend inside Moody, a personal AI powered mood-tracking and journaling app.
 
             WHO YOU ARE:
             - You're that one friend everyone loves — genuinely curious about people, remembers what they share, gets hyped for wins and sits with them in hard moments 🤗
@@ -109,10 +170,71 @@ export async function POST(req) {
             - If someone expresses thoughts of self-harm or complete hopelessness, acknowledge it gently and warmly, suggest they reach out to someone they trust or a crisis line — don't diagnose, don't panic, just be a caring friend who knows her limits
 
             ${journalText ? `\nCONTEXT — the user's current journal entry. Use this to anchor the conversation naturally, but don't quote it back robotically:\n"""\n${journalText}\n"""\n` : ''}`,
+        },
+      ],
+    };
+
+    let result = null;
+    let lastModelError = null;
+    let sawQuotaError = false;
+    let sawRetryableCapacityError = false;
+
+    for (const modelId of CHAT_MODEL_CHAIN) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelId });
+        result = await model.generateContent({
+          contents,
+          systemInstruction,
+        });
+        break;
+      } catch (error) {
+        lastModelError = error;
+        console.warn(`[Chat API] Model ${modelId} failed:`, error?.message || error);
+
+        if (isModelUnavailableError(error)) {
+          // Skip models that are unavailable for this API/version and continue fallback.
+          continue;
+        }
+
+        if (isQuotaError(error)) {
+          sawQuotaError = true;
+        } else if (isRetryableModelError(error)) {
+          sawRetryableCapacityError = true;
+        }
+
+        if (!isRetryableModelError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!result) {
+      console.error("[Chat API] All chat models unavailable:", lastModelError?.message || lastModelError);
+
+      if (sawQuotaError) {
+        const retryAfter = extractRetryDelaySeconds(lastModelError?.message || "");
+        return NextResponse.json(
+          {
+            error: retryAfter
+              ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
+              : "Lumi hit the current Gemini quota. Please try again shortly.",
           },
-        ],
-      },
-    });
+          { status: 429 }
+        );
+      }
+
+      if (sawRetryableCapacityError) {
+        return NextResponse.json(
+          { error: "Lumi is experiencing high demand right now. Please try again in a few moments." },
+          { status: 503 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Lumi is temporarily unavailable right now. Please try again shortly." },
+        { status: 503 }
+      );
+    }
 
     const replyText = result.response.text();
 
