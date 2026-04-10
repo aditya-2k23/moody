@@ -118,7 +118,7 @@ export default function LumiDemoSection() {
             </div>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-800 dark:text-white">
-            Meet Lumi
+            Meet <span className="fugaz textGradient">&apos;Lumi&apos;</span>
           </h2>
           <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-md leading-relaxed">
             Lumi is always here to listen. Whether you need a moment of reflection, someone to share your thoughts with, or just a quiet space to unwind, Lumi provides a warm, judgment-free presence.
@@ -134,7 +134,7 @@ export default function LumiDemoSection() {
 
         {/* Right Side: Demo Chat Container */}
         <div className="flex-1 w-full max-w-md relative flex flex-col justify-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 blur-3xl -z-10 rounded-[3rem]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 dark:from-indigo-500/20 dark:to-purple-500/20 blur-3xl -z-10 rounded-[3rem]" />
           <ChatContainer isDemo={true} />
         </div>
       </div>
