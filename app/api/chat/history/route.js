@@ -40,12 +40,27 @@ export async function GET(req) {
         };
       }
 
-      groupedSessions[sId].messages.push({
-        id: doc.id,
-        role: data.role,
-        content: data.content,
-        timestamp: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      });
+      const timestamp = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (data.role === "assistant" && Array.isArray(data.bubbles) && data.bubbles.length > 0) {
+        data.bubbles
+          .filter((bubble) => typeof bubble === "string" && bubble.trim())
+          .forEach((bubble, index) => {
+            groupedSessions[sId].messages.push({
+              id: `${doc.id}_${index}`,
+              role: "assistant",
+              content: bubble,
+              timestamp,
+            });
+          });
+      } else {
+        groupedSessions[sId].messages.push({
+          id: doc.id,
+          role: data.role,
+          content: data.content,
+          timestamp,
+        });
+      }
     });
 
     const historySessions = Object.values(groupedSessions);

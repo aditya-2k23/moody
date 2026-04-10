@@ -390,6 +390,8 @@ export default function ChatContainer({
             Lumi is
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
               ONLINE</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 uppercase">
+              {APP_RELEASE_TAG}</span>
           </h3>
           <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
             Sign in to unlock full memory, daily history, and more
@@ -430,7 +432,7 @@ export default function ChatContainer({
               </button>
             </div>
 
-            <div className="overflow-y-auto pr-1 flex-1 space-y-2 custom-scrollbar">
+            <div className="overflow-y-auto pr-1 max-h-[22rem] space-y-2 custom-scrollbar">
               {historySessions.length > 0 ? (
                 historySessions.map((session) => (
                   <button
@@ -440,7 +442,7 @@ export default function ChatContainer({
                       setMessages(session.messages);
                       closeHistoryModal();
                     }}
-                    className="w-full text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full min-h-[84px] text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <p className="font-medium text-indigo-600 dark:text-indigo-400">

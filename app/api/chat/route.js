@@ -314,6 +314,7 @@ export async function POST(req) {
         batch.set(assistantMsgRef, {
           role: "assistant",
           content: replyForHistory,
+          bubbles: replyBubbles,
           createdAt: new Date(now + 1), // ensure strict sorting
           sessionId,
         });
