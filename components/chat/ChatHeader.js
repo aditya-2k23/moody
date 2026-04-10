@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Maximize2, Minimize2, Trash2, X, History, PlusCircle } from "lucide-react";
 import Image from "next/image";
+import { APP_RELEASE_TAG } from "@/lib/release";
 
 /**
  * ChatHeader — Lumi identity bar with status + action buttons
@@ -54,9 +55,14 @@ export default function ChatHeader({
             <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-tight">
               Lumi
             </h3>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-              Online
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                Online
+              </p>
+              <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                {APP_RELEASE_TAG}
+              </span>
+            </div>
           </div>
         </div>
 

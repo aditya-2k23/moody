@@ -6,6 +6,7 @@ import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
+import { APP_RELEASE_TAG } from "@/lib/release";
 
 /**
  * ChatContainer — Root chat component managing fullscreen state,

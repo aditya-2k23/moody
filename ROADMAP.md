@@ -4,12 +4,13 @@ This document outlines the development plan and future vision for **Moody**. Our
 
 > **Note:** This roadmap is a living document and subject to change based on community feedback and project priorities.
 
-## 📍 Current Status (v2.5)
+## 📍 Current Status (v3.0.0 beta)
 
 - [x] **User Authentication** (Firebase Auth)
 - [x] **Mood Logging** (Daily mood + Journaling)
 - [x] **Visual Memories** (Upload up to 5 photos/day via Cloudinary)
 - [x] **AI Insights** (Gemini Flash 3 Preview integration for mood analysis)
+- [x] **🤖 AI Chat Companion** (Lumi conversational chat release in beta)
 - [x] **Upstash Redis Caching** (Server-side caching for AI insights)
 - [x] **🎙️ Voice Input Support** (Beta transcription + Smart Autosave)
 - [x] **Dashboard** (Stats, streaks, and averages)
@@ -24,8 +25,8 @@ This document outlines the development plan and future vision for **Moody**. Our
 - [ ] **📊 Advanced Analytics**
   - Weekly and monthly mood graphs.
   - Correlation between specific triggers and moods over time.
-- [ ] **🤖 AI Chat Companion**
-  - Chat with an AI about your day and get personalized insights.
+- [x] **🤖 AI Chat Companion (Beta)**
+  - Chat with Lumi about your day, feelings, and mood-related reflections.
 - [ ] **✨ Premium Mode**
   - Ad-free experience and exclusive themes.
   - Chat with the AI companion forever to get personalized insights.

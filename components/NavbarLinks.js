@@ -8,6 +8,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/authContext";
+import NewFeatureDot from "@/components/NewFeatureDot";
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -92,6 +93,7 @@ export default function NavbarLinks() {
 
   const navLinks = [
     { name: "Try Now", id: "guest-mood" },
+    { name: "Lumi", id: "lumi-demo", isNew: true },
     { name: "Features", id: "features" },
     { name: "Comparison", id: "comparison" },
     { name: "Tech Stack", id: "tech-stack" }
@@ -109,7 +111,10 @@ export default function NavbarLinks() {
             onClick={(e) => handleScroll(e, link.id)}
             className="text-sm lg:text-base font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-sans whitespace-nowrap fugaz"
           >
-            {link.name}
+            <span className="relative inline-flex items-center">
+              {link.name}
+              {link.isNew && <NewFeatureDot className="-top-1 -right-2" />}
+            </span>
           </Link>
         ))}
       </nav>
@@ -158,7 +163,10 @@ export default function NavbarLinks() {
                   onClick={(e) => handleScroll(e, link.id, true)}
                   className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors fugaz"
                 >
-                  {link.name}
+                  <span className="relative inline-flex items-center">
+                    {link.name}
+                    {link.isNew && <NewFeatureDot className="-top-1 -right-2" />}
+                  </span>
                 </Link>
               ))}
             </nav>

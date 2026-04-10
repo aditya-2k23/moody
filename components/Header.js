@@ -6,6 +6,7 @@ import gsap from "gsap";
 import Logout from "@/components/Logout";
 import ThemeToggle from "@/components/ThemeToggle";
 import NavbarLinks from "@/components/NavbarLinks";
+import { APP_VERSION_LABEL } from "@/lib/release";
 
 export default function Header() {
   const headerRef = useRef(null);
@@ -59,11 +60,11 @@ export default function Header() {
         href="/?ref=internal"
         className="flex items-center fugaz hover:scale-105 duration-200 shrink-0"
       >
-        <h1 className="text-2xl sm:text-4xl textGradient" title="Moody v2.5">
+        <h1 className="text-2xl sm:text-4xl textGradient" title={`Moody ${APP_VERSION_LABEL} chat release`}>
           Moody
         </h1>
         <span className="text-xs self-end text-indigo-500 dark:text-indigo-300">
-          v2.5
+          {APP_VERSION_LABEL}
         </span>
       </Link>
 

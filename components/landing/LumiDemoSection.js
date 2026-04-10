@@ -98,7 +98,7 @@ export default function LumiDemoSection() {
   }, [showAuthModal]);
 
   return (
-    <section className="py-20 flex flex-col items-center justify-center bg-transparent w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="lumi-demo" className="py-20 flex flex-col items-center justify-center bg-transparent w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col lg:flex-row w-full gap-12 items-center lg:items-start">
         {/* Left Side: Lumi Intro */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">

@@ -9,6 +9,8 @@ Check it out live at: [https://moody-adi.netlify.app/](https://moody-adi.netlify
 
 Moody is a **minimalistic** and modern mood-tracking web application built with Next.js, React, and Firebase. Designed for simplicity and ease of use, it allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback—all while maintaining a clutter-free, focused experience.
 
+Current release channel: **v3.0.0 (beta)** for the Lumi chatbot experience.
+
 ## Table of Contents
 
 - [Features](#-features)
@@ -28,9 +30,19 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
 - **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching and **Semantic Similarity Search** (Embeddings) for context-aware repeat lookups.
+- **Lumi AI Chat (Beta)**: Real-time chat with Lumi with chat-bubble pacing, short-term + long-term memory, and daily session history.
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
+
+### 🆕 Chatbot Release (v3.0.0 beta)
+
+- **🤖 Lumi Chat Companion (Beta)**: Added a dedicated conversational flow via `app/api/chat/route.js` and reusable chat UI via `components/chat/ChatContainer.js`.
+- **🧠 Better Chat Resilience**: Multi-model Gemini fallback for transient capacity failures, with cleaner user-facing error messaging for quota and high-demand states.
+- **💬 Bubble-Aware Responses**: Lumi chat now returns JSON bubble arrays; frontend renders each bubble separately with human-like staggered timing.
+- **🕘 Chat History Sessions**: Daily chat history grouped by session with quick restore in the chat modal.
+- **✨ Discovery Improvements**: Added a new landing-nav `Lumi` link with new-feature indicator dot for faster feature discoverability.
+- **🏷️ Beta Branding Pass**: Updated app branding to reflect `v3.0.0 (beta)` across header, hero, footer, metadata, and chat UI.
 
 ### 🆕 Recent Features & Improvements (v2.5.1)
 
@@ -52,7 +64,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **React** 19+
 - **Firebase** (Auth & Firestore)
 - **Cloudinary** (Image storage & transformation)
-- **Google Gemini Flash 3 Preview** (AI Insights)
+- **Google Gemini Models** (AI Insights + Lumi Chat)
 - **Upstash Redis** (Server-side caching)
 - **lucide-react** (Icons)
 - **Tailwind CSS**
@@ -113,11 +125,13 @@ A prebuilt Docker image is available for easier setup and consistent environment
 You can pull the prebuilt image from Docker Hub or GitHub Container Registry (GHCR):
 
 **Docker Hub:**
+
 ```sh
 docker pull temaroon/moody:latest
 ```
 
 **GitHub Container Registry (GHCR):**
+
 ```sh
 docker pull ghcr.io/aditya-2k23/moody:latest
 ```
@@ -180,10 +194,10 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
    # Firebase Admin (v2.0+)
    FIREBASE_SERVICE_ACCOUNT_KEY='{"project_id": "...", ...}'
 
-   # AI Insights (v2.5.0+)
+   # AI Insights + Lumi Chat (v3.0.0 beta)
    GEMINI_API_KEY=...
 
-   # Redis Caching (v2.5.0+)
+   # Redis Caching (v3.0.0 beta)
    UPSTASH_REDIS_REST_URL=...
    UPSTASH_REDIS_REST_TOKEN=...
    ```
@@ -200,7 +214,8 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 2. **Add Photos**: Select up to 5 photos to capture the visual essence of your day.
 3. **Get Insights**: Hit save to get AI analysis of your mood and triggers instantly.
 4. **Relive Memories**: Tap on any image in your memories grid to open the full-screen viewer. Use Arrow keys to navigate through your month's photos.
-5. **Manage History**: Use the calendar to jump between months and view your past emotional trends.
+5. **Chat with Lumi (Beta)**: Ask follow-up questions or simply talk through your day in the Lumi chat panel.
+6. **Manage History**: Use the calendar to jump between months and view your past emotional trends.
 
 ## 🤖 CI/CD & Docker Automation
 
