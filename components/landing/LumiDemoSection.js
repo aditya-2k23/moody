@@ -110,10 +110,6 @@ export default function LumiDemoSection() {
                 width={192}
                 height={192}
                 className="w-full h-full object-cover bg-[#0a0c16]"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "https://ui-avatars.com/api/?name=Lumi&background=0a0c16&color=a5b4fc&rounded=true&size=200";
-                }}
               />
             </div>
           </div>
@@ -151,6 +147,9 @@ export default function LumiDemoSection() {
           <div
             ref={modalRef}
             className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-indigo-500/40 dark:shadow-indigo-600/20 p-6 sm:p-8 w-full max-w-md mx-4 max-h-[90vh] overflow-hidden border border-indigo-600"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Authentication dialog"
           >
             <button
               onClick={handleCloseAuth}
