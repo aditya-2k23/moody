@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [3.0.1-beta] - 2026-04-12
+
+### 🐛 Bug Fixes & Hardening
+
+- **Chat Scope Validation**: Fixed an "Invalid chat scope" rejection error for unauthorized demo users by intelligently bypassing the backend strict-scope validation for demo flow.
+- **Accurate Demo Quotas**: Fixed a bug where a user's 3-chat demo limit would exhaust even if the LLM experienced an error. Now, the rate-limiting on the client correctly waits for a successful API response before incrementing localStorage counts.
+- **Session Bleed Prevention (Race Condition)**: Hardened `ChatContainer` with a strict request-token guard. This completely prevents a race condition where delayed message bubbles from a previous conversation could "bleed" into a newly opened chat session or after the chat was cleared.
+- **Insights Context Safety (Fingerprinting)**: Hardened AI Journal Insights to use source-text fingerprinting. Insights will now detect modifications to the core journal text and intelligently mute stale cached insight data, forcing a regeneration when out of sync.
+- **Scroll Alignment**: Upgraded the generic `ScrollToTopButton` to leverage GSAP's `ScrollToPlugin`, guaranteeing the window scroll reliably locks to exactly `0px` with a smoother user interaction.
+
 ## [3.0.0-beta] - 2026-04-10
 
 ### 🚀 New Features

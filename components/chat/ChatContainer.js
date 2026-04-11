@@ -277,13 +277,6 @@ export default function ChatContainer({
 
       const capturedToken = ++sessionRequestIdRef.current;
 
-      if (isDemo) {
-        setDemoCount((prev) => {
-          const nextCount = prev + 1;
-          localStorage.setItem("lumi-demo-count", nextCount.toString());
-          return nextCount;
-        });
-      }
 
       const now = formatTimestampIST(Date.now());
 
@@ -301,12 +294,17 @@ export default function ChatContainer({
         const currentUser = auth.currentUser;
         const idToken = !isDemo && currentUser ? await currentUser.getIdToken() : null;
 
+        const headers = {
+          "Content-Type": "application/json",
+        };
+
+        if (idToken && !isDemo) {
+          headers.Authorization = `Bearer ${idToken}`;
+        }
+
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(!isDemo && idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-          },
+          headers,
           body: JSON.stringify({
             chatId: isDemo ? "demo-chat" : chatId,
             ...(isDemo ? { userId: "demo-user" } : {}),
@@ -321,6 +319,14 @@ export default function ChatContainer({
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || data.message || data.retry || "Failed to send message");
+        }
+
+        if (isDemo && capturedToken === sessionRequestIdRef.current) {
+          setDemoCount((prev) => {
+            const nextCount = prev + 1;
+            localStorage.setItem("lumi-demo-count", nextCount.toString());
+            return nextCount;
+          });
         }
 
         const data = await res.json();

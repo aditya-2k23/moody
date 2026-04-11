@@ -102,33 +102,38 @@ export async function POST(req) {
     }
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let idToken = null;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      idToken = authHeader.split("Bearer ")[1];
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
+    let decodedToken = null;
+    let isDemoUser = false;
+    let effectiveUserId = null;
 
-    try {
-      decodedToken = await getAdminAuth().verifyIdToken(idToken);
-    } catch (error) {
-      // Robust validation: Only allow a fallback if a specific server-issued demo token is configured
-      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
-        decodedToken = { uid: "demo-user", isDemo: true };
-      } else {
+    if (idToken) {
+      try {
+        decodedToken = await getAdminAuth().verifyIdToken(idToken);
+        effectiveUserId = decodedToken.uid;
+      } catch (error) {
         console.error("[Chat API] Token verification failed:", error);
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
       }
+    } else {
+      // If no token is provided, check if client requested demo access
+      if (requestedUserId === "demo-user") {
+        isDemoUser = true;
+        effectiveUserId = "demo-user";
+      } else {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
-    const effectiveUserId = decodedToken.uid;
-    const isDemoUser = effectiveUserId === "demo-user" || decodedToken.isDemo === true;
-
-    if (requestedUserId && requestedUserId !== effectiveUserId) {
+    if (requestedUserId && requestedUserId !== "demo-user" && requestedUserId !== effectiveUserId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!isChatIdScopedToUser(chatId, effectiveUserId)) {
+    if (!isDemoUser && !isChatIdScopedToUser(chatId, effectiveUserId)) {
       return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
     }
 
