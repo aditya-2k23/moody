@@ -9,6 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function ScrollAnimations() {
   useEffect(() => {
     let ctx;
+    let refreshTimer;
 
     const timer = setTimeout(() => {
       ctx = gsap.context(() => {
@@ -36,7 +37,7 @@ export default function ScrollAnimations() {
 
         // Force recalculation of scroll trigger positions once all initial 
         // components (like the ChatContainer) have established their layout heights
-        setTimeout(() => {
+        refreshTimer = setTimeout(() => {
           ScrollTrigger.refresh();
         }, 500);
       });
@@ -44,6 +45,7 @@ export default function ScrollAnimations() {
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(refreshTimer);
       if (ctx) ctx.revert();
     };
   }, []);
