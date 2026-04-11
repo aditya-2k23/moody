@@ -380,7 +380,7 @@ export default function ChatContainer({
     if (isDuplicate) return;
 
     const now = formatTimestampIST(Date.now());
-
+    const capturedToken = ++sessionRequestIdRef.current;
     setMessages((prev) => [
       ...prev,
       {
@@ -391,15 +391,45 @@ export default function ChatContainer({
       },
     ]);
 
+    // Persist to backend memory so subsequent turns have this context
+    const persistReflection = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        const idToken = !isDemo && currentUser ? await currentUser.getIdToken() : null;
+
+        await fetch("/api/chat/persist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(!isDemo && idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          },
+          body: JSON.stringify({
+            chatId: isDemo ? "demo-chat" : chatId,
+            sessionId,
+            role: "assistant",
+            content: reflectionQuestion,
+          }),
+        });
+      } catch (e) {
+        console.warn("Failed to persist reflection turn to memory", e);
+      }
+    };
+
+    if (!isDemo) {
+      persistReflection();
+    }
+
     onReflectionConsumed?.();
 
     // Auto-focus chat input right after clicking the follow-up wrapper.
     const focusTimer = setTimeout(() => {
-      chatInputRef.current?.focus();
+      if (capturedToken === sessionRequestIdRef.current) {
+        chatInputRef.current?.focus();
+      }
     }, 100);
 
     return () => clearTimeout(focusTimer);
-  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed, formatTimestampIST]);
+  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed, formatTimestampIST, chatId, isDemo, sessionId, sessionRequestIdRef]);
 
   // ─── Clear Chat ─────────────────────────────────────────────────
   const clearChat = useCallback(async () => {
