@@ -8,7 +8,13 @@ import RadialMoodMenu from "./RadialMoodMenu";
 import NewFeatureDot from "./NewFeatureDot";
 import ChatContainer from "./chat/ChatContainer";
 import { db } from "@/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
+
+function toDateKey(year, month, day) {
+  const monthPadded = String(month + 1).padStart(2, "0");
+  const dayPadded = String(day).padStart(2, "0");
+  return `${year}-${monthPadded}-${dayPadded}`;
+}
 
 export default function JournalModal({
   isOpen,
@@ -207,6 +213,16 @@ export default function JournalModal({
     setDeleting(true);
     try {
       await onDelete({ year, month, day });
+
+      if (userId) {
+        const insightsDocRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
+        try {
+          await deleteDoc(insightsDocRef);
+        } catch (insightsDeleteError) {
+          console.warn("Failed to delete per-day insights doc:", insightsDeleteError);
+        }
+      }
+
       toast.success("Entry deleted");
       setConfirmDelete(false);
       onClose();
@@ -340,15 +356,17 @@ export default function JournalModal({
                           setLoadingInsights(true);
                           setShowInsights(true);
                           try {
-                            const docRef = doc(db, "users", userId);
+                            const docRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
                             const snapshot = await getDoc(docRef);
                             if (snapshot.exists()) {
-                              const data = snapshot.data();
-                              const stored = data?.[year]?.[month]?.[`insights_${day}`];
+                              const stored = snapshot.data();
                               if (stored && typeof stored === "object") {
                                 setDayInsights(stored);
+                                return;
                               }
                             }
+
+                            setDayInsights(null);
                           } catch (err) {
                             console.error("Failed to load insights:", err);
                           } finally {

@@ -17,6 +17,13 @@ import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-r
 import { TypeAnimation } from 'react-type-animation';
 import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
+function getDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function Journal({
   mode = "auth",
   currentUser,
@@ -38,34 +45,44 @@ export default function Journal({
   const textareaRef = useRef(null);
 
   // Auto-load previously generated insights for today from Firestore
-  const insightsLoadedRef = useRef(false);
+  const insightsLoadedKeyRef = useRef("");
+  const nowForInsightsKey = new Date();
+  const insightsDateKey = getDateKey(nowForInsightsKey);
+  const insightsLoadKey = currentUser?.uid
+    ? `${currentUser.uid}|${insightsDateKey}`
+    : "";
+
   useEffect(() => {
-    if (isGuest || !currentUser?.uid || insightsLoadedRef.current) return;
-    insightsLoadedRef.current = true;
+    if (isGuest || !currentUser?.uid || !insightsLoadKey) {
+      insightsLoadedKeyRef.current = "";
+      return;
+    }
+
+    if (insightsLoadedKeyRef.current === insightsLoadKey) return;
+    insightsLoadedKeyRef.current = insightsLoadKey;
+
+    const [uidFromKey, dateKeyFromKey] = insightsLoadKey.split("|");
 
     const loadTodaysInsights = async () => {
       try {
-        const now = new Date();
-        const day = now.getDate();
-        const month = now.getMonth();
-        const year = now.getFullYear();
-
-        const docRef = doc(db, "users", currentUser.uid);
+        const docRef = doc(db, "users", uidFromKey, "insights", dateKeyFromKey);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
-          const data = snapshot.data();
-          const storedInsights = data?.[year]?.[month]?.[`insights_${day}`];
+          const storedInsights = snapshot.data();
           if (storedInsights && typeof storedInsights === "object") {
             setInsights(storedInsights);
+            return;
           }
         }
+
+        setInsights("");
       } catch (error) {
         console.error("Failed to load today's insights:", error);
       }
     };
 
     loadTodaysInsights();
-  }, [currentUser, isGuest]);
+  }, [currentUser, isGuest, insightsLoadKey]);
 
   // Cloud save status: 'idle' | 'saving' | 'saved'
   const [cloudStatus, setCloudStatus] = useState("idle");
@@ -532,19 +549,9 @@ export default function Journal({
 
       // Persist insights to Firestore for the current day
       try {
-        const now = new Date();
-        const day = now.getDate();
-        const month = now.getMonth();
-        const year = now.getFullYear();
-
-        const docRef = doc(db, "users", currentUser.uid);
-        await setDoc(docRef, {
-          [year]: {
-            [month]: {
-              [`insights_${day}`]: result.data
-            }
-          }
-        }, { merge: true });
+        const dateKey = getDateKey(new Date());
+        const docRef = doc(db, "users", currentUser.uid, "insights", dateKey);
+        await setDoc(docRef, result.data, { merge: true });
       } catch (err) {
         console.error("Failed to save insights to Firestore:", err);
         // Non-blocking — insights are already in state
