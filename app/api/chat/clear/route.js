@@ -17,6 +17,16 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { chatId, userId: requestedUserId, sessionId = "default" } = body;
+    
+    // Validate sessionId: string, non-empty, max 256 chars, no control/newline characters
+    if (
+      typeof sessionId !== "string" ||
+      sessionId.trim().length === 0 ||
+      sessionId.length > 256 ||
+      /[\r\n\x00-\x1F\x7F]/.test(sessionId)
+    ) {
+      return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
+    }
 
     if (!chatId) {
       return NextResponse.json({ error: "Missing required field: chatId" }, { status: 400 });

@@ -138,7 +138,8 @@ async function getEmbedding(text) {
       result = await ai.models.embedContent({
         model: 'gemini-embedding-001',
         contents: [text],
-        config: { taskType: 'SEMANTIC_SIMILARITY' }
+        config: { taskType: 'SEMANTIC_SIMILARITY' },
+        AI_TIMEOUT_MS
       });
     } catch (err) {
       if (err.message?.includes("404") || err.message?.includes("not found")) {
@@ -146,7 +147,8 @@ async function getEmbedding(text) {
         result = await ai.models.embedContent({
           model: 'gemini-embedding-2-preview',
           contents: [text],
-          config: { taskType: 'SEMANTIC_SIMILARITY' }
+          config: { taskType: 'SEMANTIC_SIMILARITY' },
+          AI_TIMEOUT_MS
         });
       } else {
         throw err;

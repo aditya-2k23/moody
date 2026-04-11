@@ -858,6 +858,12 @@
   animation: chat-fade-in 0.3s ease-out forwards;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-chat-fade-in {
+    animation: none !important;
+  }
+}
+
 @keyframes chat-fade-in {
   from {
     opacity: 0;

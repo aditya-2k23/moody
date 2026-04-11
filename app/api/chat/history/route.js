@@ -81,7 +81,11 @@ export async function GET(req) {
       }
     });
 
-    const historySessions = Object.values(groupedSessions);
+    const historySessions = Object.values(groupedSessions).sort((a, b) => {
+      const timeA = new Date(a.messages[a.messages.length - 1]?.timestamp || 0).getTime();
+      const timeB = new Date(b.messages[b.messages.length - 1]?.timestamp || 0).getTime();
+      return timeB - timeA;
+    });
 
     return NextResponse.json({ historySessions });
   } catch (error) {

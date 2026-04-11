@@ -68,7 +68,8 @@ const ChatInput = forwardRef(function ChatInput({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && !isComposing) {
+    const nativeComposing = e.nativeEvent && e.nativeEvent.isComposing;
+    if (e.key === "Enter" && !e.shiftKey && !(nativeComposing || e.nativeEvent.keyCode === 229 || isComposing)) {
       e.preventDefault();
       handleSubmit(e);
     }

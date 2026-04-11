@@ -315,7 +315,7 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to send message");
+          throw new Error(data.error || data.message || data.retry || "Failed to send message");
         }
 
         const data = await res.json();
@@ -353,7 +353,7 @@ export default function ChatContainer({
         }
       } catch (error) {
         console.error(error);
-        toast.error("Lumi is busy! Try again later.");
+        toast.error(error.message || "Lumi is busy! Try again later.");
       } finally {
         setIsTyping(false);
       }
