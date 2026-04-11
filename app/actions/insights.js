@@ -143,6 +143,19 @@ function normalizeEntryText(text) {
     .trim();
 }
 
+function hasValidPartialCacheSeed(response) {
+  if (!response || typeof response !== "object") return false;
+
+  const hasMood = typeof response.mood === "string" && response.mood.trim().length > 0;
+  const hasHeadline = typeof response.headline === "string" && response.headline.trim().length > 0;
+  const hasTriggers =
+    Array.isArray(response.triggers) &&
+    response.triggers.length > 0 &&
+    response.triggers.every((t) => typeof t === "string" && t.trim().length > 0);
+
+  return hasMood && hasHeadline && hasTriggers;
+}
+
 async function fetchUserEmbeddings(userId) {
   try {
     const raw = await redis.get(`embeddings:${userId}`);
@@ -362,9 +375,15 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       }
 
       if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
-        isCacheHit = true;
-        cachedData = bestMatch.response;
-        console.log(`[Insights] Semantic cache hit. Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
+        if (hasValidPartialCacheSeed(bestMatch.response)) {
+          isCacheHit = true;
+          cachedData = bestMatch.response;
+          console.log(`[Insights] Semantic cache hit. Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
+        } else {
+          isCacheHit = false;
+          cachedData = null;
+          console.warn("[Insights] Cache candidate missing required fields for partial prompt; treating as cache miss.");
+        }
       } else {
         console.log(`[Insights] Semantic cache miss. Highest Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
       }
