@@ -49,6 +49,7 @@ export async function GET(req) {
     snapshot.docs.forEach((doc) => {
       const data = doc.data();
       const d = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+      const timestamp = Number.isFinite(d.getTime()) ? d.toISOString() : null;
       const sId = data.sessionId || "default";
 
       if (!groupedSessions[sId]) {
@@ -58,8 +59,6 @@ export async function GET(req) {
           messages: []
         };
       }
-
-      const timestamp = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (data.role === "assistant" && Array.isArray(data.bubbles) && data.bubbles.length > 0) {
         data.bubbles

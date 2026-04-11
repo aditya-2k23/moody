@@ -128,6 +128,22 @@ export default function ChatContainer({
     return Math.min(1800, Math.max(260, delay));
   }, []);
 
+  const formatTimestampIST = useCallback((value) => {
+    if (value === null || value === undefined || value === "") return "";
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return typeof value === "string" ? value : "";
+    }
+
+    return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(date);
+  }, []);
+
   // ─── Fetch Today's History ───────────────────────────────────────
   useEffect(() => {
     if (!userId || isDemo) return;
@@ -149,7 +165,17 @@ export default function ChatContainer({
         if (res.ok) {
           const data = await res.json();
           if (!isCancelled && data.historySessions) {
-            setHistorySessions(data.historySessions);
+            const normalizedSessions = data.historySessions.map((session) => ({
+              ...session,
+              messages: Array.isArray(session.messages)
+                ? session.messages.map((message) => ({
+                  ...message,
+                  timestamp: formatTimestampIST(message.timestamp),
+                }))
+                : [],
+            }));
+
+            setHistorySessions(normalizedSessions);
           }
         }
       } catch (error) {
@@ -162,7 +188,7 @@ export default function ChatContainer({
     return () => {
       isCancelled = true;
     };
-  }, [chatId, userId, isDemo, historyRefreshKey]);
+  }, [chatId, userId, isDemo, historyRefreshKey, formatTimestampIST]);
 
   // ─── Fullscreen Toggle ──────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -256,10 +282,7 @@ export default function ChatContainer({
         });
       }
 
-      const now = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const now = formatTimestampIST(Date.now());
 
       const userMessage = {
         id: crypto.randomUUID(),
@@ -308,10 +331,7 @@ export default function ChatContainer({
 
         for (let i = 0; i < normalizedBubbles.length; i++) {
           const bubble = normalizedBubbles[i];
-          const replyTime = new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          const replyTime = formatTimestampIST(Date.now());
 
           const bubbleDelay = getBubbleDelayMs(bubble);
           // Keep first bubble responsive, but still scale by content length.
@@ -338,7 +358,7 @@ export default function ChatContainer({
         setIsTyping(false);
       }
     },
-    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs]
+    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -350,10 +370,7 @@ export default function ChatContainer({
       messages.length > 0 && messages[messages.length - 1].content === reflectionQuestion;
     if (isDuplicate) return;
 
-    const now = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const now = formatTimestampIST(Date.now());
 
     setMessages((prev) => [
       ...prev,
@@ -373,7 +390,7 @@ export default function ChatContainer({
     }, 100);
 
     return () => clearTimeout(focusTimer);
-  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed]);
+  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed, formatTimestampIST]);
 
   // ─── Clear Chat ─────────────────────────────────────────────────
   const clearChat = useCallback(async () => {
