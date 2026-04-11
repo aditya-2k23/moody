@@ -38,6 +38,7 @@ export default function ChatContainer({
   const chatContentRef = useRef(null);
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
+  const sessionRequestIdRef = useRef(0);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -274,6 +275,8 @@ export default function ChatContainer({
       if (!messageText.trim() || (!userId && !isDemo)) return;
       if (isDemo && demoCount >= 3) return;
 
+      const capturedToken = ++sessionRequestIdRef.current;
+
       if (isDemo) {
         setDemoCount((prev) => {
           const nextCount = prev + 1;
@@ -313,6 +316,8 @@ export default function ChatContainer({
           }),
         });
 
+        if (capturedToken !== sessionRequestIdRef.current) return;
+
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || data.message || data.retry || "Failed to send message");
@@ -340,6 +345,7 @@ export default function ChatContainer({
             : bubbleDelay;
 
           await new Promise((resolve) => setTimeout(resolve, appearanceDelay));
+          if (capturedToken !== sessionRequestIdRef.current) return;
 
           setMessages((prev) => [
             ...prev,
@@ -352,10 +358,13 @@ export default function ChatContainer({
           ]);
         }
       } catch (error) {
+        if (capturedToken !== sessionRequestIdRef.current) return;
         console.error(error);
         toast.error(error.message || "Lumi is busy! Try again later.");
       } finally {
-        setIsTyping(false);
+        if (capturedToken === sessionRequestIdRef.current) {
+          setIsTyping(false);
+        }
       }
     },
     [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
@@ -396,6 +405,7 @@ export default function ChatContainer({
   const clearChat = useCallback(async () => {
     setMessages([]);
     setInput("");
+    sessionRequestIdRef.current++;
 
     if (isDemo) {
       return;
@@ -442,6 +452,7 @@ export default function ChatContainer({
     setMessages([]);
     setInput("");
     setSessionId(crypto.randomUUID());
+    sessionRequestIdRef.current++;
     requestHistoryRefresh();
   }, [requestHistoryRefresh]);
 
@@ -512,6 +523,7 @@ export default function ChatContainer({
                     onClick={() => {
                       setSessionId(session.sessionId);
                       setMessages(session.messages);
+                      sessionRequestIdRef.current++;
                       closeHistoryModal();
                     }}
                     className="w-full min-h-[84px] text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"

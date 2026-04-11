@@ -14,15 +14,56 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
   const [showContent, setShowContent] = useState(false);
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
   const [wasJustGenerated, setWasJustGenerated] = useState(false);
+  const [currentDay, setCurrentDay] = useState(() => {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric', month: 'numeric', day: 'numeric',
+    }).formatToParts(new Date()).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return `${parts.year}_${parseInt(parts.month) - 1}_${parts.day}`;
+  });
+
+  // Keep currentDay updated at every IST midnight boundary
+  useEffect(() => {
+    const calculateMsUntilMidnight = () => {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+      }).formatToParts(now).reduce((acc, part) => {
+        acc[part.type] = parseInt(part.value);
+        return acc;
+      }, {});
+      const secondsPassed = (parts.hour * 3600) + (parts.minute * 60) + parts.second;
+      return (24 * 3600 - secondsPassed) * 1000;
+    };
+
+    let timer;
+    const scheduleUpdate = () => {
+      const ms = calculateMsUntilMidnight();
+      timer = setTimeout(() => {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric', month: 'numeric', day: 'numeric',
+        }).formatToParts(new Date()).reduce((acc, part) => {
+          acc[part.type] = part.value;
+          return acc;
+        }, {});
+        setCurrentDay(`${parts.year}_${parseInt(parts.month) - 1}_${parts.day}`);
+        scheduleUpdate(); // Reschedule for the next day
+      }, ms + 1000);
+    };
+
+    scheduleUpdate();
+    return () => clearTimeout(timer);
+  }, []);
 
   const chatId = useMemo(() => {
-    if (!userId) return "";
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.getMonth();
-    const year = now.getFullYear();
-    return `chat_${userId}_${year}_${month}_${day}`;
-  }, [userId]);
+    if (!userId || !currentDay) return "";
+    return `chat_${userId}_${currentDay}`;
+  }, [userId, currentDay]);
 
   // Track if insights were actively generated in this session (vs loaded from cache)
   useEffect(() => {
