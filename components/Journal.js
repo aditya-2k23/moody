@@ -59,7 +59,6 @@ export default function Journal({
     }
 
     if (insightsLoadedKeyRef.current === insightsLoadKey) return;
-    insightsLoadedKeyRef.current = insightsLoadKey;
 
     const [uidFromKey, dateKeyFromKey] = insightsLoadKey.split("|");
 
@@ -67,11 +66,20 @@ export default function Journal({
       try {
         const docRef = doc(db, "users", uidFromKey, "insights", dateKeyFromKey);
         const snapshot = await getDoc(docRef);
+
+        // Success! Marker that we've attempted this key
+        insightsLoadedKeyRef.current = insightsLoadKey;
+
         if (snapshot.exists()) {
           const storedInsights = snapshot.data();
           if (storedInsights && typeof storedInsights === "object") {
-            setInsights(storedInsights);
-            return;
+            // Fingerprint check: Only load if it matches the current text
+            if (storedInsights.sourceText === entry.trim()) {
+              setInsights(storedInsights);
+              return;
+            } else {
+              console.log("[Journal] Stale insights found (text mismatch), ignoring cache.");
+            }
           }
         }
 
@@ -82,7 +90,7 @@ export default function Journal({
     };
 
     loadTodaysInsights();
-  }, [currentUser, isGuest, insightsLoadKey]);
+  }, [currentUser, isGuest, insightsLoadKey, entry]);
 
   // Cloud save status: 'idle' | 'saving' | 'saved'
   const [cloudStatus, setCloudStatus] = useState("idle");
@@ -551,7 +559,7 @@ export default function Journal({
       try {
         const dateKey = getDateKey(new Date());
         const docRef = doc(db, "users", currentUser.uid, "insights", dateKey);
-        await setDoc(docRef, result.data, { merge: true });
+        await setDoc(docRef, { ...result.data, sourceText: entry.trim() }, { merge: true });
       } catch (err) {
         console.error("Failed to save insights to Firestore:", err);
         // Non-blocking — insights are already in state
