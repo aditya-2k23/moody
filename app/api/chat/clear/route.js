@@ -71,11 +71,18 @@ export async function POST(req) {
       const snapshot = await messagesRef.where("sessionId", "==", sessionId).get();
 
       if (!snapshot.empty) {
-        const batch = db.batch();
-        snapshot.docs.forEach((doc) => {
-          batch.delete(doc.ref);
-        });
-        await batch.commit();
+        const BATCH_LIMIT = 500;
+
+        for (let i = 0; i < snapshot.docs.length; i += BATCH_LIMIT) {
+          const chunk = snapshot.docs.slice(i, i + BATCH_LIMIT);
+          const batch = db.batch();
+
+          chunk.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+
+          await batch.commit();
+        }
       }
     } catch (e) {
       console.error("[Clear Chat API] Failed to delete from Firestore", e);
