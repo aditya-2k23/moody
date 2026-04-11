@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@google/genai": "^1.46.0",
-    "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
     "@upstash/redis": "^1.36.2",
     "cloudinary": "^2.8.0",

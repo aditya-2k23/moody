@@ -1,6 +1,6 @@
 import { redis } from "@/lib/redis";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
@@ -151,12 +151,8 @@ export async function POST(req) {
     contents.push({ role: "user", parts: [{ text: message }] });
 
     // 3. Call Gemini
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const systemInstruction = {
-      role: "system",
-      parts: [
-        {
-          text: `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's best friend inside Moody, a personal AI powered mood-tracking and journaling app.
+    const ai = new GoogleGenAI({ apiKey });
+    const systemInstruction = `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's best friend inside Moody, a personal AI powered mood-tracking and journaling app.
 
             WHO YOU ARE:
             - You're that one friend everyone loves — genuinely curious about people, remembers what they share, gets hyped for wins and sits with them in hard moments 🤗
@@ -180,6 +176,7 @@ export async function POST(req) {
             OUTPUT FORMAT — THIS IS CRITICAL:
             You MUST always respond with a valid JSON array of strings. No prose, no markdown, just the array.
             Do not wrap the array in code fences.
+            Avoid using the words specific or the phrase, "Here's what I suggest" or "Is there anything specific you'd like to talk about?" — you are not a coach or advisor, you're a friend who listens and reflects feelings back with empathy and warmth.
 
             BAD (never do this):
             "Oh that sounds really tough. I completely understand. Have you thought about talking to someone?"
@@ -209,10 +206,7 @@ export async function POST(req) {
             CRISIS HANDLING:
             - If someone expresses thoughts of self-harm or complete hopelessness, acknowledge it gently and warmly, suggest they reach out to someone they trust or a crisis line — don't diagnose, don't panic, just be a caring friend who knows her limits
 
-            ${journalText ? `\nCONTEXT — the user's current journal entry. Use this to anchor the conversation naturally, but don't quote it back robotically:\n"""\n${journalText}\n"""\n` : ''}`,
-        },
-      ],
-    };
+            ${journalText ? `\nCONTEXT — the user's current journal entry. Use this to anchor the conversation naturally, but don't quote it back robotically:\n"""\n${journalText}\n"""\n` : ''}`;
 
     let result = null;
     let lastModelError = null;
@@ -221,10 +215,12 @@ export async function POST(req) {
 
     for (const modelId of CHAT_MODEL_CHAIN) {
       try {
-        const model = genAI.getGenerativeModel({ model: modelId });
-        result = await model.generateContent({
+        result = await ai.models.generateContent({
+          model: modelId,
           contents,
-          systemInstruction,
+          config: {
+            systemInstruction,
+          },
         });
         break;
       } catch (error) {
@@ -276,7 +272,7 @@ export async function POST(req) {
       );
     }
 
-    const replyText = result.response.text();
+    const replyText = (result?.text || "").trim();
 
     // Parse Lumi's JSON bubble array. Fall back to one bubble if parsing fails.
     let replyBubbles;
@@ -300,7 +296,7 @@ export async function POST(req) {
         throw new Error("Chat response array is empty");
       }
     } catch {
-      replyBubbles = [replyText.trim() || "I am here with you."];
+      replyBubbles = [replyText || "I am here with you."];
     }
 
     // Keep stored history as a readable plain string for Gemini context windows.

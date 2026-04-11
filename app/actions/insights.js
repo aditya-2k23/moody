@@ -1,7 +1,6 @@
 "use server";
 
 import { redis } from "@/lib/redis";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleGenAI } from "@google/genai";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
@@ -26,10 +25,19 @@ function getApiKey() {
   return apiKey;
 }
 
-function getModelInstance(modelId) {
-  const apiKey = getApiKey();
-  const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: modelId });
+function getGenAIClient() {
+  return new GoogleGenAI({ apiKey: getApiKey() });
+}
+
+function withTimeout(promise, timeoutMs) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("Request timeout")), timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
 }
 
 // ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
@@ -124,8 +132,7 @@ function isQuotaError(error) {
 
 async function getEmbedding(text) {
   try {
-    const apiKey = getApiKey();
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = getGenAIClient();
     let result;
     try {
       result = await ai.models.embedContent({
@@ -486,24 +493,20 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
     const isLastModel = i === availableModels.length - 1;
 
     try {
-      const model = getModelInstance(modelId);
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
-
-      let result;
-      try {
-        result = await model.generateContent({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
+      const ai = getGenAIClient();
+      const result = await withTimeout(
+        ai.models.generateContent({
+          model: modelId,
+          contents: prompt,
+          config: {
             responseMimeType: "application/json",
             responseSchema: currentSchema,
           },
-        }, { signal: controller.signal });
-      } finally {
-        clearTimeout(timeout);
-      }
+        }),
+        AI_TIMEOUT_MS
+      );
 
-      let text = result.response.text();
+      let text = result.text || "";
       text = text.trim();
       if (text.startsWith("```")) {
         text = text.replace(/^```[a-zA-Z]*\n/, "").replace(/```$/, "").trim();
