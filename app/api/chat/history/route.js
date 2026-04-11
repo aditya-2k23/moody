@@ -1,4 +1,5 @@
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -11,8 +12,9 @@ export async function GET(req) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
-    if (userId === "demo-user") {
-      return NextResponse.json({ messages: [] });
+    // Preliminary validation: chatId should follow the scoped pattern even if we haven't verified the token yet
+    if (!isChatIdScopedToUser(chatId, userId)) {
+      return NextResponse.json({ error: "Invalid chatId" }, { status: 400 });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -26,12 +28,21 @@ export async function GET(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("[Chat History API] Token verification failed:", error);
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
+        decodedToken = { uid: "demo-user", isDemo: true };
+      } else {
+        console.error("[Chat History API] Token verification failed:", error);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
     }
 
     if (decodedToken.uid !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // After verification, we check if it's a demo user to return empty history as before
+    if (decodedToken.uid === "demo-user" || decodedToken.isDemo) {
+      return NextResponse.json({ historySessions: [] });
     }
 
     const db = getAdminDb();

@@ -1,5 +1,6 @@
 import { redis } from "@/lib/redis";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { isChatIdScopedToUser, isValidSessionId, isValidString } from "@/lib/validation";
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
@@ -11,15 +12,6 @@ const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash-lite",
 ];
 
-function isChatIdScopedToUser(chatId, uid) {
-  return (
-    typeof chatId === "string" &&
-    chatId.length >= 8 &&
-    chatId.length <= 200 &&
-    !chatId.includes("/") &&
-    chatId.startsWith(`chat_${uid}_`)
-  );
-}
 
 function isRetryableModelError(error) {
   const msg = (error?.message || "").toLowerCase();
@@ -83,40 +75,76 @@ function extractRetryDelaySeconds(errorMessage) {
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { chatId, userId: requestedUserId, message, journalText, sessionId = "default" } = body;
-
-    if (!chatId || !message) {
-      return NextResponse.json({ error: "Missing required fields: chatId and message" }, { status: 400 });
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const isDemoUser = requestedUserId === "demo-user";
-    let effectiveUserId = requestedUserId;
+    const { chatId, userId: requestedUserId, message, journalText, sessionId = "default" } = body;
 
-    if (!isDemoUser) {
-      const authHeader = req.headers.get("authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    // Validate types and content
+    if (!isValidString(chatId, { min: 8, max: 200 })) {
+      return NextResponse.json({ error: "Invalid or missing field: chatId (must be string 8-200 chars)" }, { status: 400 });
+    }
+    if (!isValidString(message, { min: 1, max: 2000 })) {
+      return NextResponse.json({ error: "Invalid or missing field: message (must be string 1-2000 chars)" }, { status: 400 });
+    }
+    if (requestedUserId && typeof requestedUserId !== "string") {
+      return NextResponse.json({ error: "Invalid field: userId (must be string)" }, { status: 400 });
+    }
+    if (journalText && !isValidString(journalText, { min: 0, max: 10000 })) {
+      return NextResponse.json({ error: "Invalid field: journalText (max 10000 chars)" }, { status: 400 });
+    }
+    if (!isValidSessionId(sessionId)) {
+      return NextResponse.json({ error: "Invalid field: sessionId (must be 1-256 chars, no special control chars)" }, { status: 400 });
+    }
 
-      const idToken = authHeader.split("Bearer ")[1];
-      let decodedToken;
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-      try {
-        decodedToken = await getAdminAuth().verifyIdToken(idToken);
-      } catch (error) {
+    const idToken = authHeader.split("Bearer ")[1];
+    let decodedToken;
+
+    try {
+      decodedToken = await getAdminAuth().verifyIdToken(idToken);
+    } catch (error) {
+      // Robust validation: Only allow a fallback if a specific server-issued demo token is configured
+      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
+        decodedToken = { uid: "demo-user", isDemo: true };
+      } else {
         console.error("[Chat API] Token verification failed:", error);
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
       }
+    }
 
-      effectiveUserId = decodedToken.uid;
+    const effectiveUserId = decodedToken.uid;
+    const isDemoUser = effectiveUserId === "demo-user" || decodedToken.isDemo === true;
 
-      if (requestedUserId && requestedUserId !== effectiveUserId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+    if (requestedUserId && requestedUserId !== effectiveUserId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-      if (!isChatIdScopedToUser(chatId, effectiveUserId)) {
-        return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+    if (!isChatIdScopedToUser(chatId, effectiveUserId)) {
+      return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+    }
+
+    // Enforce 3-message demo cap
+    if (isDemoUser) {
+      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}`;
+      try {
+        const count = (await redis.get(demoQuotaKey)) || 0;
+        if (parseInt(count) >= 3) {
+          return NextResponse.json(
+            { error: "Demo limit reached. Please sign in to continue chatting with Lumi! 🌟" },
+            { status: 403 }
+          );
+        }
+      } catch (e) {
+        console.warn("[Chat API] Quota check failed, failing safe", e);
       }
     }
 
@@ -396,7 +424,19 @@ export async function POST(req) {
       }
     }
 
-    // 6. Return response
+    // 6. If demo user, increment the quota count
+    if (isDemoUser) {
+      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}`;
+      try {
+        await redis.incr(demoQuotaKey);
+        // Set an expiry for the quota if it's the first message (e.g., 7 days)
+        await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
+      } catch (e) {
+        console.error("[Chat API] Failed to increment demo quota", e);
+      }
+    }
+
+    // 7. Return response
     return NextResponse.json({ reply: replyBubbles });
 
   } catch (error) {

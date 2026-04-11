@@ -1,17 +1,8 @@
 import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
-
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { isChatIdScopedToUser, isValidSessionId } from "@/lib/validation";
 
-function isChatIdScopedToUser(chatId, uid) {
-  return (
-    typeof chatId === "string" &&
-    chatId.length >= 8 &&
-    chatId.length <= 200 &&
-    !chatId.includes("/") &&
-    chatId.startsWith(`chat_${uid}_`)
-  );
-}
 
 export async function POST(req) {
   try {
@@ -19,21 +10,12 @@ export async function POST(req) {
     const { chatId, userId: requestedUserId, sessionId = "default" } = body;
     
     // Validate sessionId: string, non-empty, max 256 chars, no control/newline characters
-    if (
-      typeof sessionId !== "string" ||
-      sessionId.trim().length === 0 ||
-      sessionId.length > 256 ||
-      /[\r\n\x00-\x1F\x7F]/.test(sessionId)
-    ) {
+    if (!isValidSessionId(sessionId)) {
       return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
     }
 
     if (!chatId) {
       return NextResponse.json({ error: "Missing required field: chatId" }, { status: 400 });
-    }
-
-    if (requestedUserId === "demo-user") {
-      return NextResponse.json({ success: true, message: "Cleared locally" });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -47,11 +29,16 @@ export async function POST(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("[Clear Chat API] Token verification failed:", error);
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
+        decodedToken = { uid: "demo-user", isDemo: true };
+      } else {
+        console.error("[Clear Chat API] Token verification failed:", error);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
     }
 
     const uid = decodedToken.uid;
+    const isDemoUser = uid === "demo-user" || decodedToken.isDemo === true;
 
     if (requestedUserId && requestedUserId !== uid) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -59,6 +46,10 @@ export async function POST(req) {
 
     if (!isChatIdScopedToUser(chatId, uid)) {
       return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+    }
+
+    if (isDemoUser) {
+      return NextResponse.json({ success: true, message: "Cleared locally" });
     }
 
     const redisKey = `chat:${chatId}:${sessionId}`;
