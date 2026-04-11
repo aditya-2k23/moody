@@ -91,6 +91,7 @@ export default function ChatHeader({
               : "text-gray-300 dark:text-slate-600 cursor-not-allowed"
               }`}
             title={hasHistory ? "View today's chat history" : "No previous chats today"}
+            aria-label={hasHistory ? "View today's chat history" : "No previous chats today"}
           >
             <History size={18} />
           </button>
@@ -125,17 +126,17 @@ export default function ChatHeader({
 
       {/* Clear Chat Confirmation Modal */}
       {showClearConfirm && (
-        <div 
+        <div
           className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 rounded-[2rem]"
           onClick={() => setShowClearConfirm(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Delete Session?</h3>
-              <button 
+              <button
                 onClick={() => setShowClearConfirm(false)}
                 className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-slate-800 transition-colors"
               >

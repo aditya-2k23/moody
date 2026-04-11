@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { useRef, useEffect, useCallback, useState, forwardRef, useImperativeHandle } from "react";
 import { Send, Loader2 } from "lucide-react";
 import VoiceButton from "./VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -17,6 +17,7 @@ const ChatInput = forwardRef(function ChatInput({
   isFullscreen,
 }, ref) {
   const textareaRef = useRef(null);
+  const [isComposing, setIsComposing] = useState(false);
 
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -67,7 +68,7 @@ const ChatInput = forwardRef(function ChatInput({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && !isComposing) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -85,6 +86,8 @@ const ChatInput = forwardRef(function ChatInput({
               setInput(e.target.value);
               syncBaseEntry(e.target.value);
             }}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
             onKeyDown={handleKeyDown}
             placeholder="Message Lumi..."
             className="flex-1 bg-transparent pl-5 pr-2 py-3.5 text-[15px] focus:outline-none dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-[120px] overflow-y-auto chat-scrollbar"

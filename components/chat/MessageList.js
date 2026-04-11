@@ -30,6 +30,9 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
       ref={containerRef}
       className={`flex-1 flex flex-col overflow-y-auto px-5 py-2 space-y-4 bg-transparent scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : ""
         }`}
+      role="log"
+      aria-live="polite"
+      aria-atomic="true"
       onScroll={(e) => e.stopPropagation()}
     >
       {/* Empty state */}
@@ -69,7 +72,12 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
 
       {/* Typing indicator */}
       {isTyping && (
-        <div className="flex items-end gap-2.5 flex-row animate-chat-fade-in">
+        <div
+          className="flex items-end gap-2.5 flex-row animate-chat-fade-in"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm mb-1 overflow-hidden">
             <Image
               src="/lumi-avatar.png"

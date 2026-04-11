@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { moods } from "@/utils";
 import { Check, Sparkles, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
@@ -12,9 +12,17 @@ import ChatContainer from "./chat/ChatContainer";
 export default function AIInsightsSection({ insights, isLoading, userId, journalText }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showContent, setShowContent] = useState(false);
-  const [chatId, setChatId] = useState("");
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
   const [wasJustGenerated, setWasJustGenerated] = useState(false);
+
+  const chatId = useMemo(() => {
+    if (!userId) return "";
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    return `chat_${userId}_${year}_${month}_${day}`;
+  }, [userId]);
 
   // Track if insights were actively generated in this session (vs loaded from cache)
   useEffect(() => {
@@ -22,17 +30,6 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
       setWasJustGenerated(true);
     }
   }, [isLoading]);
-
-  // Generate a deterministic chat ID per day so chat history persists
-  useEffect(() => {
-    if (userId) {
-      const now = new Date();
-      const day = now.getDate();
-      const month = now.getMonth();
-      const year = now.getFullYear();
-      setChatId(`chat_${userId}_${year}_${month}_${day}`);
-    }
-  }, [userId]);
 
   useEffect(() => {
     if (userId || isLoading || insights) {
