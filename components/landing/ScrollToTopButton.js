@@ -58,7 +58,16 @@ export default function ScrollToTopButton() {
   }, [heroHeight]);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    import("gsap").then(({ default: gsap }) => {
+      import("gsap/ScrollToPlugin").then(({ ScrollToPlugin }) => {
+        gsap.registerPlugin(ScrollToPlugin);
+        gsap.to(window, {
+          scrollTo: { y: 0, autoKill: false },
+          duration: 1,
+          ease: "power3.inOut"
+        });
+      });
+    });
   }, []);
 
   return (
