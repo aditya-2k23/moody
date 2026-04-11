@@ -351,27 +351,34 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
         }
       }
 
-      // If it's effectively an exact duplicate, return the cached response immediately
-      // bypassing the Gemini generation entirely.
-      if (exactSameTextData && exactSameTextSimilarity >= 0.95) {
-        console.log(`[Insights] Exact cache hit via source text. Score: ${exactSameTextSimilarity.toFixed(3)}`);
-        return { success: true, data: exactSameTextData, modelUsed: "cache" };
-      }
+      // Exact-hit precedence:
+      // 1) exact sourceText match, 2) high-confidence normalized text match,
+      // 3) legacy fallback for records without sourceText (stricter 0.999 threshold).
+      let exactCacheData = null;
+      let exactCacheLabel = null;
+      let exactCacheScore = null;
 
-      if (
+      if (exactSameTextData && exactSameTextSimilarity >= 0.95) {
+        exactCacheData = exactSameTextData;
+        exactCacheLabel = "via source text";
+        exactCacheScore = exactSameTextSimilarity;
+      } else if (
         pureMaxSimilarity >= 0.95 &&
         exactMatchData &&
-        exactMatchSourceText &&
         exactMatchSourceText === normalizedJournalText
       ) {
-        console.log(`[Insights] Exact cache hit. Score: ${pureMaxSimilarity.toFixed(3)}`);
-        return { success: true, data: exactMatchData, modelUsed: "cache" };
+        exactCacheData = exactMatchData;
+        exactCacheLabel = "high-confidence normalized match";
+        exactCacheScore = pureMaxSimilarity;
+      } else if (pureMaxSimilarity >= 0.999 && exactMatchData && !exactMatchSourceText) {
+        exactCacheData = exactMatchData;
+        exactCacheLabel = "legacy (no source text)";
+        exactCacheScore = pureMaxSimilarity;
       }
 
-      // Backward compatibility for older cache records that were stored without sourceText.
-      if (pureMaxSimilarity >= 0.999 && exactMatchData) {
-        console.log(`[Insights] Legacy exact cache hit. Score: ${pureMaxSimilarity.toFixed(3)}`);
-        return { success: true, data: exactMatchData, modelUsed: "cache" };
+      if (exactCacheData) {
+        console.log(`[Insights] Exact cache hit ${exactCacheLabel}. Score: ${exactCacheScore.toFixed(3)}`);
+        return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
       if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
