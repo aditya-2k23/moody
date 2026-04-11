@@ -128,6 +128,33 @@ export default function ChatContainer({
     return Math.min(1800, Math.max(260, delay));
   }, []);
 
+  const getFriendlyChatError = useCallback((error, fallbackMessage) => {
+    const status = Number(error?.status);
+    const code = typeof error?.code === "string" ? error.code : "";
+    const retryAfter = Number(error?.retryAfter);
+
+    if (status === 401 || status === 403 || code === "UNAUTHORIZED" || code === "INVALID_TOKEN") {
+      return "Your session expired. Please refresh and try again.";
+    }
+
+    if (status === 413 || code === "MESSAGE_TOO_LARGE") {
+      return "Message too long. Please keep it shorter and try again.";
+    }
+
+    if (status === 429 || code === "RATE_LIMITED" || code === "AI_QUOTA_EXCEEDED") {
+      if (Number.isFinite(retryAfter) && retryAfter > 0) {
+        return `Lumi is busy right now. Please try again in about ${Math.ceil(retryAfter)}s.`;
+      }
+      return "Lumi is busy right now. Please try again shortly.";
+    }
+
+    if (status === 503 || code === "AI_CAPACITY_HIGH" || code === "AI_TEMPORARILY_UNAVAILABLE") {
+      return "Lumi is experiencing high demand. Please try again in a moment.";
+    }
+
+    return fallbackMessage;
+  }, []);
+
   const formatTimestampIST = useCallback((value) => {
     if (value === null || value === undefined || value === "") return "";
 
@@ -315,7 +342,11 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to send message");
+          const apiError = new Error(data.error || "Failed to send message");
+          apiError.status = res.status;
+          apiError.code = data.code;
+          apiError.retryAfter = data.retryAfter;
+          throw apiError;
         }
 
         const data = await res.json();
@@ -353,12 +384,12 @@ export default function ChatContainer({
         }
       } catch (error) {
         console.error(error);
-        toast.error("Lumi is busy! Try again later.");
+        toast.error(getFriendlyChatError(error, "Lumi is busy! Try again later."));
       } finally {
         setIsTyping(false);
       }
     },
-    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
+    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST, getFriendlyChatError]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -420,14 +451,21 @@ export default function ChatContainer({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to clear chat cache");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const apiError = new Error(data.error || "Failed to clear chat cache");
+        apiError.status = res.status;
+        apiError.code = data.code;
+        apiError.retryAfter = data.retryAfter;
+        throw apiError;
+      }
       requestHistoryRefresh();
       toast.success("Chat cleared");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to clear chat memory completely");
+      toast.error(getFriendlyChatError(error, "Failed to clear chat memory completely"));
     }
-  }, [chatId, isDemo, sessionId, requestHistoryRefresh]);
+  }, [chatId, isDemo, sessionId, requestHistoryRefresh, getFriendlyChatError]);
 
   // ─── Handle New Chat Button ─────────────────────────────────────
   const startNewChat = useCallback(() => {

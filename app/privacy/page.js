@@ -478,7 +478,7 @@ export default function PrivacyPolicy() {
                   <p className="mt-2 text-sm text-indigo-500 dark:text-indigo-400 font-medium">Short-term chat context cache expires within 24 hours; insight cache/embedding data expires within a maximum of 7 days.</p>
 
                   <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mt-6 mb-3">7.2 Account Deletion</h3>
-                  <p>You can delete your account at any time via <span className="font-medium text-slate-900 dark:text-slate-100">Settings &rarr; Delete Account</span>. This process is <span className="text-red-600 dark:text-red-400 font-bold uppercase">irreversible</span>.</p>
+                  <p>You can request account deletion at any time by contacting support, and we are rolling out a self-serve account deletion control in settings. This process is <span className="text-red-600 dark:text-red-400 font-bold uppercase">irreversible</span>.</p>
 
                   <p className="mt-4 font-medium italic">Upon deletion:</p>
                   <ul className="list-disc pl-6 mt-2 space-y-1 text-sm sm:text-base text-slate-600 dark:text-slate-400">

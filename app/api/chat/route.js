@@ -1,10 +1,15 @@
 import { redis } from "@/lib/redis";
+import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_JOURNAL_TEXT_LENGTH = 10000;
+const MAX_SESSION_ID_LENGTH = 100;
 const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash",
   "gemini-3-flash-preview",
@@ -81,13 +86,64 @@ function extractRetryDelaySeconds(errorMessage) {
   return null;
 }
 
+function isValidSessionId(sessionId) {
+  return (
+    typeof sessionId === "string" &&
+    sessionId.length >= 1 &&
+    sessionId.length <= MAX_SESSION_ID_LENGTH &&
+    /^[A-Za-z0-9_-]+$/.test(sessionId)
+  );
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();
     const { chatId, userId: requestedUserId, message, journalText, sessionId = "default" } = body;
 
-    if (!chatId || !message) {
-      return NextResponse.json({ error: "Missing required fields: chatId and message" }, { status: 400 });
+    if (!chatId || message === undefined || message === null) {
+      return apiError({
+        status: 400,
+        code: "MISSING_REQUIRED_FIELDS",
+        message: "Missing required fields: chatId and message",
+      });
+    }
+
+    if (typeof chatId !== "string" || chatId.length < 5 || chatId.length > 200 || chatId.includes("/")) {
+      return apiError({ status: 400, code: "INVALID_CHAT_ID", message: "Invalid chatId" });
+    }
+
+    if (typeof message !== "string" || message.trim().length === 0) {
+      return apiError({ status: 400, code: "INVALID_MESSAGE", message: "Message must be a non-empty string" });
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return apiError({
+        status: 413,
+        code: "MESSAGE_TOO_LARGE",
+        message: `Message exceeds ${MAX_MESSAGE_LENGTH} characters`,
+      });
+    }
+
+    if (journalText !== undefined && journalText !== null) {
+      if (typeof journalText !== "string") {
+        return apiError({ status: 400, code: "INVALID_JOURNAL_TEXT", message: "journalText must be a string" });
+      }
+
+      if (journalText.length > MAX_JOURNAL_TEXT_LENGTH) {
+        return apiError({
+          status: 413,
+          code: "JOURNAL_TEXT_TOO_LARGE",
+          message: `journalText exceeds ${MAX_JOURNAL_TEXT_LENGTH} characters`,
+        });
+      }
+    }
+
+    if (!isValidSessionId(sessionId)) {
+      return apiError({ status: 400, code: "INVALID_SESSION_ID", message: "Invalid sessionId" });
+    }
+
+    if (requestedUserId !== undefined && requestedUserId !== null && typeof requestedUserId !== "string") {
+      return apiError({ status: 400, code: "INVALID_USER_ID", message: "Invalid userId" });
     }
 
     const isDemoUser = requestedUserId === "demo-user";
@@ -96,7 +152,7 @@ export async function POST(req) {
     if (!isDemoUser) {
       const authHeader = req.headers.get("authorization");
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return apiError({ status: 401, code: "UNAUTHORIZED", message: "Unauthorized" });
       }
 
       const idToken = authHeader.split("Bearer ")[1];
@@ -106,24 +162,48 @@ export async function POST(req) {
         decodedToken = await getAdminAuth().verifyIdToken(idToken);
       } catch (error) {
         console.error("[Chat API] Token verification failed:", error);
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
       }
 
       effectiveUserId = decodedToken.uid;
 
       if (requestedUserId && requestedUserId !== effectiveUserId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return apiError({ status: 403, code: "FORBIDDEN", message: "Forbidden" });
       }
 
       if (!isChatIdScopedToUser(chatId, effectiveUserId)) {
-        return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+        return apiError({ status: 403, code: "INVALID_CHAT_SCOPE", message: "Invalid chat scope" });
       }
+    }
+
+    const requestIp = getRequestIp(req);
+    const rateIdentifier = isDemoUser
+      ? `demo:${requestIp}`
+      : `user:${effectiveUserId || requestIp}`;
+    const rateResult = await checkRateLimit({
+      namespace: "chat:send",
+      identifier: rateIdentifier,
+      limit: isDemoUser ? 8 : 20,
+      windowSeconds: 60,
+    });
+
+    if (!rateResult.allowed) {
+      return apiError({
+        status: 429,
+        code: "RATE_LIMITED",
+        message: "Too many chat requests. Please try again shortly.",
+        retryAfter: rateResult.retryAfter || 60,
+      });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("[Chat API] GEMINI_API_KEY is missing");
-      return NextResponse.json({ error: "AI service is not configured" }, { status: 500 });
+      return apiError({
+        status: 500,
+        code: "AI_SERVICE_NOT_CONFIGURED",
+        message: "AI service is not configured",
+      });
     }
 
     const redisKey = `chat:${chatId}:${sessionId}`;
@@ -249,27 +329,27 @@ export async function POST(req) {
 
       if (sawQuotaError) {
         const retryAfter = extractRetryDelaySeconds(lastModelError?.message || "");
-        return NextResponse.json(
-          {
-            error: retryAfter
-              ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
-              : "Lumi hit the current Gemini quota. Please try again shortly.",
-          },
-          { status: 429 }
-        );
+        return apiError({
+          status: 429,
+          code: "AI_QUOTA_EXCEEDED",
+          message: "Lumi is temporarily unavailable. Please try again shortly.",
+          retryAfter: retryAfter || 30,
+        });
       }
 
       if (sawRetryableCapacityError) {
-        return NextResponse.json(
-          { error: "Lumi is experiencing high demand right now. Please try again in a few moments." },
-          { status: 503 }
-        );
+        return apiError({
+          status: 503,
+          code: "AI_CAPACITY_HIGH",
+          message: "Lumi is experiencing high demand right now. Please try again in a few moments.",
+        });
       }
 
-      return NextResponse.json(
-        { error: "Lumi is temporarily unavailable right now. Please try again shortly." },
-        { status: 503 }
-      );
+      return apiError({
+        status: 503,
+        code: "AI_TEMPORARILY_UNAVAILABLE",
+        message: "Lumi is temporarily unavailable right now. Please try again shortly.",
+      });
     }
 
     const replyText = (result?.text || "").trim();
@@ -366,6 +446,6 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("[Chat API] Error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError({ status: 500, code: "INTERNAL_ERROR", message: "Internal server error" });
   }
 }
