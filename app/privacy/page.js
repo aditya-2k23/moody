@@ -138,7 +138,6 @@ export default function PrivacyPolicy() {
     { id: "section9", title: "9. International Transfers" },
     { id: "section10", title: "10. AI Disclaimer" },
     { id: "section11", title: "11. Cookies & Storage" },
-    { id: "appendix", title: "Appendix: Data Flow" },
     { id: "section12", title: "12. Changes to Policy" },
     { id: "section13", title: "13. Contact Us" },
   ];
@@ -208,7 +207,7 @@ export default function PrivacyPolicy() {
         <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm min-w-0">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 fugaz text-indigo-500 uppercase">Privacy Policy</h1>
           <div className="flex flex-col sm:flex-row sm:gap-6 mb-8 text-slate-500 italic text-sm">
-            <p>Version 1.0 &mdash; March 2026</p>
+            <p>Version 1.1 &mdash; April 2026</p>
           </div>
 
           <div className="mb-10 p-6 pt-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
@@ -222,11 +221,11 @@ export default function PrivacyPolicy() {
               </div>
               <div className="flex gap-3">
                 <span className="text-indigo-500 font-bold shrink-0">2.</span>
-                <p><span className="font-semibold text-slate-900 dark:text-slate-100">Secure Storage:</span> All your mood data and journals are encrypted and stored in secure Firebase databases.</p>
+                <p><span className="font-semibold text-slate-900 dark:text-slate-100">Secure Storage:</span> Data is protected with HTTPS/TLS in transit and stored on providers that apply encryption-at-rest safeguards.</p>
               </div>
               <div className="flex gap-3">
                 <span className="text-indigo-500 font-bold shrink-0">3.</span>
-                <p><span className="font-semibold text-slate-900 dark:text-slate-100">AI Privacy:</span> Journal entries sent for AI analysis are not used to train global AI models.</p>
+                <p><span className="font-semibold text-slate-900 dark:text-slate-100">AI Privacy:</span> Chat and insight prompts are processed only to serve your request, with short-lived cache windows for performance.</p>
               </div>
               <div className="flex gap-3">
                 <span className="text-indigo-500 font-bold shrink-0">4.</span>
@@ -280,13 +279,16 @@ export default function PrivacyPolicy() {
                   </ul>
                   <p className="mt-2 text-sm text-slate-500">This data is stored in Firebase Firestore and linked to your account.</p>
 
-                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mt-8 mb-3">1.4 AI Processing</h3>
-                  <p>When you request AI insights:</p>
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mt-8 mb-3">1.4 AI Processing (Insights + Chat)</h3>
+                  <p>When you use AI features (Lumi Chat or Insights):</p>
                   <ul className="list-disc pl-6 mt-2 space-y-1">
-                    <li>Your journal content (and relevant profile context, if applicable) may be securely sent to the Google Gemini API for analysis.</li>
-                    <li>AI-generated responses may be cached using Upstash Redis for up to 7 days to improve performance.</li>
+                    <li>Journal content and chat messages you submit are securely sent to the Google Gemini API to generate responses.</li>
+                    <li>Short-term chat context may be cached in Upstash Redis for up to 24 hours to improve conversation continuity.</li>
+                    <li>Insight cache and semantic embeddings may be stored in Upstash Redis for up to 7 days to improve performance.</li>
+                    <li>For signed-in users, chat history is saved to your account so you can reopen previous conversations until you delete them.</li>
+                    <li>Demo chat sessions are temporary and are not saved to a user account history.</li>
                   </ul>
-                  <p className="mt-2">Cached entries are automatically deleted after expiration. <span className="font-semibold text-slate-900 dark:text-slate-100">Journal content sent to Gemini API is processed according to Google&apos;s
+                  <p className="mt-2">Cached entries are automatically deleted after expiration. <span className="font-semibold text-slate-900 dark:text-slate-100">Content sent to Gemini API is processed according to Google&apos;s
                     Gemini API Terms of Service. Google states that data sent via their
                     API is not used to train their models, but you should review their
                     terms at <a className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline" href="https://developers.google.com/terms">Gemini APIs Terms of Service</a> for the most current policies.</span></p>
@@ -323,6 +325,7 @@ export default function PrivacyPolicy() {
                     <li>Device-level technical information (Browser type, Screen resolution)</li>
                   </ul>
                   <p className="mt-4">This data is <span className="font-bold">anonymized</span> and cannot be used to identify you personally. We do not send your email address or journal contents to our analytics provider.</p>
+                  <p className="mt-2 text-sm text-slate-500">We also do not send your private chat message contents to analytics providers.</p>
                   <p className="mt-2 text-sm text-slate-500">You can opt out of analytics tracking at any time via <span className="font-medium">Settings &rarr; Privacy &rarr; Analytics</span>.</p>
                 </div>
               )}
@@ -336,6 +339,7 @@ export default function PrivacyPolicy() {
                   <ul className="list-disc pl-6 mt-2 space-y-1 mb-4">
                     <li>Provide mood tracking services</li>
                     <li>Personalize your dashboard experience</li>
+                    <li>Power Lumi chat and restore your conversation history</li>
                     <li>Generate AI-powered insights</li>
                     <li>Maintain statistics and streak tracking</li>
                     <li>Improve platform performance and security</li>
@@ -401,14 +405,14 @@ export default function PrivacyPolicy() {
                         </tr>
                         <tr>
                           <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">Google Gemini API</td>
-                          <td className="px-4 py-3">AI Insights</td>
-                          <td className="px-4 py-3">Journal Text, Opt-in Context</td>
+                          <td className="px-4 py-3">AI Chat &amp; Insights</td>
+                          <td className="px-4 py-3">Chat messages and journal text you choose to submit</td>
                           <td className="px-4 py-3"><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">Link</a></td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">Upstash Redis</td>
-                          <td className="px-4 py-3">AI Cache</td>
-                          <td className="px-4 py-3">Gemini Responses (7-day TTL)</td>
+                          <td className="px-4 py-3">Short-term AI Cache</td>
+                          <td className="px-4 py-3">Chat context (24h TTL), insight cache/embeddings (up to 7-day TTL)</td>
                           <td className="px-4 py-3"><a href="https://upstash.com/trust/privacy.pdf" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">Link</a></td>
                         </tr>
                         <tr>
@@ -448,10 +452,13 @@ export default function PrivacyPolicy() {
                     <ul className="list-disc pl-6 space-y-1 text-sm sm:text-base">
                       <li>Firestore security rules enforce user-level authentication</li>
                       <li>Users can only access their own mood entries and journals</li>
+                      <li>Private chat and history API routes require valid Firebase ID tokens</li>
+                      <li>Chat sessions are scoped to the authenticated account before data is returned or cleared</li>
                       <li>Admin access is logged and restricted to essential maintenance</li>
                       <li>All database queries require valid Firebase Authentication tokens</li>
                     </ul>
                   </div>
+                  <p className="mt-4 text-sm text-slate-500">We work to prevent unauthorized access and leakage through layered controls, but no internet service can guarantee absolute security.</p>
                 </div>
               )}
             </section>
@@ -466,8 +473,9 @@ export default function PrivacyPolicy() {
                     <li>While your account is active</li>
                     <li>Until you delete specific entries</li>
                     <li>Until you delete your account</li>
+                    <li>Chat history remains available in your account until you clear that conversation or delete your account</li>
                   </ul>
-                  <p className="mt-2 text-sm text-indigo-500 dark:text-indigo-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis">AI cache data is automatically deleted after expiration (maximum 7 days).</p>
+                  <p className="mt-2 text-sm text-indigo-500 dark:text-indigo-400 font-medium">Short-term chat context cache expires within 24 hours; insight cache/embedding data expires within a maximum of 7 days.</p>
 
                   <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mt-6 mb-3">7.2 Account Deletion</h3>
                   <p>You can delete your account at any time via <span className="font-medium text-slate-900 dark:text-slate-100">Settings &rarr; Delete Account</span>. This process is <span className="text-red-600 dark:text-red-400 font-bold uppercase">irreversible</span>.</p>
@@ -475,6 +483,7 @@ export default function PrivacyPolicy() {
                   <p className="mt-4 font-medium italic">Upon deletion:</p>
                   <ul className="list-disc pl-6 mt-2 space-y-1 text-sm sm:text-base text-slate-600 dark:text-slate-400">
                     <li>All mood entries and journals are permanently deleted from our primary database within 30 days</li>
+                    <li>Saved chat history is removed from active databases within approximately 30 days</li>
                     <li>Cached AI responses are deleted within 7 days</li>
                     <li>Uploaded images are removed from Cloudinary within 30 days</li>
                     <li>Your email may be retained for up to 90 days in a hashed format to prevent re-registration fraud</li>
@@ -525,6 +534,7 @@ export default function PrivacyPolicy() {
 
                     <ul className="list-disc pl-6 space-y-2">
                       <li>AI insights are generated by Google Gemini and may contain errors or &ldquo;hallucinations.&rdquo;</li>
+                      <li>AI chat replies are also machine-generated and may be inaccurate or incomplete.</li>
                       <li>The AI does not have access to your full mental health history or medical records.</li>
                       <li>Insights are generated based solely on the specific journal entries you provide for analysis.</li>
                       <li className="font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-tight">This is NOT a medical diagnosis or mental health treatment tool.</li>
@@ -567,29 +577,6 @@ export default function PrivacyPolicy() {
                   <p className="mt-4 text-sm text-slate-500 italic">You can clear this data through your browser settings, but doing so will log you out and reset your local preferences.</p>
                 </div>
               )}
-            </section>
-
-            <section id="appendix" className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 scroll-mt-28 w-full">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Appendix: Technical Data Flow</h2>
-              <div className="space-y-4 text-sm sm:text-base">
-                <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">1. Authentication Flow:</h3>
-                  <p className="font-mono text-xs sm:text-sm bg-white dark:bg-slate-950 p-2 rounded mt-1">User &rarr; Next.js Frontend &rarr; Firebase Auth &rarr; Firestore (user profile)</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">2. Mood Entry Flow:</h3>
-                  <p className="font-mono text-xs sm:text-sm bg-white dark:bg-slate-950 p-2 rounded mt-1">User &rarr; Next.js &rarr; Firestore (write with security rules validation)</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">3. AI Insight Flow:</h3>
-                  <p className="font-mono text-xs sm:text-sm bg-white dark:bg-slate-950 p-2 rounded mt-1">User Request &rarr; Next.js API Route &rarr; Check Upstash Cache &rarr; (if miss) &rarr; Gemini API &rarr; Cache Response &rarr; Return to User</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">4. Image Upload Flow:</h3>
-                  <p className="font-mono text-xs sm:text-sm bg-white dark:bg-slate-950 p-2 rounded mt-1">User &rarr; Cloudinary Upload Widget &rarr; Cloudinary CDN &rarr; Store URL in Firestore &rarr; Display via Next.js Image component</p>
-                </div>
-                <p className="text-xs text-slate-500 mt-4 italic">All connections are encrypted using industry-standard HTTPS/TLS 1.3 protocols.</p>
-              </div>
             </section>
 
             <section id="section12" className="scroll-mt-28 w-full pt-4 border-t border-slate-100 dark:border-slate-800/50">
