@@ -8,7 +8,7 @@ const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash",
   "gemini-3-flash-preview",
-  "gemini-2.0-flash",
+  "gemini-2.5-flash-lite",
 ];
 
 function isChatIdScopedToUser(chatId, uid) {
@@ -370,6 +370,6 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("[Chat API] Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
