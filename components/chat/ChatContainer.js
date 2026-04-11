@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { auth } from "@/firebase";
 import toast from "react-hot-toast";
 import ChatHeader from "./ChatHeader";
@@ -29,11 +30,18 @@ export default function ChatContainer({
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [historySessions, setHistorySessions] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [demoCount, setDemoCount] = useState(0);
+  const router = useRouter();
   const containerRef = useRef(null);
+  const chatInputRef = useRef(null);
   const chatContentRef = useRef(null);
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
+
+  const requestHistoryRefresh = useCallback(() => {
+    setHistoryRefreshKey((prev) => prev + 1);
+  }, []);
 
   // GSAP for Modal Open
   useEffect(() => {
@@ -77,16 +85,31 @@ export default function ChatContainer({
     });
   }, []);
 
+  const openHistoryModal = useCallback(() => {
+    requestHistoryRefresh();
+    setShowHistoryModal(true);
+  }, [requestHistoryRefresh]);
+
   // Load demo count on mount
   useEffect(() => {
     if (isDemo) {
       try {
         const saved = localStorage.getItem("lumi-demo-count");
-        if (saved) {
-          setDemoCount(parseInt(saved, 10));
+        if (!saved) {
+          setDemoCount(0);
+          return;
+        }
+
+        const parsedCount = Number.parseInt(saved, 10);
+        if (Number.isInteger(parsedCount) && parsedCount >= 0) {
+          setDemoCount(parsedCount);
+        } else {
+          setDemoCount(0);
+          localStorage.setItem("lumi-demo-count", "0");
         }
       } catch (e) {
         console.error("Failed to parse demo count", e);
+        setDemoCount(0);
       }
     }
   }, [isDemo]);
@@ -134,18 +157,12 @@ export default function ChatContainer({
       }
     };
 
-    // Debounce refresh so a burst of assistant bubbles results in a single history fetch.
-    const timer = setTimeout(() => {
-      if (!isTyping) {
-        fetchHistory();
-      }
-    }, messages.length > 0 ? 800 : 0);
+    fetchHistory();
 
     return () => {
       isCancelled = true;
-      clearTimeout(timer);
     };
-  }, [chatId, userId, isDemo, messages.length, isTyping]);
+  }, [chatId, userId, isDemo, historyRefreshKey]);
 
   // ─── Fullscreen Toggle ──────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -296,6 +313,14 @@ export default function ChatContainer({
             minute: "2-digit",
           });
 
+          const bubbleDelay = getBubbleDelayMs(bubble);
+          // Keep first bubble responsive, but still scale by content length.
+          const appearanceDelay = i === 0
+            ? Math.min(550, Math.max(120, Math.floor(bubbleDelay * 0.45)))
+            : bubbleDelay;
+
+          await new Promise((resolve) => setTimeout(resolve, appearanceDelay));
+
           setMessages((prev) => [
             ...prev,
             {
@@ -305,11 +330,6 @@ export default function ChatContainer({
               timestamp: replyTime,
             },
           ]);
-
-          if (i < normalizedBubbles.length - 1) {
-            const bubbleDelay = getBubbleDelayMs(bubble);
-            await new Promise((resolve) => setTimeout(resolve, bubbleDelay));
-          }
         }
       } catch (error) {
         console.error(error);
@@ -347,15 +367,12 @@ export default function ChatContainer({
 
     onReflectionConsumed?.();
 
-    // Auto-focus chat input right after clicking the follow-up wrapper
-    setTimeout(() => {
-      if (containerRef.current) {
-        const textarea = containerRef.current.querySelector("textarea");
-        if (textarea) {
-          textarea.focus({ preventScroll: true });
-        }
-      }
+    // Auto-focus chat input right after clicking the follow-up wrapper.
+    const focusTimer = setTimeout(() => {
+      chatInputRef.current?.focus();
     }, 100);
+
+    return () => clearTimeout(focusTimer);
   }, [reflectionQuestion, isTyping, messages, onReflectionConsumed]);
 
   // ─── Clear Chat ─────────────────────────────────────────────────
@@ -387,12 +404,13 @@ export default function ChatContainer({
       });
 
       if (!res.ok) throw new Error("Failed to clear chat cache");
+      requestHistoryRefresh();
       toast.success("Chat cleared");
     } catch (error) {
       console.error(error);
       toast.error("Failed to clear chat memory completely");
     }
-  }, [chatId, isDemo, sessionId]);
+  }, [chatId, isDemo, sessionId, requestHistoryRefresh]);
 
   // ─── Handle New Chat Button ─────────────────────────────────────
   const startNewChat = useCallback(() => {
@@ -407,7 +425,8 @@ export default function ChatContainer({
     setMessages([]);
     setInput("");
     setSessionId(crypto.randomUUID());
-  }, []);
+    requestHistoryRefresh();
+  }, [requestHistoryRefresh]);
 
   // ─── Container Classes ──────────────────────────────────────────
   // When onFullscreenChange is set, we're inside a modal — fill parent via flex
@@ -439,7 +458,7 @@ export default function ChatContainer({
           onToggleFullscreen={toggleFullscreen}
           onClearChat={clearChat}
           hasMessages={messages.length > 0}
-          onShowHistory={() => setShowHistoryModal(true)}
+          onShowHistory={openHistoryModal}
           hasHistory={historySessions.length > 0}
           onNewChat={startNewChat}
         />
@@ -514,7 +533,7 @@ export default function ChatContainer({
               You&apos;ve reached the end of the demo! Sign in to continue chatting with Lumi.
             </p>
             <button
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => router.push('/dashboard')}
               className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-medium transition-colors"
             >
               Create Free Account
@@ -522,6 +541,7 @@ export default function ChatContainer({
           </div>
         ) : (
           <ChatInput
+            ref={chatInputRef}
             input={input}
             setInput={setInput}
             onSend={sendMessage}

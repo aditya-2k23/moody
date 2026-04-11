@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Send, Loader2 } from "lucide-react";
 import VoiceButton from "./VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -9,14 +9,20 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
  * ChatInput — Chat textarea with voice button, auto-resize,
  * Enter to send, Shift+Enter for newline
  */
-export default function ChatInput({
+const ChatInput = forwardRef(function ChatInput({
   input,
   setInput,
   onSend,
   isTyping,
   isFullscreen,
-}) {
+}, ref) {
   const textareaRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      textareaRef.current?.focus({ preventScroll: true });
+    },
+  }), []);
 
   // Voice input integration
   const { isListening, toggleVoiceInput, syncBaseEntry, getDisplayValue } =
@@ -81,7 +87,7 @@ export default function ChatInput({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Message Lumi..."
-            className="flex-1 bg-transparent pl-5 pr-2 py-3.5 text-[15px] focus:outline-none dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-[120px]"
+            className="flex-1 bg-transparent pl-5 pr-2 py-3.5 text-[15px] focus:outline-none dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-[120px] overflow-y-auto chat-scrollbar"
             disabled={isTyping}
             aria-label="Chat message input"
           />
@@ -114,4 +120,6 @@ export default function ChatInput({
       </form>
     </div>
   );
-}
+});
+
+export default ChatInput;
