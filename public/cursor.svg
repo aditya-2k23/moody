@@ -1,0 +1,36 @@
+<svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 🌈 Gradient -->
+    <linearGradient id="cursorGradient" x1="10" y1="10" x2="22" y2="22"
+      gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A78BFA" /> <!-- soft purple -->
+      <stop offset="50%" stop-color="#60A5FA" /> <!-- blue -->
+      <stop offset="100%" stop-color="#F472B6" /> <!-- pink -->
+    </linearGradient>
+
+    <!-- ✨ Glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#glow)">
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M22 15.5068L10 10L12.8382 23L16.3062 17.8654L22 15.5068Z"
+      fill="url(#cursorGradient)"
+    />
+
+    <!-- softer stroke -->
+    <path
+      d="M10.209 9.5459L22.209 15.0527L23.25 15.5303L22.1914 15.9688L16.6367 18.2695L13.2529 23.2803L12.5986 24.248L12.3496 23.1064L9.51172 10.1064L9.29785 9.12793L10.209 9.5459Z"
+      stroke="rgba(255,255,255,0.6)"
+      stroke-width="1"
+    />
+  </g>
+</svg>

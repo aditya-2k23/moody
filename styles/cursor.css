@@ -1,0 +1,19 @@
+.custom-cursor-svg {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  /* Top-left correction relative to the bounding box */
+  left: 0;
+  top: 0;
+  color: var(--cursor-start);
+  /* Adjust transform origin closer to the tip of cursors */
+  transform-origin: 4px 4px;
+}
+
+/* Base cursor img styling based on its type */
+.cursor-image {
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  /* Scale transitions */
+  transition: transform 0.2s ease, filter 0.2s ease;
+}

@@ -4,6 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Styles */
+html {
+  cursor: url('/cursor.svg') 14 14, auto;
+}
+
+/* Custom cursor on interactive elements */
+button,
+a,
+input,
+select,
+[role="button"],
+.cursor-pointer,
+.blob-btn,
+.hand-drawn-btn,
+.radial-trigger {
+  cursor: url('/cursor-pointer.svg') 8 8, pointer !important;
+}
+
+button:disabled,
+.radial-trigger:disabled {
+  cursor: url('/cursor.svg') 6 6, not-allowed !important;
+}
+
+textarea,
+[role="textbox"],
+[contenteditable="true"] {
+  cursor: url('/cursor-text-caret.svg') 14 14, text !important;
+}
+
 @property --r {
   syntax: "<length>";
   inherits: false;
@@ -42,6 +71,13 @@
   --color-blob-text: var(--color-brand-500);
   --color-blob-text-hover: var(--color-white);
   --color-blob-bg: var(--color-blob-bg-light);
+
+  /* Cursor Theme Awareness */
+  --cursor-start: #a78bfa;
+  --cursor-mid: #60a5fa;
+  --cursor-end: #f472b6;
+  --cursor-glow: rgba(167, 139, 250, 0.35);
+  --cursor-size: 26px;
 }
 
 .fugaz {
@@ -495,6 +531,11 @@
   --theme-reveal-bg: var(--color-theme-reveal-dark);
   --color-blob-bg: var(--color-blob-bg-dark);
   --color-blob-text: var(--color-white);
+
+  --cursor-start: #c4b5fd;
+  --cursor-mid: #818cf8;
+  --cursor-end: #f9a8d4;
+  --cursor-glow: rgba(167, 139, 250, 0.85);
 }
 
 .dark .purpleShadow {
@@ -623,11 +664,11 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  cursor: grab;
+  cursor: url('/cursor.svg') 18 18, grab !important;
 }
 
 .circular-gallery:active {
-  cursor: grabbing;
+  cursor: url('/cursor.svg') 18 18, grabbing !important;
 }
 
 .memories-circular-gallery canvas {

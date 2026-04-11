@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import "./RadialMoodMenu.css";
+import "../styles/RadialMoodMenu.css";
 
 /**
  * RadialMoodMenu – GTA-style weapon-wheel for mood selection.
