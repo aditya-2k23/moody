@@ -26,7 +26,7 @@ const ChatInput = forwardRef(function ChatInput({
   }), []);
 
   // Voice input integration
-  const { isListening, toggleVoiceInput, syncBaseEntry, getDisplayValue } =
+  const { isListening, toggleVoiceInput, stopVoiceInput, syncBaseEntry, getDisplayValue } =
     useVoiceInput({
       initialValue: input,
       onTranscriptChange: (newText) => {
@@ -58,8 +58,17 @@ const ChatInput = forwardRef(function ChatInput({
 
   const handleSubmit = (e) => {
     e?.preventDefault();
-    if (!input.trim() || isTyping) return;
-    onSend(input.trim());
+    if (isTyping) return;
+
+    let finalInput = input;
+    if (isListening) {
+      finalInput = stopVoiceInput();
+    }
+
+    const trimmed = finalInput.trim();
+    if (!trimmed) return;
+
+    onSend(trimmed);
     setInput("");
     // Reset textarea height
     if (textareaRef.current) {
