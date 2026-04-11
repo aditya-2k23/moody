@@ -109,6 +109,8 @@ export default function ChatContainer({
   useEffect(() => {
     if (!userId || isDemo) return;
 
+    let isCancelled = false;
+
     const fetchHistory = async () => {
       try {
         const currentUser = auth.currentUser;
@@ -123,7 +125,7 @@ export default function ChatContainer({
 
         if (res.ok) {
           const data = await res.json();
-          if (data.historySessions) {
+          if (!isCancelled && data.historySessions) {
             setHistorySessions(data.historySessions);
           }
         }
@@ -132,8 +134,18 @@ export default function ChatContainer({
       }
     };
 
-    fetchHistory();
-  }, [chatId, userId, isDemo, messages.length]); // Refresh if messages are sent/cleared
+    // Debounce refresh so a burst of assistant bubbles results in a single history fetch.
+    const timer = setTimeout(() => {
+      if (!isTyping) {
+        fetchHistory();
+      }
+    }, messages.length > 0 ? 800 : 0);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [chatId, userId, isDemo, messages.length, isTyping]);
 
   // ─── Fullscreen Toggle ──────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -311,41 +323,40 @@ export default function ChatContainer({
 
   // ─── Reflection Question Integration ────────────────────────────
   useEffect(() => {
-    if (reflectionQuestion && !isTyping) {
-      setMessages((prev) => {
-        // Prevent duplicate reflection questions from being injected twice in a row
-        const isDuplicate = prev.length > 0 && prev[prev.length - 1].content === reflectionQuestion;
+    if (!reflectionQuestion || isTyping) return;
 
-        if (!isDuplicate) {
-          const now = new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          return [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: reflectionQuestion,
-              timestamp: now,
-            },
-          ];
-        }
-        return prev;
-      });
+    // Prevent duplicate reflection questions from being injected twice in a row
+    const isDuplicate =
+      messages.length > 0 && messages[messages.length - 1].content === reflectionQuestion;
+    if (isDuplicate) return;
 
-      // Auto-focus chat input right after clicking the follow-up wrapper
-      setTimeout(() => {
-        if (containerRef.current) {
-          const textarea = containerRef.current.querySelector("textarea");
-          if (textarea) {
-            textarea.focus({ preventScroll: true });
-          }
+    const now = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: reflectionQuestion,
+        timestamp: now,
+      },
+    ]);
+
+    onReflectionConsumed?.();
+
+    // Auto-focus chat input right after clicking the follow-up wrapper
+    setTimeout(() => {
+      if (containerRef.current) {
+        const textarea = containerRef.current.querySelector("textarea");
+        if (textarea) {
+          textarea.focus({ preventScroll: true });
         }
-      }, 100);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reflectionQuestion]);
+      }
+    }, 100);
+  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed]);
 
   // ─── Clear Chat ─────────────────────────────────────────────────
   const clearChat = useCallback(async () => {
