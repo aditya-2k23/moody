@@ -100,18 +100,18 @@ NextApp --> ServerActions
 ServerActions --> DB
 ServerActions --> Media
 
-ServerActions --> AI (Embeddings Model)
-AI (Embeddings Model) --> ServerActions
+ServerActions --> AI_Embeddings["AI (Embeddings Model)"]
+AI_Embeddings --> ServerActions
 
-ServerActions --> Cache (Cosine Similarity Search)
+ServerActions --> Cache_Sim["Cache (Cosine Similarity Search)"]
 
-Cache (Cosine Similarity Search) -- Cache Hit (Sim > 0.85) --> ServerActions (Partial Prompt)
-Cache (Cosine Similarity Search) -- Cache Miss --> AI (Insights Generation)
+Cache_Sim -- "Cache Hit (Sim > 0.85)" --> ServerActions_Partial["ServerActions (Partial Prompt)"]
+Cache_Sim -- "Cache Miss" --> AI_Insights["AI (Insights Generation)"]
 
-AI (Insights Generation) --> Cache (Save Embedding)
-AI (Insights Generation) --> ServerActions
+AI_Insights --> Cache_Save["Cache (Save Embedding)"]
+AI_Insights --> ServerActions
 
-ServerActions (Partial Prompt) --> AI (Insights Generation)
+ServerActions_Partial --> AI_Insights
 ServerActions --> NextApp
 NextApp --> User
 ```
