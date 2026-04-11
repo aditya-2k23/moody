@@ -40,6 +40,7 @@ export default function Journal({
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
 
   const insightsRef = useRef(null);
   const textareaRef = useRef(null);
@@ -528,6 +529,7 @@ export default function Journal({
       return;
     }
 
+    setInsightsError("");
     setLoadingInsights(true);
 
     try {
@@ -536,11 +538,14 @@ export default function Journal({
       const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
 
       if (!result.success) {
-        toast.error(result.error || "Failed to generate insights.");
+        const errorMessage = result.error || "Failed to generate insights.";
+        setInsightsError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
 
       setInsights(result.data);
+      setInsightsError("");
 
       // Scroll to insights section after a short delay to ensure DOM is updated
       setTimeout(() => {
@@ -558,6 +563,7 @@ export default function Journal({
       }
     } catch (error) {
       console.error("Error generating insights:", error);
+      setInsightsError("Failed to generate insights. Please try again.");
       toast.error("Failed to generate insights. Please try again.");
     } finally {
       setLoadingInsights(false);
@@ -702,7 +708,14 @@ export default function Journal({
 
       {/* AI Insights Section */}
       <div ref={insightsRef} className="scroll-mt-10">
-        <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} journalText={entry} />
+        <AIInsightsSection
+          insights={insights}
+          isLoading={loadingInsights}
+          userId={currentUser?.uid}
+          journalText={entry}
+          errorMessage={insightsError}
+          onRetry={() => handleGenerateInsights(true)}
+        />
       </div>
     </div>
   );

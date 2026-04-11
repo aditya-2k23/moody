@@ -46,6 +46,15 @@ export default function JournalModal({
   const [chatFullscreen, setChatFullscreen] = useState(false);
 
   const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const deleteDialogRef = useRef(null);
+  const discardDialogRef = useRef(null);
+  const confirmDeleteTriggerRef = useRef(null);
+  const confirmDiscardTriggerRef = useRef(null);
+
+  const journalModalTitleId = "journal-modal-title";
+  const deleteDialogTitleId = "journal-delete-dialog-title";
+  const discardDialogTitleId = "journal-discard-dialog-title";
 
   // Reset state when modal opens with new data
   useEffect(() => {
@@ -92,11 +101,23 @@ export default function JournalModal({
   const handleClose = useCallback(() => {
     if (saving || deleting) return;
     if (hasUnsavedChanges) {
+      confirmDiscardTriggerRef.current = document.activeElement;
       setConfirmDiscard(true);
       return;
     }
     onClose();
   }, [saving, deleting, hasUnsavedChanges, onClose]);
+
+  const closeDeleteDialog = useCallback(() => {
+    if (deleting) return;
+    setConfirmDelete(false);
+    confirmDeleteTriggerRef.current?.focus?.();
+  }, [deleting]);
+
+  const closeDiscardDialog = useCallback(() => {
+    setConfirmDiscard(false);
+    confirmDiscardTriggerRef.current?.focus?.();
+  }, []);
 
   // Handle overlay click
   const handleOverlayClick = useCallback((e) => {
@@ -113,11 +134,11 @@ export default function JournalModal({
       if (e.key === "Escape") {
         // If any confirmation dialog is open, close it instead
         if (confirmDelete) {
-          setConfirmDelete(false);
+          closeDeleteDialog();
           return;
         }
         if (confirmDiscard) {
-          setConfirmDiscard(false);
+          closeDiscardDialog();
           return;
         }
         handleClose();
@@ -126,7 +147,67 @@ export default function JournalModal({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, confirmDelete, confirmDiscard, handleClose]);
+  }, [isOpen, confirmDelete, confirmDiscard, handleClose, closeDeleteDialog, closeDiscardDialog]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      closeButtonRef.current?.focus?.();
+    }, 60);
+
+    return () => clearTimeout(timer);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!confirmDelete && !confirmDiscard) return;
+
+    const dialogNode = confirmDelete ? deleteDialogRef.current : discardDialogRef.current;
+    if (!dialogNode) return;
+
+    const focusFirst = () => {
+      const firstFocusable = dialogNode.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (firstFocusable && typeof firstFocusable.focus === "function") {
+        firstFocusable.focus();
+      }
+    };
+
+    const timer = setTimeout(focusFirst, 40);
+
+    const handleTabTrap = (event) => {
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialogNode.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTabTrap);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", handleTabTrap);
+    };
+  }, [confirmDelete, confirmDiscard]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -243,6 +324,9 @@ export default function JournalModal({
         {/* Modal Content */}
         <div
           ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Journal entry details"
           className={`relative w-full ${chatFullscreen ? 'max-w-none h-full' : showInsights ? 'max-w-4xl' : 'max-w-lg'} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl animate-modal-content transition-all duration-300 ${chatFullscreen ? 'h-[calc(100vh-3rem)]' : 'max-h-[90vh]'} overflow-hidden flex flex-col`}
           style={{
             background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245,243,255,0.98) 100%)",
@@ -254,6 +338,7 @@ export default function JournalModal({
 
           {/* Close button */}
           <button
+            ref={closeButtonRef}
             className="absolute top-3 right-3 p-1.5 text-indigo-500/70 dark:text-indigo-300/80 hover:text-indigo-700 dark:hover:text-indigo-200 hover:bg-indigo-100/50 dark:hover:bg-slate-700/50 rounded-lg transition duration-150 disabled:opacity-50 z-10"
             onClick={handleClose}
             disabled={saving || deleting}
@@ -269,7 +354,7 @@ export default function JournalModal({
             {!chatFullscreen && (
               <>
                 {/* Date header */}
-                <h3 className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
+                <h3 id={journalModalTitleId} className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
                   {day} {monthName}, {year}
                 </h3>
 
@@ -407,6 +492,7 @@ export default function JournalModal({
                             type="button"
                             onClick={() => {
                               if (saving || deleting) return;
+                              confirmDeleteTriggerRef.current = document.activeElement;
                               setConfirmDelete(true);
                             }}
                             disabled={!isAuthed || saving || deleting}
@@ -448,6 +534,7 @@ export default function JournalModal({
                           onClick={() => {
                             if (saving) return;
                             if (hasUnsavedChanges) {
+                              confirmDiscardTriggerRef.current = document.activeElement;
                               setConfirmDiscard(true);
                               return;
                             }
@@ -552,12 +639,13 @@ export default function JournalModal({
       {confirmDelete && (
         <div
           className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 animate-modal-overlay"
-          onClick={() => {
-            if (deleting) return;
-            setConfirmDelete(false);
-          }}
+          onClick={closeDeleteDialog}
         >
           <div
+            ref={deleteDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={deleteDialogTitleId}
             className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-indigo-100 dark:border-slate-700 animate-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
@@ -565,7 +653,7 @@ export default function JournalModal({
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-300">
                 <AlertTriangle size={20} />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Delete entry?</h3>
+              <h3 id={deleteDialogTitleId} className="text-lg font-bold text-gray-900 dark:text-gray-100">Delete entry?</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
               Delete mood & journal for this day? This cannot be undone.
@@ -574,7 +662,7 @@ export default function JournalModal({
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(false)}
+                onClick={closeDeleteDialog}
                 disabled={deleting}
                 className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition disabled:opacity-60"
               >
@@ -598,9 +686,13 @@ export default function JournalModal({
       {confirmDiscard && (
         <div
           className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 animate-modal-overlay"
-          onClick={() => setConfirmDiscard(false)}
+          onClick={closeDiscardDialog}
         >
           <div
+            ref={discardDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={discardDialogTitleId}
             className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-indigo-100 dark:border-slate-700 animate-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
@@ -608,7 +700,7 @@ export default function JournalModal({
               <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-300">
                 <AlertTriangle size={20} />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Unsaved changes</h3>
+              <h3 id={discardDialogTitleId} className="text-lg font-bold text-gray-900 dark:text-gray-100">Unsaved changes</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
               You have unsaved changes. Do you want to discard them?
@@ -617,7 +709,7 @@ export default function JournalModal({
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setConfirmDiscard(false)}
+                onClick={closeDiscardDialog}
                 className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition"
               >
                 Keep Editing

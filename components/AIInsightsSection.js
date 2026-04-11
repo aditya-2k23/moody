@@ -9,7 +9,7 @@ import ChatContainer from "./chat/ChatContainer";
  * AIInsightsSection - Displays AI-generated journal insights with smooth animations
  * and an integrated chat experience with Lumi
  */
-export default function AIInsightsSection({ insights, isLoading, userId, journalText }) {
+export default function AIInsightsSection({ insights, isLoading, userId, journalText, errorMessage = "", onRetry }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
@@ -91,6 +91,23 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
           </span>
         )}
       </h2>
+
+      {errorMessage && !isLoading && (
+        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50/90 dark:border-rose-800/60 dark:bg-rose-900/20 p-3 md:p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm text-rose-700 dark:text-rose-300">{errorMessage}</p>
+            {typeof onRetry === "function" && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="shrink-0 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 transition-colors"
+              >
+                Retry
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Unified Insight Card */}
       <InsightCard
