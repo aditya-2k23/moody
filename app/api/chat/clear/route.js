@@ -1,6 +1,6 @@
 import { redis } from "@/lib/redis";
 import { apiError } from "@/lib/api-response";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
@@ -68,7 +68,7 @@ export async function POST(req) {
 
     const rateResult = await checkRateLimit({
       namespace: "chat:clear",
-      identifier: `user:${uid}:${getRequestIp(req)}`,
+      identifier: getRateLimitIdentifier(req, uid),
       limit: 20,
       windowSeconds: 60,
     });

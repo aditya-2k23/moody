@@ -8,7 +8,8 @@ Only the latest major version of Moody is currently supported with security upda
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.x     | ✅                 |
+| 3.x     | ✅                 |
+| 2.x     | ⚠️ Limited support |
 | 1.x     | ❌                 |
 
 ## Reporting a Vulnerability
@@ -40,7 +41,17 @@ The following are generally considered out of scope:
 * Attacks requiring physical access to a user's device.
 * Social engineering attacks.
 * Vulnerabilities in third-party dependencies (unless a patch is available and we haven't updated).
-* Denial of Service (DoS) attacks.
+* Large-scale Denial of Service (DoS) attacks outside normal abuse-prevention controls.
+
+## Current Security Controls (High Level)
+
+Moody currently uses layered controls, including:
+
+1. Firebase ID token verification for protected API routes.
+2. User-scoped authorization checks on chat/history/memory routes.
+3. Request validation and payload-size limits on sensitive endpoints.
+4. Per-endpoint rate limiting and Retry-After behavior.
+5. Security response headers (CSP, HSTS, frame/type/referrer protections).
 
 ## Disclosure Policy
 

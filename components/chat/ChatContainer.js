@@ -38,6 +38,8 @@ export default function ChatContainer({
   const chatContentRef = useRef(null);
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
+  const historyTriggerRef = useRef(null);
+  const historyTitleId = "chat-history-modal-title";
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -77,18 +79,74 @@ export default function ChatContainer({
           opacity: 0,
           duration: 0.2,
           delay: 0.1,
-          onComplete: () => setShowHistoryModal(false)
+          onComplete: () => {
+            setShowHistoryModal(false);
+            historyTriggerRef.current?.focus();
+          }
         });
       } else {
         setShowHistoryModal(false);
+        historyTriggerRef.current?.focus();
       }
     });
   }, []);
 
-  const openHistoryModal = useCallback(() => {
+  const openHistoryModal = useCallback((event) => {
+    historyTriggerRef.current = event?.currentTarget || document.activeElement;
     requestHistoryRefresh();
     setShowHistoryModal(true);
   }, [requestHistoryRefresh]);
+
+  useEffect(() => {
+    if (!showHistoryModal) return;
+
+    const focusFirstInteractive = () => {
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const firstFocusable = root.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (firstFocusable && typeof firstFocusable.focus === "function") {
+        firstFocusable.focus();
+      }
+    };
+
+    const timer = setTimeout(focusFirstInteractive, 50);
+
+    const handleTrap = (e) => {
+      if (e.key !== "Tab") return;
+
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const focusable = Array.from(
+        root.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTrap);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", handleTrap);
+    };
+  }, [showHistoryModal]);
 
   // Load demo count on mount
   useEffect(() => {
@@ -528,15 +586,19 @@ export default function ChatContainer({
         >
           <div
             ref={historyModalContentRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={historyTitleId}
             className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 max-h-[80vh] flex flex-col opacity-0 scale-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
+              <h3 id={historyTitleId} className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
               <button
                 onClick={closeHistoryModal}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 transition-colors"
                 title="Close"
+                aria-label="Close chat history dialog"
               >
                 <X size={18} />
               </button>

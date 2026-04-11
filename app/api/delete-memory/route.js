@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 const PUBLIC_ID_MAX_LENGTH = 255;
 const YEAR_MONTH_PATTERN = /^\d{4}-\d{2}$/;
@@ -62,7 +62,7 @@ export async function POST(request) {
 
     const rateResult = await checkRateLimit({
       namespace: "memory:delete",
-      identifier: `user:${uid}:${getRequestIp(request)}`,
+      identifier: getRateLimitIdentifier(request, uid),
       limit: 30,
       windowSeconds: 60,
     });

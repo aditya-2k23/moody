@@ -1,7 +1,7 @@
 import { redis } from "@/lib/redis";
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
@@ -176,10 +176,10 @@ export async function POST(req) {
       }
     }
 
-    const requestIp = getRequestIp(req);
-    const rateIdentifier = isDemoUser
-      ? `demo:${requestIp}`
-      : `user:${effectiveUserId || requestIp}`;
+    const rateIdentifier = getRateLimitIdentifier(
+      req,
+      isDemoUser ? null : effectiveUserId
+    );
     const rateResult = await checkRateLimit({
       namespace: "chat:send",
       identifier: rateIdentifier,

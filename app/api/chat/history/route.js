@@ -1,6 +1,6 @@
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 function isChatIdScopedToUser(chatId, uid) {
@@ -60,7 +60,7 @@ export async function GET(req) {
 
     const rateResult = await checkRateLimit({
       namespace: "chat:history",
-      identifier: `user:${userId}:${getRequestIp(req)}`,
+      identifier: getRateLimitIdentifier(req, userId),
       limit: 40,
       windowSeconds: 60,
     });

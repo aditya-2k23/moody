@@ -3,7 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { redis } from "@/lib/redis";
 
 const DELETE_CONFIRMATION_TEXT = "DELETE MY ACCOUNT";
@@ -144,11 +144,9 @@ export async function POST(request) {
     }
 
     const uid = decodedToken.uid;
-    const requestIp = getRequestIp(request);
-
     const rateResult = await checkRateLimit({
       namespace: "account:delete",
-      identifier: `user:${uid}:${requestIp}`,
+      identifier: getRateLimitIdentifier(request, uid),
       limit: 3,
       windowSeconds: 60 * 60,
     });

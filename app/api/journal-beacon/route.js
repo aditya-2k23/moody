@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRequestIp } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 const MAX_ENTRY_LENGTH = 10000;
 
@@ -64,7 +64,7 @@ export async function POST(request) {
 
     const rateResult = await checkRateLimit({
       namespace: "journal:beacon",
-      identifier: `user:${uid}:${getRequestIp(request)}`,
+      identifier: getRateLimitIdentifier(request, uid),
       limit: 60,
       windowSeconds: 60,
     });
