@@ -36,11 +36,42 @@ function getModelInstance(modelId) {
 
 function secondsUntilMidnight() {
   const now = new Date();
-  const options = { timeZone: "America/Los_Angeles", hour12: false };
-  const ptTime = new Date(now.toLocaleString("en-US", options));
-  const ptMidnight = new Date(ptTime);
-  ptMidnight.setHours(24, 0, 0, 0);
-  return Math.max(Math.ceil((ptMidnight - ptTime) / 1000), 60);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const partMap = {};
+  for (const part of formatter.formatToParts(now)) {
+    if (part.type !== "literal") {
+      partMap[part.type] = Number(part.value);
+    }
+  }
+
+  const hasAllParts = ["year", "month", "day", "hour", "minute", "second"]
+    .every((key) => Number.isFinite(partMap[key]));
+
+  if (!hasAllParts) {
+    return 60;
+  }
+
+  const istTime = new Date(Date.UTC(
+    partMap.year,
+    partMap.month - 1,
+    partMap.day,
+    partMap.hour,
+    partMap.minute,
+    partMap.second
+  ));
+  const istMidnight = new Date(istTime);
+  istMidnight.setUTCHours(24, 0, 0, 0);
+  return Math.max(Math.ceil((istMidnight - istTime) / 1000), 60);
 }
 
 async function markModelExhausted(modelId) {
