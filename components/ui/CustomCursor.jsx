@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useCursor } from "../../hooks/useCursor";
-import "../../styles/cursor.css";
+import { useCursor } from "@/hooks/useCursor";
+import "@/styles/cursor.css";
+
+const cursorMap = {
+  default: "/cursor.svg",
+  pointer: "/cursor-pointer.svg",
+  text: "/cursor-text-caret.svg",
+};
 
 export default function CustomCursor() {
   const {
@@ -22,12 +28,6 @@ export default function CustomCursor() {
   }, []);
 
   if (!mounted || isHidden) return null;
-
-  const cursorMap = {
-    default: "/cursor.svg",
-    pointer: "/cursor-pointer.svg",
-    text: "/cursor-text-caret.svg",
-  };
 
   const cursorSrc = cursorMap[cursorType] || "/cursor.svg";
 

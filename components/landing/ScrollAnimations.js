@@ -16,7 +16,7 @@ export default function ScrollAnimations() {
         // Target all sections and the footer cleanly
         const elements = gsap.utils.toArray("main section, main footer");
 
-        elements.forEach((el, index) => {
+        elements.forEach((el) => {
           gsap.fromTo(
             el,
             { opacity: 0, y: 50 },

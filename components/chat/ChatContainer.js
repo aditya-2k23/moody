@@ -458,7 +458,7 @@ export default function ChatContainer({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 className="font-semibold text-lg dark:text-white">Chat History</h3>
+              <h3 className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
               <button
                 onClick={closeHistoryModal}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 transition-colors"
