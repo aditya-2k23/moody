@@ -12,7 +12,7 @@ const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your product
 const FLOATING_EMOJIS = ["😊", "😢", "😍", "😐", "😭", "🧠", "✨", "💜"];
 
 export default function Splashscreen({
-  message = "✨ Fetching your insights...",
+  message = "✨ Fetching Lumi's thoughts...",
   progress = null,
 }) {
   const containerRef = useRef(null);

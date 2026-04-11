@@ -3,21 +3,26 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Button from "./Button";
 import { db } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
-import Image from "next/image";
-import { useTheme } from "next-themes";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 import { journalPlaceholders } from "@/utils/generatePlaceholder";
+
+function getDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export default function Journal({
   mode = "auth",
@@ -31,11 +36,61 @@ export default function Journal({
   onInsightsAutoTriggered,
 }) {
   const isGuest = mode === "guest";
-  const { resolvedTheme } = useTheme();
   const [entry, setEntry] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+
+  const insightsRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Auto-load previously generated insights for today from Firestore
+  const insightsLoadedKeyRef = useRef("");
+  const nowForInsightsKey = new Date();
+  const insightsDateKey = getDateKey(nowForInsightsKey);
+  const insightsLoadKey = currentUser?.uid
+    ? `${currentUser.uid}|${insightsDateKey}`
+    : "";
+
+  useEffect(() => {
+    if (isGuest || !currentUser?.uid || !insightsLoadKey) {
+      insightsLoadedKeyRef.current = "";
+      return;
+    }
+
+    if (insightsLoadedKeyRef.current === insightsLoadKey) return;
+
+    const [uidFromKey, dateKeyFromKey] = insightsLoadKey.split("|");
+
+    const loadTodaysInsights = async () => {
+      try {
+        const docRef = doc(db, "users", uidFromKey, "insights", dateKeyFromKey);
+        const snapshot = await getDoc(docRef);
+
+        // Success! Marker that we've attempted this key
+        insightsLoadedKeyRef.current = insightsLoadKey;
+
+        if (snapshot.exists()) {
+          const storedInsights = snapshot.data();
+          if (storedInsights && typeof storedInsights === "object") {
+            // Fingerprint check: Only load if it matches the current text
+            if (storedInsights.sourceText === entry.trim()) {
+              setInsights(storedInsights);
+              return;
+            } else {
+              console.log("[Journal] Stale insights found (text mismatch), ignoring cache.");
+            }
+          }
+        }
+
+        setInsights("");
+      } catch (error) {
+        console.error("Failed to load today's insights:", error);
+      }
+    };
+
+    loadTodaysInsights();
+  }, [currentUser, isGuest, insightsLoadKey, entry]);
 
   // Cloud save status: 'idle' | 'saving' | 'saved'
   const [cloudStatus, setCloudStatus] = useState("idle");
@@ -107,6 +162,15 @@ export default function Journal({
 
   // Compute display value with interim transcript
   const displayEntry = getDisplayValue(entry);
+
+  // Auto-resize journal textarea whenever its content changes programmatically or on load
+  useEffect(() => {
+    if (textareaRef.current) {
+      const target = textareaRef.current;
+      target.style.height = 'auto'; // Reset to get correct scrollHeight
+      target.style.height = Math.max(target.scrollHeight, 96) + 'px';
+    }
+  }, [displayEntry]);
 
   // Store onJournalSaved in a ref to keep dependency array stable
   const onJournalSavedRef = useRef(onJournalSaved);
@@ -485,6 +549,21 @@ export default function Journal({
       }
 
       setInsights(result.data);
+
+      // Scroll to insights section after a short delay to ensure DOM is updated
+      setTimeout(() => {
+        insightsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+
+      // Persist insights to Firestore for the current day
+      try {
+        const dateKey = getDateKey(new Date());
+        const docRef = doc(db, "users", currentUser.uid, "insights", dateKey);
+        await setDoc(docRef, { ...result.data, sourceText: entry.trim() }, { merge: true });
+      } catch (err) {
+        console.error("Failed to save insights to Firestore:", err);
+        // Non-blocking — insights are already in state
+      }
     } catch (error) {
       console.error("Error generating insights:", error);
       toast.error("Failed to generate insights. Please try again.");
@@ -542,18 +621,20 @@ export default function Journal({
             </div>
           )}
           <textarea
+            ref={textareaRef}
             name="journal"
             id="journal"
             aria-label={placeholder}
-            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 text-gray-700   text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs"
+            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 pb-12 sm:pb-12 md:pb-14 pr-20 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs resize-none"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;
               setEntry(newValue);
               syncBaseEntry(newValue);
-              // Auto-expand textarea to fit content
-              e.target.style.height = 'auto';
-              e.target.style.height = Math.max(e.target.scrollHeight, 96) + 'px';
+              // Auto-expand textarea to fit content (also handled by useEffect for programmatic updates)
+              const target = e.target;
+              target.style.height = 'auto';
+              target.style.height = Math.max(target.scrollHeight, 96) + 'px';
             }}
           />
 
@@ -611,7 +692,7 @@ export default function Journal({
             text={
               <span className="flex items-center gap-2 dark:text-white/85">
                 <Sparkles size={20} />
-                {loadingInsights ? "Generating..." : "Generate Insights"}
+                {loadingInsights ? "Asking..." : "Ask Lumi"}
               </span>
             }
             onClick={() => handleGenerateInsights()}
@@ -628,7 +709,9 @@ export default function Journal({
       </div>
 
       {/* AI Insights Section */}
-      <AIInsightsSection insights={insights} isLoading={loadingInsights} />
+      <div ref={insightsRef} className="scroll-mt-10">
+        <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} journalText={entry} />
+      </div>
     </div>
   );
 }

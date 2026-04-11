@@ -1,5 +1,6 @@
 import GlowBackground from "@/components/GlowBackground";
 import HeroSection from "@/components/landing/HeroSection";
+import LumiDemoSection from "@/components/landing/LumiDemoSection";
 import ComparisonSection from "@/components/landing/ComparisonSection";
 import FeaturesGrid from "@/components/landing/FeaturesGrid";
 import TechStack from "@/components/landing/TechStack";
@@ -36,6 +37,7 @@ export default function Home() {
       <div className="px-8 sm:px-12">
         <HeroSection />
         <GuestMoodSection />
+        <LumiDemoSection />
         <ComparisonSection />
         <FeaturesGrid />
         <TechStack />

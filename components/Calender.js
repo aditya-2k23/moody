@@ -141,6 +141,7 @@ export default function Calender({
           mood={selectedMood}
           journal={selectedJournal}
           isAuthed={isAuthed}
+          userId={currentUser?.uid}
           onSave={async ({ year, month, day, mood, journal }) => {
             if (!onUpdateEntry) return;
 

@@ -1,15 +1,14 @@
 {
   "name": "moody",
-  "version": "2.5.4",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
+    "start": "next start"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "^1.46.0",
     "@gsap/react": "^2.1.2",
     "@upstash/redis": "^1.36.2",
     "cloudinary": "^2.8.0",

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD024 -->
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +8,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Released]
+
+## [3.0.0-beta] - 2026-04-10
+
+### 🚀 New Features
+
+- **🤖 Lumi Chat Companion (Beta)**:
+  - Added dedicated chat API flow in `app/api/chat/route.js`.
+  - Added/standardized chat UI via `components/chat/ChatContainer.js` and supporting chat components.
+  - Introduced bubble-based conversational responses so Lumi can reply in short, natural message bursts.
+
+- **✨ Feature Discovery in Navigation**:
+  - Added a dedicated `Lumi` nav link on landing navigation.
+  - Added a new-feature indicator dot to highlight the chatbot release.
+
+### 🧠 AI & Reliability
+
+- **Gemini Fallback for Chat**:
+  - Added model fallback flow for transient overload scenarios.
+  - Added graceful handling for unsupported-model errors in fallback chains.
+  - Added better 429/503 response behavior so users receive actionable retry messages instead of generic failures.
+
+- **Chat Response Contract Upgrade**:
+  - Updated chat output handling to parse JSON bubble arrays and render each bubble separately.
+  - Preserved history readability by storing joined plain-text responses in Redis/Firestore.
+
+### 🎨 Branding
+
+- Updated visible branding surfaces to reflect **v3.0.0 (beta)** for the chatbot release:
+  - Header branding/version label
+  - Hero release badge
+  - Landing footer release tag
+  - App metadata title/description
+  - Chat header beta label
 
 ## [2.5.4] - 2026-03-27
 

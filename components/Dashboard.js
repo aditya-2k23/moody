@@ -77,7 +77,7 @@ function DashboardContent() {
   // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
+  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching Lumi's thoughts...");
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
@@ -584,10 +584,12 @@ function DashboardContent() {
     }
   }
 
-  // Get today's mood if already set
+  // Get today's mood and journal if already set
   let todaysMood = null;
+  let todaysJournal = "";
   if (data && data[now.getFullYear()] && data[now.getFullYear()][now.getMonth()]) {
     todaysMood = data[now.getFullYear()][now.getMonth()][now.getDate()] || null;
+    todaysJournal = data[now.getFullYear()][now.getMonth()][`journal_${now.getDate()}`] || "";
   }
 
   // Pre-calculate dependency for useMemo
@@ -696,7 +698,7 @@ function DashboardContent() {
         <MoodJournal
           mode="auth"
           initialMood={todaysMood}
-          initialText={hydratedJournalText}
+          initialText={hydratedJournalText || todaysJournal}
           user={currentUser}
           onMoodChange={handleSetMood}
           onMemoryAdded={refetchMemories}

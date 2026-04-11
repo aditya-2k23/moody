@@ -102,7 +102,7 @@ export default function TermsOfService() {
     { id: "section3", title: "3. Account Registration & Security" },
     { id: "section4", title: "4. User Content & Data Ownership" },
     { id: "section5", title: "5. Acceptable Use Policy" },
-    { id: "section6", title: "6. AI Insights Disclaimer" },
+    { id: "section6", title: "6. AI Chat and Insights Disclaimer" },
     { id: "section7", title: "7. Service Availability & Usage Limits" },
     { id: "section8", title: "8. Data Retention & Account Deletion" },
     { id: "section9", title: "9. Third-Party Services" },
@@ -177,7 +177,7 @@ export default function TermsOfService() {
         <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm min-w-0">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 fugaz text-indigo-500 uppercase tracking-tighter">Terms of Service</h1>
           <div className="flex flex-col sm:flex-row sm:gap-6 mb-8 text-slate-500 italic text-sm">
-            <p>Effective Date: March 2026 &mdash; Version 1.0</p>
+            <p>Effective Date: April 2026 &mdash; Version 1.1</p>
           </div>
 
           <div className="mb-10 p-6 pt-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
@@ -199,7 +199,7 @@ export default function TermsOfService() {
               </div>
               <div className="flex gap-3">
                 <span className="text-indigo-500 font-bold shrink-0">4.</span>
-                <p><span className="font-semibold text-slate-900 dark:text-slate-100">AI Processing:</span> Using insights requires sharing journal data temporarily with AI APIs like Gemini.</p>
+                <p><span className="font-semibold text-slate-900 dark:text-slate-100">AI Processing:</span> Using Lumi chat or insights requires sending only the content you submit for AI generation.</p>
               </div>
             </div>
             <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 italic">This is a summary for convenience. Please read the full terms below.</p>
@@ -224,8 +224,8 @@ export default function TermsOfService() {
                 <p>
                   Moody is a digital self-reflection tool that allows users to log daily moods,
                   write personal journal entries, upload images associated with memories, view
-                  historical mood analytics, and receive AI-generated insights about their
-                  journal entries.
+                  historical mood analytics, chat with Lumi, and receive AI-generated insights
+                  about their journal entries.
                 </p>
 
                 <ul className="list-disc pl-6 space-y-1 text-slate-600 dark:text-slate-400">
@@ -233,6 +233,7 @@ export default function TermsOfService() {
                   <li>Write personal journal entries</li>
                   <li>Upload photos connected to memories</li>
                   <li>View historical mood data and analytics</li>
+                  <li>Chat with Lumi (AI companion) about feelings and app usage</li>
                   <li>Receive AI-generated insights about journal entries</li>
                 </ul>
 
@@ -293,6 +294,7 @@ export default function TermsOfService() {
                   <li>Firebase Authentication security infrastructure</li>
                   <li>Encrypted connections using modern TLS protocols</li>
                   <li>Password hashing and authentication managed by Firebase</li>
+                  <li>Token-verified, account-scoped access checks on private chat/history APIs</li>
                 </ul>
 
                 <p>
@@ -307,7 +309,7 @@ export default function TermsOfService() {
               <div className="space-y-4">
                 <p>
                   Users retain ownership of all content they submit to Moody including
-                  journal entries, mood logs, and uploaded photos.
+                  journal entries, mood logs, chat messages, and uploaded photos.
                 </p>
 
                 <p>
@@ -353,16 +355,16 @@ export default function TermsOfService() {
             </section>
 
             <section id="section6" aria-labelledby="section6-heading" className="scroll-mt-28 w-full">
-              <SectionTitle title="AI Insights Disclaimer" id="section6" number="6" />
+              <SectionTitle title="AI Chat and Insights Disclaimer" id="section6" number="6" />
               <div className="space-y-4">
                 <p>
-                  Moody uses artificial intelligence to generate insights from journal
-                  entries. These insights are generated algorithmically and may be
-                  inaccurate, incomplete, or misleading.
+                  Moody uses artificial intelligence to generate chat replies and journal
+                  insights. AI outputs are generated algorithmically and may be inaccurate,
+                  incomplete, or misleading.
                 </p>
 
                 <p>
-                  Moody does not guarantee the accuracy of AI generated insights.
+                  Moody does not guarantee the accuracy of AI chat or AI-generated insights.
                 </p>
 
                 <p>
@@ -380,6 +382,7 @@ export default function TermsOfService() {
                 </p>
 
                 <ul className="list-disc pl-6 space-y-1 text-slate-600 dark:text-slate-400">
+                  <li>AI chat requests may be rate-limited during high demand</li>
                   <li>AI insight requests may be limited per day</li>
                   <li>Journal entries may be subject to storage limits</li>
                   <li>Image uploads may be limited per day</li>
@@ -403,6 +406,8 @@ export default function TermsOfService() {
 
                 <ul className="list-disc pl-6 space-y-1 text-slate-600 dark:text-slate-400">
                   <li>Active database records are removed within approximately 30 days.</li>
+                  <li>Chat history associated with your account is removed from active databases within approximately 30 days.</li>
+                  <li>Short-term AI cache records automatically expire (24h for chat context, up to 7 days for insight cache).</li>
                   <li>Backup systems may retain data for up to 90 days before permanent deletion.</li>
                   <li>Minimal system logs may be retained for security and compliance purposes.</li>
                 </ul>
@@ -426,6 +431,12 @@ export default function TermsOfService() {
                   <li>Cloudinary</li>
                   <li>Upstash Redis</li>
                 </ul>
+
+                <p>
+                  By using AI features, you authorize Moody to process the content you submit
+                  (such as journal text and chat prompts) through these providers to generate
+                  responses and maintain service continuity.
+                </p>
 
                 <p>
                   Moody cannot guarantee the availability, performance, or reliability of
