@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+const DEMO_CHAT_LIMIT = 5;
 const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash",
   "gemini-3-flash-preview",
@@ -110,6 +111,7 @@ export async function POST(req) {
     let decodedToken = null;
     let isDemoUser = false;
     let effectiveUserId = null;
+    let demoUsageCount = 0;
 
     if (idToken) {
       try {
@@ -137,12 +139,14 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
     }
 
-    // Enforce 3-message demo cap
+    // Enforce per-session demo cap for unauthenticated users.
     if (isDemoUser) {
-      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}`;
+      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
       try {
-        const count = (await redis.get(demoQuotaKey)) || 0;
-        if (parseInt(count) >= 3) {
+        const count = Number.parseInt((await redis.get(demoQuotaKey)) || "0", 10);
+        demoUsageCount = Number.isInteger(count) && count >= 0 ? count : 0;
+
+        if (demoUsageCount >= DEMO_CHAT_LIMIT) {
           return NextResponse.json(
             { error: "Demo limit reached. Please sign in to continue chatting with Lumi! 🌟" },
             { status: 403 }
@@ -276,6 +280,19 @@ export async function POST(req) {
 
       ${journalText ? `\nCONTEXT — the user's current journal entry. Use this to anchor the conversation naturally, but don't quote it back robotically:\n"""\n${journalText}\n"""\n` : ''}`;
 
+    const demoChatPrompt = `${systemInstruction}
+
+      DEMO MODE CONTEXT (extra guidance for this conversation):
+      - This user is in demo mode and trying Lumi for the first time.
+      - Demo turn number: ${demoUsageCount + 1} of ${DEMO_CHAT_LIMIT}.
+      - Keep this mode noticeably different from dashboard chat: be extra welcoming, lightly introduce who Lumi is, and help them feel safe to open up.
+      - On the first demo turn, include a short intro about yourself and invite them to share how their day feels.
+      - You may naturally mention one Moody capability (mood tracking, journaling, or insights) when helpful, but keep it conversational (not salesy).
+      - All existing style, safety, scope, and JSON-output rules above must still be followed exactly.
+    `;
+
+    const activeSystemInstruction = isDemoUser ? demoChatPrompt : systemInstruction;
+
     let result = null;
     let lastModelError = null;
     let sawQuotaError = false;
@@ -287,7 +304,7 @@ export async function POST(req) {
           model: modelId,
           contents,
           config: {
-            systemInstruction,
+            systemInstruction: activeSystemInstruction,
           },
         });
         break;
@@ -431,7 +448,7 @@ export async function POST(req) {
 
     // 6. If demo user, increment the quota count
     if (isDemoUser) {
-      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}`;
+      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
       try {
         await redis.incr(demoQuotaKey);
         // Set an expiry for the quota if it's the first message (e.g., 7 days)

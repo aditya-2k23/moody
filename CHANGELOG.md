@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [3.0.2-beta] - 2026-04-14
+
+### ✨ Improvements
+
+- **Demo Prompt Personalization**:
+  - Added a demo-specific Lumi system prompt variant in `app/api/chat/route.js` that preserves the core Lumi instruction architecture while adapting tone for first-time, unauthenticated users.
+  - Demo flow now nudges a warm self-introduction and onboarding-style conversation opening.
+
+- **Demo Capacity Update**:
+  - Increased the demo chat cap from **3** to **5** messages across backend enforcement and frontend guard rails.
+
+### 🐛 Bug Fixes
+
+- **Demo Quota Isolation**:
+  - Scoped demo quota keys per session to prevent cross-visitor lockouts that could trigger unexpected 403 "Demo limit reached" responses.
+
+- **Limit Feedback UX**:
+  - Added a user-visible toast when the demo chat limit is reached, so users get immediate and explicit feedback before sign-in.
+
 ## [3.0.1-beta] - 2026-04-12
 
 ### 🐛 Bug Fixes & Hardening

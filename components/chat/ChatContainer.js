@@ -10,6 +10,8 @@ import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
 import { APP_RELEASE_TAG } from "@/lib/release";
 
+const DEMO_CHAT_LIMIT = 5;
+
 /**
  * ChatContainer — Root chat component managing fullscreen state,
  * message history, and API communication with Gemini via /api/chat
@@ -39,6 +41,7 @@ export default function ChatContainer({
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
   const sessionRequestIdRef = useRef(0);
+  const demoLimitToastShownRef = useRef(false);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -115,7 +118,19 @@ export default function ChatContainer({
     }
   }, [isDemo]);
 
-  const isDemoLimitReached = isDemo && demoCount >= 3;
+  const isDemoLimitReached = isDemo && demoCount >= DEMO_CHAT_LIMIT;
+
+  useEffect(() => {
+    if (isDemoLimitReached && !demoLimitToastShownRef.current) {
+      toast.error("You have reached the demo chat limit. Sign in to continue chatting with Lumi.");
+      demoLimitToastShownRef.current = true;
+      return;
+    }
+
+    if (!isDemoLimitReached) {
+      demoLimitToastShownRef.current = false;
+    }
+  }, [isDemoLimitReached]);
 
   const getBubbleDelayMs = useCallback((bubbleText) => {
     const normalized = (bubbleText || "").trim();
@@ -273,7 +288,7 @@ export default function ChatContainer({
   const sendMessage = useCallback(
     async (messageText) => {
       if (!messageText.trim() || (!userId && !isDemo)) return;
-      if (isDemo && demoCount >= 3) return;
+      if (isDemo && demoCount >= DEMO_CHAT_LIMIT) return;
 
       const capturedToken = ++sessionRequestIdRef.current;
 
@@ -318,7 +333,14 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || data.message || data.retry || "Failed to send message");
+          const apiError = data.error || data.message || data.retry || "Failed to send message";
+
+          if (isDemo && res.status === 403 && /demo limit reached/i.test(apiError)) {
+            setDemoCount(DEMO_CHAT_LIMIT);
+            localStorage.setItem("lumi-demo-count", String(DEMO_CHAT_LIMIT));
+          }
+
+          throw new Error(apiError);
         }
 
         if (isDemo && capturedToken === sessionRequestIdRef.current) {
