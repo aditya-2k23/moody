@@ -116,3 +116,5 @@ export const moodTips = [
   "Taking breaks during work improves focus and reduces burnout.",
   "Practicing self-compassion is more effective than self-criticism."
 ];
+
+export const DEMO_CHAT_LIMIT = 5;

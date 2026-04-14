@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/firebase";
 import toast from "react-hot-toast";
@@ -9,6 +9,7 @@ import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
 import { APP_RELEASE_TAG } from "@/lib/release";
+import { DEMO_CHAT_LIMIT } from "@/utils";
 
 /**
  * ChatContainer — Root chat component managing fullscreen state,
@@ -39,6 +40,13 @@ export default function ChatContainer({
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
   const sessionRequestIdRef = useRef(0);
+  const demoLimitToastShownRef = useRef(false);
+
+  const demoCountStorageKey = useMemo(() => {
+    if (!isDemo) return null;
+    const scopedChatId = chatId || "demo-chat";
+    return `lumi-demo-count:${scopedChatId}:${sessionId}`;
+  }, [isDemo, chatId, sessionId]);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -91,31 +99,50 @@ export default function ChatContainer({
     setShowHistoryModal(true);
   }, [requestHistoryRefresh]);
 
-  // Load demo count on mount
+  // Load demo count per demo session key
   useEffect(() => {
-    if (isDemo) {
-      try {
-        const saved = localStorage.getItem("lumi-demo-count");
-        if (!saved) {
-          setDemoCount(0);
-          return;
-        }
+    if (!isDemo || !demoCountStorageKey) return;
 
-        const parsedCount = Number.parseInt(saved, 10);
-        if (Number.isInteger(parsedCount) && parsedCount >= 0) {
-          setDemoCount(parsedCount);
-        } else {
-          setDemoCount(0);
-          localStorage.setItem("lumi-demo-count", "0");
-        }
-      } catch (e) {
-        console.error("Failed to parse demo count", e);
+    try {
+      const saved = localStorage.getItem(demoCountStorageKey);
+      if (!saved) {
         setDemoCount(0);
+        return;
       }
-    }
-  }, [isDemo]);
 
-  const isDemoLimitReached = isDemo && demoCount >= 3;
+      const parsedCount = Number.parseInt(saved, 10);
+      if (Number.isInteger(parsedCount) && parsedCount >= 0) {
+        setDemoCount(parsedCount);
+      } else {
+        setDemoCount(0);
+        localStorage.setItem(demoCountStorageKey, "0");
+      }
+    } catch (e) {
+      console.error("Failed to parse demo count", e);
+      setDemoCount(0);
+    }
+  }, [isDemo, demoCountStorageKey]);
+
+  useEffect(() => {
+    if (!isDemo) return;
+
+    // Reset per-session UI lock state immediately when session scope changes.
+    demoLimitToastShownRef.current = false;
+  }, [isDemo, chatId, sessionId]);
+
+  const isDemoLimitReached = isDemo && demoCount >= DEMO_CHAT_LIMIT;
+
+  useEffect(() => {
+    if (isDemoLimitReached && !demoLimitToastShownRef.current) {
+      toast.error("You have reached the demo chat limit. Sign in to continue chatting with Lumi.");
+      demoLimitToastShownRef.current = true;
+      return;
+    }
+
+    if (!isDemoLimitReached) {
+      demoLimitToastShownRef.current = false;
+    }
+  }, [isDemoLimitReached]);
 
   const getBubbleDelayMs = useCallback((bubbleText) => {
     const normalized = (bubbleText || "").trim();
@@ -273,7 +300,7 @@ export default function ChatContainer({
   const sendMessage = useCallback(
     async (messageText) => {
       if (!messageText.trim() || (!userId && !isDemo)) return;
-      if (isDemo && demoCount >= 3) return;
+      if (isDemo && demoCount >= DEMO_CHAT_LIMIT) return;
 
       const capturedToken = ++sessionRequestIdRef.current;
 
@@ -318,13 +345,25 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || data.message || data.retry || "Failed to send message");
+          const apiError = data.error || data.message || data.retry || "Failed to send message";
+          const apiCode = data.code || null;
+
+          if (isDemo && res.status === 403 && apiCode === "DEMO_LIMIT_REACHED") {
+            setDemoCount(DEMO_CHAT_LIMIT);
+            if (demoCountStorageKey) {
+              localStorage.setItem(demoCountStorageKey, String(DEMO_CHAT_LIMIT));
+            }
+          }
+
+          throw new Error(apiError);
         }
 
         if (isDemo && capturedToken === sessionRequestIdRef.current) {
           setDemoCount((prev) => {
             const nextCount = prev + 1;
-            localStorage.setItem("lumi-demo-count", nextCount.toString());
+            if (demoCountStorageKey) {
+              localStorage.setItem(demoCountStorageKey, nextCount.toString());
+            }
             return nextCount;
           });
         }
@@ -373,7 +412,7 @@ export default function ChatContainer({
         }
       }
     },
-    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
+    [chatId, userId, isDemo, demoCount, demoCountStorageKey, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
