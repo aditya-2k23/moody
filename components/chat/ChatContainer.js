@@ -9,8 +9,7 @@ import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
 import { APP_RELEASE_TAG } from "@/lib/release";
-
-const DEMO_CHAT_LIMIT = 5;
+import { DEMO_CHAT_LIMIT } from "@/utils";
 
 /**
  * ChatContainer — Root chat component managing fullscreen state,

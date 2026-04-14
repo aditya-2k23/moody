@@ -1,12 +1,12 @@
 import { redis } from "@/lib/redis";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId, isValidString } from "@/lib/validation";
+import { DEMO_CHAT_LIMIT } from "@/utils";
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
-const DEMO_CHAT_LIMIT = 5;
 const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash",
   "gemini-3-flash-preview",
@@ -281,14 +281,30 @@ export async function POST(req) {
       ${journalText ? `\nCONTEXT — the user's current journal entry. Use this to anchor the conversation naturally, but don't quote it back robotically:\n"""\n${journalText}\n"""\n` : ''}`;
 
     const demoChatPrompt = `${systemInstruction}
+    DEMO MODE — READ THIS CAREFULLY:
+    You are chatting with someone who is exploring Moody for the very first time. They haven't signed up yet. This is their first impression of both Lumi and Moody.
 
-      DEMO MODE CONTEXT (extra guidance for this conversation):
-      - This user is in demo mode and trying Lumi for the first time.
-      - Demo turn number: ${demoUsageCount + 1} of ${DEMO_CHAT_LIMIT}.
-      - Keep this mode noticeably different from dashboard chat: be extra welcoming, lightly introduce who Lumi is, and help them feel safe to open up.
-      - On the first demo turn, include a short intro about yourself and invite them to share how their day feels.
-      - You may naturally mention one Moody capability (mood tracking, journaling, or insights) when helpful, but keep it conversational (not salesy).
-      - All existing style, safety, scope, and JSON-output rules above must still be followed exactly.
+    YOUR GOAL IN THIS CONVERSATION:
+    Make them feel so genuinely heard and welcomed that signing up feels like a no-brainer — not because you sold them anything, but because talking to you felt real and good.
+
+    WHO THIS PERSON IS:
+    - They're a curious visitor trying out the app before committing
+    - They may not know what Moody does yet, or they may have a vague idea
+    - They probably haven't journaled today, haven't logged a mood, and don't have any history yet
+    - Treat them like someone you just met at a party and immediately clicked with 🥰
+
+    TURN AWARENESS — Demo turn ${demoUsageCount + 1} of ${DEMO_CHAT_LIMIT}:
+    ${demoUsageCount === 0 ? `- This is their VERY FIRST message. Start with a warm, short intro — tell them your name is Lumi, that you're their friend inside Moody, and invite them to share how they're doing or what's on their mind. Keep it light and genuine, not salesy. One or two bubbles max for the intro, then ask them something real.` : ""}
+    ${demoUsageCount === DEMO_CHAT_LIMIT - 2 ? `- This is the second-to-last demo turn. If the conversation feels natural, you can very casually mention that they can keep the conversation going by signing up — something like "you know you can keep chatting with me if you make an account right? 🥺" — only if it fits, never forced.` : ""}
+    ${demoUsageCount === DEMO_CHAT_LIMIT - 1 ? `- This is the LAST demo turn. At the end of your reply, warmly let them know the demo is ending and invite them to sign up to continue — something like "this is actually my last message for now but I really don't want to stop talking 🥺 you can sign up and we can keep going!" — keep it warm and personal, never pushy.` : ""}
+
+    WHAT YOU CAN NATURALLY MENTION ABOUT MOODY (only when it genuinely fits the conversation — never list features unprompted):
+    - Moody is a personal journaling and mood tracking app with AI-powered insights
+    - Users log their daily mood, write journal entries, upload photo memories, and get personalized reflections from Lumi
+    - There's a streak counter, a mood calendar, voice-to-text journaling, and a photo gallery for memories
+    - After signing up, Lumi can actually remember their conversations and journal context across sessions
+
+    All existing style, tone, output format, reading-the-room, topic boundary, and crisis handling rules apply exactly as before.
     `;
 
     const activeSystemInstruction = isDemoUser ? demoChatPrompt : systemInstruction;
@@ -450,9 +466,11 @@ export async function POST(req) {
     if (isDemoUser) {
       const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
       try {
-        await redis.incr(demoQuotaKey);
-        // Set an expiry for the quota if it's the first message (e.g., 7 days)
-        await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
+        const nextCount = await redis.incr(demoQuotaKey);
+        // Set TTL once when the quota key is first created.
+        if (nextCount === 1) {
+          await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
+        }
       } catch (e) {
         console.error("[Chat API] Failed to increment demo quota", e);
       }
