@@ -143,17 +143,40 @@ export async function POST(req) {
     if (isDemoUser) {
       const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
       try {
-        const count = Number.parseInt((await redis.get(demoQuotaKey)) || "0", 10);
-        demoUsageCount = Number.isInteger(count) && count >= 0 ? count : 0;
+        const nextCount = await redis.incr(demoQuotaKey);
 
-        if (demoUsageCount >= DEMO_CHAT_LIMIT) {
+        if (nextCount > DEMO_CHAT_LIMIT) {
+          try {
+            await redis.decr(demoQuotaKey);
+          } catch (rollbackError) {
+            console.error("[Chat API] Demo quota rollback failed after limit exceed", rollbackError);
+          }
+
           return NextResponse.json(
-            { error: "Demo limit reached. Please sign in to continue chatting with Lumi! 🌟" },
+            {
+              error: "Demo limit reached. Please sign in to continue chatting with Lumi! 🌟",
+              code: "DEMO_LIMIT_REACHED",
+            },
             { status: 403 }
           );
         }
+
+        // Keep demo turn-awareness prompts aligned with the reserved slot.
+        demoUsageCount = Math.max(0, nextCount - 1);
+
+        // Start the quota window when the key is first created.
+        if (nextCount === 1) {
+          await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
+        }
       } catch (e) {
-        console.warn("[Chat API] Quota check failed, failing safe", e);
+        console.error("[Chat API] Demo quota verification failed; denying request", e);
+        return NextResponse.json(
+          {
+            error: "Demo chat is temporarily unavailable. Please try again in a moment.",
+            code: "DEMO_QUOTA_UNAVAILABLE",
+          },
+          { status: 503 }
+        );
       }
     }
 
@@ -294,7 +317,7 @@ export async function POST(req) {
     - Treat them like someone you just met at a party and immediately clicked with 🥰
 
     TURN AWARENESS — Demo turn ${demoUsageCount + 1} of ${DEMO_CHAT_LIMIT}:
-    ${demoUsageCount === 0 ? `- This is their VERY FIRST message. Start with a warm, short intro — tell them your name is Lumi, that you're their friend inside Moody, and invite them to share how they're doing or what's on their mind. Keep it light and genuine, not salesy. One or two bubbles max for the intro, then ask them something real.` : ""}
+    ${demoUsageCount === 0 ? `- This is their VERY FIRST message. Start with a warm, short intro — tell them your name is Lumi, that you're their friend inside Moody, and invite them to share how they're doing or what's on their mind. Keep it light and genuine, not salesy. Two to three bubbles max for the intro, then ask them something real.` : ""}
     ${demoUsageCount === DEMO_CHAT_LIMIT - 2 ? `- This is the second-to-last demo turn. If the conversation feels natural, you can very casually mention that they can keep the conversation going by signing up — something like "you know you can keep chatting with me if you make an account right? 🥺" — only if it fits, never forced.` : ""}
     ${demoUsageCount === DEMO_CHAT_LIMIT - 1 ? `- This is the LAST demo turn. At the end of your reply, warmly let them know the demo is ending and invite them to sign up to continue — something like "this is actually my last message for now but I really don't want to stop talking 🥺 you can sign up and we can keep going!" — keep it warm and personal, never pushy.` : ""}
 
@@ -462,21 +485,7 @@ export async function POST(req) {
       }
     }
 
-    // 6. If demo user, increment the quota count
-    if (isDemoUser) {
-      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
-      try {
-        const nextCount = await redis.incr(demoQuotaKey);
-        // Set TTL once when the quota key is first created.
-        if (nextCount === 1) {
-          await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
-        }
-      } catch (e) {
-        console.error("[Chat API] Failed to increment demo quota", e);
-      }
-    }
-
-    // 7. Return response
+    // 6. Return response
     return NextResponse.json({ reply: replyBubbles });
 
   } catch (error) {
