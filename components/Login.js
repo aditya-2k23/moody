@@ -30,7 +30,6 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         onAuthSuccess?.();
       }
     } catch (error) {
-      console.log(`${isRegister ? "Sign Up" : "Sign In"} Error:`, error.message);
       if (!email || !password || password.length < 6) {
         toast.error("Please fill in all fields with valid information.");
         return;
