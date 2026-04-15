@@ -415,7 +415,6 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
       }
 
       if (exactCacheData) {
-        console.log(`[Insights] Exact cache hit ${exactCacheLabel}. Score: ${exactCacheScore.toFixed(3)}`);
         return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
@@ -423,14 +422,10 @@ export async function generateInsight(userId, journalText, forceRegenerate = fal
         if (hasValidPartialCacheSeed(bestMatch.response)) {
           isCacheHit = true;
           cachedData = bestMatch.response;
-          console.log(`[Insights] Semantic cache hit. Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
         } else {
           isCacheHit = false;
           cachedData = null;
-          console.warn("[Insights] Cache candidate missing required fields for partial prompt; treating as cache miss.");
         }
-      } else {
-        console.log(`[Insights] Semantic cache miss. Highest Score: ${highestSimilarityScore.toFixed(3)} (Threshold: ${dynamicThreshold.toFixed(2)})`);
       }
     }
   }
