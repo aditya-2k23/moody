@@ -39,6 +39,7 @@ export const moods = {
   "Stressed": '😩',
   "Angry": '😡',
 }
+const moodKeys = Object.keys(moods);
 
 export const months = {
   "January": "Jan",
@@ -59,7 +60,6 @@ export const dayList = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
 
 export default function convertMood(moodValue) {
   if (typeof moodValue === 'number') {
-    const moodKeys = Object.keys(moods);
     const idx = Math.max(0, Math.min(moodKeys.length - 1, moodValue - 1));
     return moodKeys[idx];
   }
