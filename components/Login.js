@@ -5,7 +5,7 @@ import Button from "./Button";
 import Input from "./Input";
 import Link from "next/link";
 import { useAuth } from "@/context/authContext";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import GlowBackground from "./GlowBackground";
 
 export default function Login({ initialRegister = false, onAuthSuccess }) {
@@ -79,8 +79,6 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        <Toaster position="top-center" />
-
         <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
         <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
