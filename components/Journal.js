@@ -209,7 +209,6 @@ export default function Journal({
       onJournalSavedRef.current?.(entry);
       return true;
     } catch (error) {
-      console.error("Auto-save error:", error);
       return false;
     }
   }, [entry, currentUser, isGuest]);
@@ -497,7 +496,6 @@ export default function Journal({
         toast.success("Journal entry saved!");
       }
     } catch (error) {
-      console.error("Save error:", error);
       toast.error("Failed to save. Please try again.");
       setCloudStatus("idle");
     } finally {
