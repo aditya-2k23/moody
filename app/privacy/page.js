@@ -290,7 +290,7 @@ export default function PrivacyPolicy() {
                   <p className="mt-2">Cached entries are automatically deleted after expiration. <span className="font-semibold text-slate-900 dark:text-slate-100">Content sent to Gemini API is processed according to Google&apos;s
                     Gemini API Terms of Service. Google states that data sent via their
                     API is not used to train their models, but you should review their
-                    terms at <a className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline" href="https://developers.google.com/terms">Gemini APIs Terms of Service</a> for the most current policies.</span></p>
+                    terms at <a className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline" href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Gemini APIs Terms of Service</a> for the most current policies.</span></p>
 
                   <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mt-8 mb-3">1.5 Uploaded Images</h3>
                   <p>If you upload Avatar photos or Daily memory images, these are stored using secure, non-guessable URLs via Cloudinary. We store only secure references linked to your account.</p>

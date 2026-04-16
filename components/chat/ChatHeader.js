@@ -51,28 +51,28 @@ export default function ChatHeader({
             </div>
             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
           </div>
-          <div>
+          <div className="flex items-center justify-center gap-1.5">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-tight">
               Lumi
             </h3>
             <div className="flex items-center gap-1.5">
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                Online
-              </p>
               <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
                 {APP_RELEASE_TAG}
               </span>
+              <p className="hidden sm:block text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                Online
+              </p>
             </div>
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1 min-w-max">
+        <div className="flex items-center min-w-max gap-0.5">
           {/* New Chat */}
           <button
             onClick={onNewChat}
             disabled={!hasMessages}
-            className={`p-2 rounded-lg transition-all duration-200 ${!hasMessages
+            className={`p-1 sm:p-2 rounded-lg transition-all duration-200 ${!hasMessages
               ? "text-gray-300 dark:text-slate-600 cursor-not-allowed"
               : "text-emerald-600 hover:bg-emerald-100/50 dark:text-emerald-400 dark:hover:bg-emerald-900/30 cursor-pointer"
               }`}
@@ -86,8 +86,8 @@ export default function ChatHeader({
           <button
             onClick={onShowHistory}
             disabled={!hasHistory}
-            className={`p-2 rounded-lg transition-all duration-200 ${hasHistory
-              ? "text-indigo-500 hover:bg-indigo-100/50 dark:text-indigo-400 dark:hover:bg-slate-800 cursor-pointer"
+            className={`p-1 sm:p-2 rounded-lg transition-all duration-200 ${hasHistory
+              ? "text-indigo-500 hover:bg-indigo-200/60 dark:text-indigo-400 dark:hover:bg-indigo-900/30 cursor-pointer"
               : "text-gray-300 dark:text-slate-600 cursor-not-allowed"
               }`}
             title={hasHistory ? "View today's chat history" : "No previous chats today"}
@@ -100,7 +100,7 @@ export default function ChatHeader({
           {hasMessages && (
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="p-2 rounded-lg transition-all duration-200 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/20"
+              className="p-1 sm:p-2 rounded-lg transition-all duration-200 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/25"
               title="Delete chat session"
               aria-label="Clear chat"
             >
@@ -111,7 +111,7 @@ export default function ChatHeader({
           {/* Fullscreen toggle */}
           <button
             onClick={onToggleFullscreen}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all duration-200"
+            className="p-1 sm:p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all duration-200"
             title={isFullscreen ? "Exit fullscreen (ESC)" : "Fullscreen"}
             aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
           >

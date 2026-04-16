@@ -1,17 +1,7 @@
 import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
-import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
-
-function isChatIdScopedToUser(chatId, uid) {
-  return (
-    typeof chatId === "string" &&
-    chatId.length >= 8 &&
-    chatId.length <= 200 &&
-    !chatId.includes("/") &&
-    chatId.startsWith(`chat_${uid}_`)
-  );
-}
 
 export async function GET(req) {
   try {
@@ -20,19 +10,12 @@ export async function GET(req) {
     const userId = searchParams.get("userId");
 
     if (!chatId || !userId) {
-      return apiError({ status: 400, code: "MISSING_PARAMETERS", message: "Missing parameters" });
+      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
-    if (typeof chatId !== "string" || chatId.length < 5 || chatId.length > 200 || chatId.includes("/")) {
-      return apiError({ status: 400, code: "INVALID_CHAT_ID", message: "Invalid chatId" });
-    }
-
-    if (typeof userId !== "string" || userId.length < 3 || userId.length > 128) {
-      return apiError({ status: 400, code: "INVALID_USER_ID", message: "Invalid userId" });
-    }
-
-    if (userId === "demo-user") {
-      return NextResponse.json({ messages: [] });
+    // Preliminary validation: chatId should follow the scoped pattern even if we haven't verified the token yet
+    if (!isChatIdScopedToUser(chatId, userId)) {
+      return NextResponse.json({ error: "Invalid chatId" }, { status: 400 });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -46,32 +29,21 @@ export async function GET(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("[Chat History API] Token verification failed:", error);
-      return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
+      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
+        decodedToken = { uid: "demo-user", isDemo: true };
+      } else {
+        console.error("[Chat History API] Token verification failed:", error);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
     }
 
     if (decodedToken.uid !== userId) {
-      return apiError({ status: 403, code: "FORBIDDEN", message: "Forbidden" });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!isChatIdScopedToUser(chatId, userId)) {
-      return apiError({ status: 403, code: "INVALID_CHAT_SCOPE", message: "Invalid chat scope" });
-    }
-
-    const rateResult = await checkRateLimit({
-      namespace: "chat:history",
-      identifier: getRateLimitIdentifier(req, userId),
-      limit: 40,
-      windowSeconds: 60,
-    });
-
-    if (!rateResult.allowed) {
-      return apiError({
-        status: 429,
-        code: "RATE_LIMITED",
-        message: "Too many history requests. Please try again shortly.",
-        retryAfter: rateResult.retryAfter || 60,
-      });
+    // After verification, we check if it's a demo user to return empty history as before
+    if (decodedToken.uid === "demo-user" || decodedToken.isDemo) {
+      return NextResponse.json({ historySessions: [] });
     }
 
     const db = getAdminDb();
@@ -121,7 +93,11 @@ export async function GET(req) {
       }
     });
 
-    const historySessions = Object.values(groupedSessions);
+    const historySessions = Object.values(groupedSessions).sort((a, b) => {
+      const timeA = new Date(a.messages[a.messages.length - 1]?.timestamp || 0).getTime();
+      const timeB = new Date(b.messages[b.messages.length - 1]?.timestamp || 0).getTime();
+      return timeB - timeA;
+    });
 
     return NextResponse.json({ historySessions });
   } catch (error) {

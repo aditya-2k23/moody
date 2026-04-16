@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/firebase";
 import toast from "react-hot-toast";
@@ -9,6 +9,7 @@ import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
 import { APP_RELEASE_TAG } from "@/lib/release";
+import { DEMO_CHAT_LIMIT } from "@/utils";
 
 /**
  * ChatContainer — Root chat component managing fullscreen state,
@@ -40,6 +41,14 @@ export default function ChatContainer({
   const historyModalContentRef = useRef(null);
   const historyTriggerRef = useRef(null);
   const historyTitleId = "chat-history-modal-title";
+  const sessionRequestIdRef = useRef(0);
+  const demoLimitToastShownRef = useRef(false);
+
+  const demoCountStorageKey = useMemo(() => {
+    if (!isDemo) return null;
+    const scopedChatId = chatId || "demo-chat";
+    return `lumi-demo-count:${scopedChatId}:${sessionId}`;
+  }, [isDemo, chatId, sessionId]);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -148,31 +157,101 @@ export default function ChatContainer({
     };
   }, [showHistoryModal]);
 
-  // Load demo count on mount
   useEffect(() => {
-    if (isDemo) {
-      try {
-        const saved = localStorage.getItem("lumi-demo-count");
-        if (!saved) {
-          setDemoCount(0);
-          return;
-        }
+    if (!showHistoryModal) return;
 
-        const parsedCount = Number.parseInt(saved, 10);
-        if (Number.isInteger(parsedCount) && parsedCount >= 0) {
-          setDemoCount(parsedCount);
-        } else {
-          setDemoCount(0);
-          localStorage.setItem("lumi-demo-count", "0");
-        }
-      } catch (e) {
-        console.error("Failed to parse demo count", e);
-        setDemoCount(0);
+    const focusFirstInteractive = () => {
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const firstFocusable = root.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (firstFocusable && typeof firstFocusable.focus === "function") {
+        firstFocusable.focus();
       }
-    }
-  }, [isDemo]);
+    };
 
-  const isDemoLimitReached = isDemo && demoCount >= 3;
+    const timer = setTimeout(focusFirstInteractive, 50);
+
+    const handleTrap = (e) => {
+      if (e.key !== "Tab") return;
+
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const focusable = Array.from(
+        root.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTrap);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", handleTrap);
+    };
+  }, [showHistoryModal]);
+
+  // Load demo count per demo session key
+  useEffect(() => {
+    if (!isDemo || !demoCountStorageKey) return;
+
+    try {
+      const saved = localStorage.getItem(demoCountStorageKey);
+      if (!saved) {
+        setDemoCount(0);
+        return;
+      }
+
+      const parsedCount = Number.parseInt(saved, 10);
+      if (Number.isInteger(parsedCount) && parsedCount >= 0) {
+        setDemoCount(parsedCount);
+      } else {
+        setDemoCount(0);
+        localStorage.setItem(demoCountStorageKey, "0");
+      }
+    } catch (e) {
+      console.error("Failed to parse demo count", e);
+      setDemoCount(0);
+    }
+  }, [isDemo, demoCountStorageKey]);
+
+  useEffect(() => {
+    if (!isDemo) return;
+
+    // Reset per-session UI lock state immediately when session scope changes.
+    demoLimitToastShownRef.current = false;
+  }, [isDemo, chatId, sessionId]);
+
+  const isDemoLimitReached = isDemo && demoCount >= DEMO_CHAT_LIMIT;
+
+  useEffect(() => {
+    if (isDemoLimitReached && !demoLimitToastShownRef.current) {
+      toast.error("You have reached the demo chat limit. Sign in to continue chatting with Lumi.");
+      demoLimitToastShownRef.current = true;
+      return;
+    }
+
+    if (!isDemoLimitReached) {
+      demoLimitToastShownRef.current = false;
+    }
+  }, [isDemoLimitReached]);
 
   const getBubbleDelayMs = useCallback((bubbleText) => {
     const normalized = (bubbleText || "").trim();
@@ -357,15 +436,10 @@ export default function ChatContainer({
   const sendMessage = useCallback(
     async (messageText) => {
       if (!messageText.trim() || (!userId && !isDemo)) return;
-      if (isDemo && demoCount >= 3) return;
+      if (isDemo && demoCount >= DEMO_CHAT_LIMIT) return;
 
-      if (isDemo) {
-        setDemoCount((prev) => {
-          const nextCount = prev + 1;
-          localStorage.setItem("lumi-demo-count", nextCount.toString());
-          return nextCount;
-        });
-      }
+      const capturedToken = ++sessionRequestIdRef.current;
+
 
       const now = formatTimestampIST(Date.now());
 
@@ -383,12 +457,17 @@ export default function ChatContainer({
         const currentUser = auth.currentUser;
         const idToken = !isDemo && currentUser ? await currentUser.getIdToken() : null;
 
+        const headers = {
+          "Content-Type": "application/json",
+        };
+
+        if (idToken && !isDemo) {
+          headers.Authorization = `Bearer ${idToken}`;
+        }
+
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(!isDemo && idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-          },
+          headers,
           body: JSON.stringify({
             chatId: isDemo ? "demo-chat" : chatId,
             ...(isDemo ? { userId: "demo-user" } : {}),
@@ -398,13 +477,31 @@ export default function ChatContainer({
           }),
         });
 
+        if (capturedToken !== sessionRequestIdRef.current) return;
+
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          const apiError = new Error(data.error || "Failed to send message");
-          apiError.status = res.status;
-          apiError.code = data.code;
-          apiError.retryAfter = data.retryAfter;
-          throw apiError;
+          const apiError = data.error || data.message || data.retry || "Failed to send message";
+          const apiCode = data.code || null;
+
+          if (isDemo && res.status === 403 && apiCode === "DEMO_LIMIT_REACHED") {
+            setDemoCount(DEMO_CHAT_LIMIT);
+            if (demoCountStorageKey) {
+              localStorage.setItem(demoCountStorageKey, String(DEMO_CHAT_LIMIT));
+            }
+          }
+
+          throw new Error(apiError);
+        }
+
+        if (isDemo && capturedToken === sessionRequestIdRef.current) {
+          setDemoCount((prev) => {
+            const nextCount = prev + 1;
+            if (demoCountStorageKey) {
+              localStorage.setItem(demoCountStorageKey, nextCount.toString());
+            }
+            return nextCount;
+          });
         }
 
         const data = await res.json();
@@ -429,6 +526,7 @@ export default function ChatContainer({
             : bubbleDelay;
 
           await new Promise((resolve) => setTimeout(resolve, appearanceDelay));
+          if (capturedToken !== sessionRequestIdRef.current) return;
 
           setMessages((prev) => [
             ...prev,
@@ -441,13 +539,16 @@ export default function ChatContainer({
           ]);
         }
       } catch (error) {
+        if (capturedToken !== sessionRequestIdRef.current) return;
         console.error(error);
         toast.error(getFriendlyChatError(error, "Lumi is busy! Try again later."));
       } finally {
-        setIsTyping(false);
+        if (capturedToken === sessionRequestIdRef.current) {
+          setIsTyping(false);
+        }
       }
     },
-    [chatId, userId, isDemo, demoCount, journalText, sessionId, getBubbleDelayMs, formatTimestampIST, getFriendlyChatError]
+    [chatId, userId, isDemo, demoCount, demoCountStorageKey, journalText, sessionId, getBubbleDelayMs, formatTimestampIST, getFriendlyChatError]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -460,7 +561,7 @@ export default function ChatContainer({
     if (isDuplicate) return;
 
     const now = formatTimestampIST(Date.now());
-
+    const capturedToken = ++sessionRequestIdRef.current;
     setMessages((prev) => [
       ...prev,
       {
@@ -471,20 +572,51 @@ export default function ChatContainer({
       },
     ]);
 
+    // Persist to backend memory so subsequent turns have this context
+    const persistReflection = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        const idToken = !isDemo && currentUser ? await currentUser.getIdToken() : null;
+
+        await fetch("/api/chat/persist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(!isDemo && idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          },
+          body: JSON.stringify({
+            chatId: isDemo ? "demo-chat" : chatId,
+            sessionId,
+            role: "assistant",
+            content: reflectionQuestion,
+          }),
+        });
+      } catch (e) {
+        console.warn("Failed to persist reflection turn to memory", e);
+      }
+    };
+
+    if (!isDemo) {
+      persistReflection();
+    }
+
     onReflectionConsumed?.();
 
     // Auto-focus chat input right after clicking the follow-up wrapper.
     const focusTimer = setTimeout(() => {
-      chatInputRef.current?.focus();
+      if (capturedToken === sessionRequestIdRef.current) {
+        chatInputRef.current?.focus();
+      }
     }, 100);
 
     return () => clearTimeout(focusTimer);
-  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed, formatTimestampIST]);
+  }, [reflectionQuestion, isTyping, messages, onReflectionConsumed, formatTimestampIST, chatId, isDemo, sessionId, sessionRequestIdRef]);
 
   // ─── Clear Chat ─────────────────────────────────────────────────
   const clearChat = useCallback(async () => {
     setMessages([]);
     setInput("");
+    sessionRequestIdRef.current++;
 
     if (isDemo) {
       return;
@@ -538,6 +670,7 @@ export default function ChatContainer({
     setMessages([]);
     setInput("");
     setSessionId(crypto.randomUUID());
+    sessionRequestIdRef.current++;
     requestHistoryRefresh();
   }, [requestHistoryRefresh]);
 
@@ -612,6 +745,7 @@ export default function ChatContainer({
                     onClick={() => {
                       setSessionId(session.sessionId);
                       setMessages(session.messages);
+                      sessionRequestIdRef.current++;
                       closeHistoryModal();
                     }}
                     className="w-full min-h-[84px] text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"

@@ -365,6 +365,30 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
     return currentEntry;
   }, [interimTranscript]);
 
+  // Explicitly stop voice input
+  const stopVoiceInput = useCallback(() => {
+    if (!isListening) return baseEntryRef.current;
+
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      recognitionRef.current.shouldRestart = false;
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignored
+      }
+    }
+
+    const finalValue = getDisplayValue(baseEntryRef.current);
+    setIsListening(false);
+    setInterimTranscript("");
+    return finalValue;
+  }, [isListening, getDisplayValue]);
+
   // Check if voice input is supported
   const isSupported = typeof window !== "undefined" &&
     (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -373,6 +397,7 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
     isListening,
     interimTranscript,
     toggleVoiceInput,
+    stopVoiceInput,
     syncBaseEntry,
     getDisplayValue,
     isSupported,

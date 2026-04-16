@@ -19,9 +19,9 @@ export default function ScrollAnimations() {
         elements.forEach((el) => {
           gsap.fromTo(
             el,
-            { opacity: 0, y: 50 },
+            { autoAlpha: 0, y: 50 },
             {
-              opacity: 1,
+              autoAlpha: 1,
               y: 0,
               duration: 0.8,
               ease: "power2.out",

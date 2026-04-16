@@ -2,10 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { ArrowUp } from "lucide-react";
-import gsap from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-
-gsap.registerPlugin(ScrollToPlugin);
 
 /**
  * ScrollToTopButton — floats in the bottom-right corner of the landing page
@@ -62,7 +58,16 @@ export default function ScrollToTopButton() {
   }, [heroHeight]);
 
   const scrollToTop = useCallback(() => {
-    gsap.to(window, { duration: 1, scrollTo: 0, ease: "power3.inOut" });
+    import("gsap").then(({ default: gsap }) => {
+      import("gsap/ScrollToPlugin").then(({ ScrollToPlugin }) => {
+        gsap.registerPlugin(ScrollToPlugin);
+        gsap.to(window, {
+          scrollTo: { y: 0, autoKill: false },
+          duration: 1,
+          ease: "power3.inOut"
+        });
+      });
+    });
   }, []);
 
   return (

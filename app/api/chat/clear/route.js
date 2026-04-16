@@ -2,51 +2,22 @@ import { redis } from "@/lib/redis";
 import { apiError } from "@/lib/api-response";
 import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { isChatIdScopedToUser, isValidSessionId } from "@/lib/validation";
 
-function isChatIdScopedToUser(chatId, uid) {
-  return (
-    typeof chatId === "string" &&
-    chatId.length >= 8 &&
-    chatId.length <= 200 &&
-    !chatId.includes("/") &&
-    chatId.startsWith(`chat_${uid}_`)
-  );
-}
-
-function isValidSessionId(sessionId) {
-  return (
-    typeof sessionId === "string" &&
-    sessionId.length >= 1 &&
-    sessionId.length <= 100 &&
-    /^[A-Za-z0-9_-]+$/.test(sessionId)
-  );
-}
 
 export async function POST(req) {
   try {
     const body = await req.json();
     const { chatId, userId: requestedUserId, sessionId = "default" } = body;
 
-    if (!chatId) {
-      return apiError({ status: 400, code: "MISSING_CHAT_ID", message: "Missing required field: chatId" });
-    }
-
-    if (typeof chatId !== "string" || chatId.length < 5 || chatId.length > 200 || chatId.includes("/")) {
-      return apiError({ status: 400, code: "INVALID_CHAT_ID", message: "Invalid chatId" });
-    }
-
+    // Validate sessionId: string, non-empty, max 256 chars, no control/newline characters
     if (!isValidSessionId(sessionId)) {
-      return apiError({ status: 400, code: "INVALID_SESSION_ID", message: "Invalid sessionId" });
+      return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
     }
 
-    if (requestedUserId !== undefined && requestedUserId !== null && typeof requestedUserId !== "string") {
-      return apiError({ status: 400, code: "INVALID_USER_ID", message: "Invalid userId" });
-    }
-
-    if (requestedUserId === "demo-user") {
-      return NextResponse.json({ success: true, message: "Cleared locally" });
+    if (!chatId) {
+      return NextResponse.json({ error: "Missing required field: chatId" }, { status: 400 });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -60,34 +31,27 @@ export async function POST(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("[Clear Chat API] Token verification failed:", error);
-      return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
+      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
+        decodedToken = { uid: "demo-user", isDemo: true };
+      } else {
+        console.error("[Clear Chat API] Token verification failed:", error);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
     }
 
     const uid = decodedToken.uid;
-
-    const rateResult = await checkRateLimit({
-      namespace: "chat:clear",
-      identifier: getRateLimitIdentifier(req, uid),
-      limit: 20,
-      windowSeconds: 60,
-    });
-
-    if (!rateResult.allowed) {
-      return apiError({
-        status: 429,
-        code: "RATE_LIMITED",
-        message: "Too many clear requests. Please try again shortly.",
-        retryAfter: rateResult.retryAfter || 60,
-      });
-    }
+    const isDemoUser = uid === "demo-user" || decodedToken.isDemo === true;
 
     if (requestedUserId && requestedUserId !== uid) {
       return apiError({ status: 403, code: "FORBIDDEN", message: "Forbidden" });
     }
 
     if (!isChatIdScopedToUser(chatId, uid)) {
-      return apiError({ status: 403, code: "INVALID_CHAT_SCOPE", message: "Invalid chat scope" });
+      return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+    }
+
+    if (isDemoUser) {
+      return NextResponse.json({ success: true, message: "Cleared locally" });
     }
 
     const redisKey = `chat:${chatId}:${sessionId}`;

@@ -1,6 +1,6 @@
 "use client";
 
-import "./HandDrawnButton.css";
+import "../styles/HandDrawnButton.css";
 
 export default function HandDrawnButton({ children, href, target, rel, className = "" }) {
   const Tag = href ? "a" : "button";

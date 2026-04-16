@@ -31,6 +31,7 @@ Current release channel: **v3.0.0 (beta)** for the Lumi chatbot experience.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
 - **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching and **Semantic Similarity Search** (Embeddings) for context-aware repeat lookups.
 - **Lumi AI Chat (Beta)**: Real-time chat with Lumi with chat-bubble pacing, short-term + long-term memory, and daily session history.
+- **Lumi Demo Chat (Landing Experience)**: First-time visitors get a dedicated onboarding conversation tone with a **5-message demo cap** and a clear limit toast before sign-in.
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
@@ -41,6 +42,8 @@ Current release channel: **v3.0.0 (beta)** for the Lumi chatbot experience.
 - **🧠 Better Chat Resilience**: Multi-model Gemini fallback for transient capacity failures, with cleaner user-facing error messaging for quota and high-demand states.
 - **💬 Bubble-Aware Responses**: Lumi chat now returns JSON bubble arrays; frontend renders each bubble separately with human-like staggered timing.
 - **🕘 Chat History Sessions**: Daily chat history grouped by session with quick restore in the chat modal.
+- **🧪 Demo Chat Onboarding Mode**: Demo users now use a dedicated prompt variant tailored for first-time conversation flow, while preserving Lumi's core chat architecture in authenticated dashboard chat.
+- **🔒 Demo Quota Reliability**: Demo quota is scoped per session to avoid cross-visitor limit bleed, and the demo cap is currently **5 messages** with a visible toast at limit.
 - **✨ Discovery Improvements**: Added a new landing-nav `Lumi` link with new-feature indicator dot for faster feature discoverability.
 - **🏷️ Beta Branding Pass**: Updated app branding to reflect `v3.0.0 (beta)` across header, hero, footer, metadata, and chat UI.
 
@@ -100,18 +103,18 @@ NextApp --> ServerActions
 ServerActions --> DB
 ServerActions --> Media
 
-ServerActions --> AI (Embeddings Model)
-AI (Embeddings Model) --> ServerActions
+ServerActions --> AI_Embeddings["AI (Embeddings Model)"]
+AI_Embeddings --> ServerActions
 
-ServerActions --> Cache (Cosine Similarity Search)
+ServerActions --> Cache_Sim["Cache (Cosine Similarity Search)"]
 
-Cache (Cosine Similarity Search) -- Cache Hit (Sim > 0.85) --> ServerActions (Partial Prompt)
-Cache (Cosine Similarity Search) -- Cache Miss --> AI (Insights Generation)
+Cache_Sim -- "Cache Hit (Sim > 0.85)" --> ServerActions_Partial["ServerActions (Partial Prompt)"]
+Cache_Sim -- "Cache Miss" --> AI_Insights["AI (Insights Generation)"]
 
-AI (Insights Generation) --> Cache (Save Embedding)
-AI (Insights Generation) --> ServerActions
+AI_Insights --> Cache_Save["Cache (Save Embedding)"]
+AI_Insights --> ServerActions
 
-ServerActions (Partial Prompt) --> AI (Insights Generation)
+ServerActions_Partial --> AI_Insights
 ServerActions --> NextApp
 NextApp --> User
 ```

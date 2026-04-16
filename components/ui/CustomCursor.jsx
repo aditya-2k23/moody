@@ -46,7 +46,7 @@ export default function CustomCursor() {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cursorSrc} alt="custom cursor" className="cursor-image" />
+        <img src={cursorSrc} alt="" aria-hidden="true" className="cursor-image" />
       </div>
     </>
   );
