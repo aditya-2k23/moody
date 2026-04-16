@@ -11,7 +11,7 @@ export default function Logout() {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (!currentUser || pathname !== "/dashboard") return null;
+  if (!currentUser) return null;
 
   async function handleLogout() {
     try {
@@ -25,9 +25,11 @@ export default function Logout() {
 
   return (
     <div className="flex items-center justify-center gap-2 md:gap-3 text-slate-700 hover:text-white transition duration-200">
-      <p className="hidden sm:block text-base md:text-lg text-slate-700 font-semibold fugaz">Hello <span className="textGradient">
-        {(currentUser.email ?? '').split("@")[0].replace(/[0-9]/g, '')}</span>👋
-      </p>
+      {pathname === "/dashboard" && (
+        <p className="hidden sm:block text-base md:text-lg text-slate-700 font-semibold fugaz">Hello <span className="textGradient">
+          {(currentUser.email ?? '').split("@")[0].replace(/[0-9]/g, '')}</span>👋
+        </p>
+      )}
 
       <Button
         text={<>
