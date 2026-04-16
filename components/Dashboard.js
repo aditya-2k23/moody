@@ -6,7 +6,7 @@ import Login from "./Login";
 import Calender from "./Calender";
 import Memories from "./Memories";
 import { useMemories } from "@/hooks/useMemories";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import convertMood, { moods, months } from "@/utils";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/firebase";
@@ -22,32 +22,26 @@ function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
   // Streak is based only on mood entries (numeric day fields).
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today);
+  let current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(current);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const entryDateSet = new Set();
-  for (let year in dataObj)
-    for (let month in dataObj[year])
-      for (let day in dataObj[year][month]) {
-        const value = dataObj[year][month][day];
-        if (typeof value === "number") {
-          // Skip non-mood numeric fields like updatedAt_
-          if (day.startsWith('updatedAt_')) continue;
-          entryDateSet.add(`${year}-${month}-${day}`);
-        }
-      }
+  const hasEntry = (date) => {
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const d = date.getDate();
+    const val = dataObj?.[y]?.[m]?.[d];
+    return typeof val === "number";
+  };
 
-  const hasTodayEntry = entryDateSet.has(`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`);
-  const hasYesterdayEntry = entryDateSet.has(`${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`);
+  const hasTodayEntry = hasEntry(current);
+  const hasYesterdayEntry = hasEntry(yesterday);
 
-  let current;
-  if (hasTodayEntry) current = new Date(today);
-  else if (hasYesterdayEntry) current = new Date(yesterday);
-  else return 0;
+  if (!hasTodayEntry && !hasYesterdayEntry) return 0;
+  if (!hasTodayEntry) current = yesterday;
 
   let streak = 0;
-  while (entryDateSet.has(`${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`)) {
+  while (hasEntry(current)) {
     streak++;
     current.setDate(current.getDate() - 1);
   }
@@ -77,7 +71,7 @@ function DashboardContent() {
   // Real loading state based on data fetching (replaces hardcoded 3s timer)
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching Lumi's thoughts...");
+  const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
@@ -653,8 +647,6 @@ function DashboardContent() {
 
   return (
     <>
-      <Toaster position="top-center" />
-
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-12'>
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
           <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
@@ -701,7 +693,10 @@ function DashboardContent() {
           initialText={hydratedJournalText || todaysJournal}
           user={currentUser}
           onMoodChange={handleSetMood}
-          onMemoryAdded={refetchMemories}
+          onMemoryAdded={() => {
+            refetchMemories();
+            setShowMemories(true);
+          }}
           autoGenerateInsights={autoGenerateInsights}
           onInsightsAutoTriggered={() => setAutoGenerateInsights(false)}
           onJournalSaved={(savedEntry) => {
@@ -736,6 +731,16 @@ function DashboardContent() {
           showMemories={showMemories}
           onToggle={() => setShowMemories(!showMemories)}
           hasMemories={memories && memories.length > 0}
+          onUploadPrompt={() => {
+            const journalSection = document.getElementById("journal-section");
+            if (journalSection) {
+              journalSection.scrollIntoView({ behavior: "smooth", block: "start" });
+              setTimeout(() => {
+                const fileInput = document.getElementById("journal-image-upload");
+                if (fileInput) fileInput.click();
+              }, 500);
+            }
+          }}
         />
 
         <Calender

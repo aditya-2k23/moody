@@ -167,6 +167,7 @@ export default function ImageUpload({
 
       {/* Hidden file input - accepts multiple */}
       <input
+        id="journal-image-upload"
         type="file"
         ref={fileInputRef}
         onChange={handleImageSelect}

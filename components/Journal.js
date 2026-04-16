@@ -6,7 +6,7 @@ import { db } from "@/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
-import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
+import { getJournalPlaceholder, journalPlaceholders } from "@/utils/generatePlaceholder";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
@@ -15,7 +15,6 @@ import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
-import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -571,7 +570,7 @@ export default function Journal({
   };
 
   return (
-    <div className="py-4 flex flex-col gap-6">
+    <div id="journal-section" className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
         <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
