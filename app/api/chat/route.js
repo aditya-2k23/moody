@@ -8,15 +8,12 @@ import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
-const MAX_MESSAGE_LENGTH = 2000;
-const MAX_JOURNAL_TEXT_LENGTH = 10000;
 const MAX_SESSION_ID_LENGTH = 100;
 const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash",
   "gemini-3-flash-preview",
   "gemini-2.5-flash-lite",
 ];
-
 
 function isRetryableModelError(error) {
   const msg = (error?.message || "").toLowerCase();
@@ -76,15 +73,6 @@ function extractRetryDelaySeconds(errorMessage) {
   }
 
   return null;
-}
-
-function isValidSessionId(sessionId) {
-  return (
-    typeof sessionId === "string" &&
-    sessionId.length >= 1 &&
-    sessionId.length <= MAX_SESSION_ID_LENGTH &&
-    /^[A-Za-z0-9_-]+$/.test(sessionId)
-  );
 }
 
 export async function POST(req) {

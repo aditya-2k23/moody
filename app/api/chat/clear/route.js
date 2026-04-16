@@ -1,10 +1,8 @@
 import { redis } from "@/lib/redis";
 import { apiError } from "@/lib/api-response";
-import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId } from "@/lib/validation";
-
 
 export async function POST(req) {
   try {
