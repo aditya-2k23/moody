@@ -444,7 +444,7 @@ export default function Journal({
 
       if (selectedImages.length > 0) {
         const uploadPromises = selectedImages.map(async (file) => {
-          const uploadResult = await uploadToCloudinary(file, currentUser.uid);
+          const uploadResult = await uploadToCloudinary(file, currentUser);
 
           if (!uploadResult.success) {
             return { success: false, fileName: file.name, error: "upload" };
