@@ -1,7 +1,9 @@
 "use client";
 
-import convertMood, { baseRating, gradients, months, dayList } from "@/utils";
+import { baseRating, gradients, months, dayList } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebase";
 import Button from "./Button";
 import JournalModal from "./JournalModal";
 import { Calendar, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
@@ -28,8 +30,47 @@ export default function Calender({
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
+  const [lumiDays, setLumiDays] = useState(new Set());
 
   const selectedMonth = monthsArr[selectedMonthIndex];
+
+  // Real-time listener for Lumi/Insight activity
+  useEffect(() => {
+    if (!currentUser?.uid || demo) return;
+
+    const insightsRef = collection(db, "users", currentUser.uid, "insights");
+    const chatsRef = collection(db, "users", currentUser.uid, "chats");
+
+    const insightsUnsub = onSnapshot(insightsRef, (snap) => {
+      setLumiDays(prev => {
+        const next = new Set(prev);
+        snap.forEach(doc => next.add(doc.id));
+        return next;
+      });
+    }, (err) => console.warn("Lumi insights listener err:", err));
+
+    const chatsUnsub = onSnapshot(chatsRef, (snap) => {
+      setLumiDays(prev => {
+        const next = new Set(prev);
+        snap.forEach(doc => {
+          const parts = doc.id.split('_');
+          if (parts.length >= 5 && parts[0] === 'chat') {
+            const year = parts[2];
+            const month = Number(parts[3]) + 1;
+            const day = parts[4];
+            const cleanDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            next.add(cleanDate);
+          }
+        });
+        return next;
+      });
+    }, (err) => console.warn("Lumi chats listener err:", err));
+
+    return () => {
+      insightsUnsub();
+      chatsUnsub();
+    };
+  }, [currentUser?.uid, demo]);
 
   // Sync with externally controlled month/year (e.g. from Memories nav buttons)
   useEffect(() => {
@@ -142,6 +183,7 @@ export default function Calender({
           mood={selectedMood}
           journal={selectedJournal}
           isAuthed={isAuthed}
+          userId={currentUser?.uid}
           onSave={async ({ year, month, day, mood, journal }) => {
             if (!onUpdateEntry) return;
 
@@ -271,20 +313,22 @@ export default function Calender({
                 (selectedYear > currentYear);
 
               const hasJournal = !!data[`journal_${dayIndex}`];
+              const dateString = `${selectedYear}-${String(selectedMonthIndex + 1).padStart(2, '0')}-${String(dayIndex).padStart(2, '0')}`;
+              const hasLumiActivity = lumiDays.has(dateString);
 
-              return (
+              const innerContent = (
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
                     text-xs sm:text-sm border border-solid p-1.5 sm:p-2 rounded-lg
-                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between
+                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between h-full w-full
                     ${isFutureDay ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
-                    ${isSelected && !isFutureDay ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
+                    ${isSelected && !isFutureDay && !hasLumiActivity ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
                     ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : backgroundColor}
                     ${textColor}
+                    ${hasLumiActivity ? "border-transparent dark:border-transparent" : ""}
                   `}
-                  key={dayOfWeekIndex}
                   onClick={() => {
                     if (isFutureDay) return; // Block click on future dates
 
@@ -315,6 +359,18 @@ export default function Calender({
                       )}
                     </div>
                   )}
+                </div>
+              );
+
+              return (
+                <div
+                  key={dayOfWeekIndex}
+                  className={`relative flex rounded-xl transition duration-300 ${hasLumiActivity ? "rainbow-border" : ""}
+                  ${isSelected && hasLumiActivity && !isFutureDay
+                      ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900"
+                      : ""
+                    }`}>
+                  {innerContent}
                 </div>
               )
             })}
