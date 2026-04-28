@@ -37,11 +37,11 @@ export async function POST(request) {
     const uid = decodedToken.uid;
 
     // Parse request body
-    const { folder, timestamp } = await request.json();
+    const { folder } = await request.json();
 
-    if (!folder || !timestamp) {
+    if (!folder) {
       return NextResponse.json(
-        { error: "Missing required fields: folder and timestamp" },
+        { error: "Missing required fields: folder" },
         { status: 400 }
       );
     }
@@ -64,7 +64,7 @@ export async function POST(request) {
 
     // Generate signature
     // The signature must include all parameters passed to the upload call, except for file, api_key, and signature.
-    // In our case, we are using folder and timestamp.
+    const timestamp = Math.floor(Date.now() / 1000);
     const signature = cloudinary.utils.api_sign_request(
       {
         folder,
