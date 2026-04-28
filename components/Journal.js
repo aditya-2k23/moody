@@ -7,7 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
-import { uploadToCloudinary } from "@/utils/cloudinary";
+import { uploadToCloudinary, getCloudinaryUploadSignature } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
 import AIInsightsSection from "./AIInsightsSection";
@@ -443,8 +443,17 @@ export default function Journal({
       }
 
       if (selectedImages.length > 0) {
+        const uploadContext = await getCloudinaryUploadSignature(currentUser);
+
+        if (!uploadContext.success) {
+          toast.error(uploadContext.error || "Failed to initialize upload");
+          setUploading(false);
+          setCloudStatus("error");
+          return;
+        }
+
         const uploadPromises = selectedImages.map(async (file) => {
-          const uploadResult = await uploadToCloudinary(file, currentUser.uid);
+          const uploadResult = await uploadToCloudinary(file, uploadContext);
 
           if (!uploadResult.success) {
             return { success: false, fileName: file.name, error: "upload" };

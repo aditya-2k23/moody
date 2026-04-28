@@ -1,24 +1,74 @@
 /**
  * Cloudinary Upload Utility
- * Handles client-side unsigned uploads to Cloudinary
+ * Handles client-side signed uploads to Cloudinary
  */
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB - Sync with ImageUpload.js
 
 /**
- * Upload an image to Cloudinary
+ * Acquire Cloudinary upload context including server-generated signature
+ * @param {Object} currentUser - The current Firebase user object
+ * @returns {Promise<{success: boolean, signature?: string, apiKey?: string, cloudName?: string, timestamp?: number, folder?: string, error?: string}>}
+ */
+export async function getCloudinaryUploadSignature(currentUser) {
+  if (!currentUser) {
+    return { success: false, error: "User must be logged in" };
+  }
+
+  const uid = currentUser.uid;
+  const now = new Date();
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const folder = `moody/users/${uid}/${yearMonth}`;
+
+  try {
+    const idToken = await currentUser.getIdToken();
+    const signatureResponse = await fetch("/api/cloudinary-signature", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`
+      },
+      body: JSON.stringify({ folder })
+    });
+
+    if (!signatureResponse.ok) {
+      const errorData = await signatureResponse.json();
+      return {
+        success: false,
+        error: errorData.error || "Failed to get upload signature"
+      };
+    }
+
+    const { signature, apiKey, cloudName, timestamp } = await signatureResponse.json();
+    return { success: true, signature, apiKey, cloudName, timestamp, folder };
+  } catch (error) {
+    console.error("Cloudinary signature error:", error.message);
+    return {
+      success: false,
+      error: error.message || "Network error during signature acquisition"
+    };
+  }
+}
+
+/**
+ * Upload an image to Cloudinary using signed uploads
  * @param {File} file - The image file to upload
- * @param {string} uid - The user's UID
+ * @param {Object} uploadContext - The context returned from getCloudinaryUploadSignature
  * @returns {Promise<{success: boolean, url?: string, publicId?: string, error?: string}>}
  */
-export async function uploadToCloudinary(file, uid) {
+export async function uploadToCloudinary(file, uploadContext) {
+  if (!uploadContext?.success) {
+    return {
+      success: false,
+      error: uploadContext?.error || "Missing or invalid upload context"
+    };
+  }
+
   // Validate file size
   if (file.size > MAX_FILE_SIZE) {
     return {
       success: false,
-      error: "Image must be less than 7MB"
+      error: "Image must be less than 10MB"
     };
   }
 
@@ -30,39 +80,41 @@ export async function uploadToCloudinary(file, uid) {
     };
   }
 
-  const now = new Date();
-  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const folder = `moody/users/${uid}/${yearMonth}`;
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", UPLOAD_PRESET);
-  formData.append("folder", folder);
-
   try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    const { signature, apiKey, cloudName, timestamp, folder } = uploadContext;
+
+    // Perform signed upload to Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("signature", signature);
+    formData.append("timestamp", timestamp);
+    formData.append("api_key", apiKey);
+    formData.append("folder", folder);
+
+    const uploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: "POST",
         body: formData
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json();
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.json();
       return {
         success: false,
         error: errorData.error?.message || "Upload failed"
       };
     }
 
-    const data = await response.json();
+    const data = await uploadResponse.json();
     return {
       success: true,
       url: data.secure_url,
       publicId: data.public_id // Include publicId for deletion
     };
   } catch (error) {
+    console.error("Cloudinary upload error:", error.message);
     return {
       success: false,
       error: error.message || "Network error during upload"
