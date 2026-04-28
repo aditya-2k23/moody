@@ -1,10 +1,10 @@
 name: Jules Automation (Labeling & Docs)
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+  pull_request_target:
+    types: [ opened, reopened ]
   issues:
-    types: [opened, reopened]
+    types: [ opened, reopened ]
 
 permissions:
   contents: write
@@ -23,7 +23,7 @@ jobs:
             let labels = ['jules'];
             let number;
 
-            if (context.eventName === 'pull_request') {
+            if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
               const branchName = context.payload.pull_request.head.ref;
               const author = context.payload.pull_request.user.login;
               number = context.payload.pull_request.number;
@@ -60,7 +60,8 @@ jobs:
 
   docs-automation:
     if: |
-      github.event_name == 'pull_request' && 
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       !startsWith(github.event.pull_request.head.ref, 'docs/pr-') &&
       !contains(github.event.pull_request.user.login, 'jules') &&
       !contains(github.event.pull_request.user.login, 'Jules')
