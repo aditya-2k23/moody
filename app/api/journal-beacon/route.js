@@ -56,7 +56,7 @@ export async function POST(request) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("Token verification failed:", error);
+      console.error("Token verification failed:", error.message);
       return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
     }
 
@@ -91,7 +91,7 @@ export async function POST(request) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error("Journal beacon save error:", error);
+    console.error("Journal beacon save error:", error.message);
     return apiError({ status: 500, code: "INTERNAL_ERROR", message: "Internal server error" });
   }
 }

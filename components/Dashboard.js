@@ -92,7 +92,7 @@ function DashboardContent() {
       try {
         cachedIdTokenRef.current = await currentUser.getIdToken();
       } catch (error) {
-        console.error("Failed to refresh token for beacon:", error);
+        console.error("Failed to refresh token for beacon:", error.message);
       }
     };
 
@@ -254,8 +254,8 @@ function DashboardContent() {
           if (pendingAction === "insights") {
             setAutoGenerateInsights(true);
           }
-        } catch (err) {
-          console.error("Failed to hydrate guest journal:", err);
+        } catch (error) {
+          console.error("Failed to hydrate guest journal:", error.message);
           toast.error("Failed to save guest draft.");
         }
       };

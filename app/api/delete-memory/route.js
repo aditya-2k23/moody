@@ -29,7 +29,7 @@ export async function POST(request) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      console.error("Token verification failed:", error);
+      console.error("Token verification failed:", error.message);
       return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
     }
 
@@ -90,7 +90,7 @@ export async function POST(request) {
     const cloudinaryResult = await cloudinary.uploader.destroy(publicId);
 
     if (cloudinaryResult.result !== "ok" && cloudinaryResult.result !== "not found") {
-      console.error("Cloudinary deletion failed:", cloudinaryResult);
+      console.error("Cloudinary deletion failed:", cloudinaryResult.result);
       return apiError({ status: 500, code: "CLOUDINARY_DELETE_FAILED", message: "Failed to delete from Cloudinary" });
     }
 
@@ -124,7 +124,7 @@ export async function POST(request) {
       }
 
     } catch (firestoreError) {
-      console.error("Firestore deletion failed:", firestoreError);
+      console.error("Firestore deletion failed:", firestoreError.message);
       return apiError({
         status: 500,
         code: "PARTIAL_DELETE_FIRESTORE_FAILED",
@@ -135,7 +135,7 @@ export async function POST(request) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error("Delete memory error:", error);
+    console.error("Delete memory error:", error.message);
     return apiError({ status: 500, code: "INTERNAL_ERROR", message: "Internal server error" });
   }
 }
