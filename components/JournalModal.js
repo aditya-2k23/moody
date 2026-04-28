@@ -213,37 +213,20 @@ export default function JournalModal({
   useEffect(() => {
     if (isOpen) {
       // Store current scroll position and add padding to prevent layout shift
-      const scrollY = window.scrollY;
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
     } else {
-      // Restore scroll position and remove padding
-      const scrollY = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.body.style.overflow = '';
       document.body.style.paddingRight = '';
-
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
     }
 
     return () => {
-      const scrollY = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.body.style.overflow = '';
       document.body.style.paddingRight = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
     };
   }, [isOpen]);
 
@@ -316,321 +299,326 @@ export default function JournalModal({
 
   return (
     <>
-      {/* Main Modal Overlay */}
+      {/* Main Modal Overlay / Scroll Container */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 animate-modal-overlay bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm animate-modal-overlay"
         onClick={handleOverlayClick}
       >
-        {/* Modal Content */}
         <div
-          ref={modalRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Journal entry details"
-          className={`relative w-full ${chatFullscreen ? 'max-w-none h-full' : showInsights ? 'max-w-4xl' : 'max-w-lg'} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl animate-modal-content transition-all duration-300 ${chatFullscreen ? 'h-[calc(100vh-3rem)]' : 'max-h-[90vh]'} overflow-hidden flex flex-col`}
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245,243,255,0.98) 100%)",
-          }}
-          onClick={(e) => e.stopPropagation()}
+          className="flex min-h-full items-center justify-center p-4"
+          onClick={handleOverlayClick}
         >
-          {/* Dark mode background override */}
-          <div className="absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 -z-[5]" />
-
-          {/* Close button */}
-          <button
-            ref={closeButtonRef}
-            className="absolute top-3 right-3 p-1.5 text-indigo-500/70 dark:text-indigo-300/80 hover:text-indigo-700 dark:hover:text-indigo-200 hover:bg-indigo-100/50 dark:hover:bg-slate-700/50 rounded-lg transition duration-150 disabled:opacity-50 z-10"
-            onClick={handleClose}
-            disabled={saving || deleting}
-            title="Close"
-            aria-label="Close journal entry"
+          {/* Modal Content */}
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Journal entry details"
+            className={`relative w-full ${chatFullscreen ? 'max-w-none h-[calc(100vh-2rem)] overflow-hidden' : showInsights ? 'max-w-4xl' : 'max-w-lg'} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl animate-modal-content transition-all duration-300 flex flex-col`}
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(245,243,255,0.98) 100%)",
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <X size={20} />
-          </button>
+            {/* Dark mode background override */}
+            <div className="absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 -z-[5]" />
 
-          {/* Modal body */}
-          <div className={`p-5 md:p-6 ${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'overflow-y-auto chat-scrollbar flex-1'}`}>
-            {/* Journal content — hidden when chat is fullscreen */}
-            {!chatFullscreen && (
-              <>
-                {/* Date header */}
-                <h3 id={journalModalTitleId} className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
-                  {day} {monthName}, {year}
-                </h3>
+            {/* Close button */}
+            <button
+              ref={closeButtonRef}
+              className="absolute top-3 right-3 p-1.5 text-indigo-500/70 dark:text-indigo-300/80 hover:text-indigo-700 dark:hover:text-indigo-200 hover:bg-indigo-100/50 dark:hover:bg-slate-700/50 rounded-lg transition duration-150 disabled:opacity-50 z-10 outline-none"
+              onClick={handleClose}
+              disabled={saving || deleting}
+              title="Close"
+              aria-label="Close journal entry"
+            >
+              <X size={20} />
+            </button>
 
-                {/* Mood display */}
-                <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-4 flex items-center gap-1">
-                  <span className="font-semibold">You felt:</span>
-                  {!isEditing ? (
-                    selectedMoodLabel ? (
-                      <span className="inline-flex items-center gap-1 ml-1">
-                        <span className="text-xl leading-none">{selectedMoodEmoji}</span>
-                        <span className="capitalize">{selectedMoodLabel}</span>
-                      </span>
+            {/* Modal body */}
+            <div className={`p-5 md:p-6 ${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'flex-1'}`}>
+              {/* Journal content — hidden when chat is fullscreen */}
+              {!chatFullscreen && (
+                <>
+                  {/* Date header */}
+                  <h3 id={journalModalTitleId} className="font-bold text-lg text-indigo-700 dark:text-indigo-200 mb-4">
+                    {day} {monthName}, {year}
+                  </h3>
+
+                  {/* Mood display */}
+                  <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-4 flex items-center gap-1">
+                    <span className="font-semibold">You felt:</span>
+                    {!isEditing ? (
+                      selectedMoodLabel ? (
+                        <span className="inline-flex items-center gap-1 ml-1">
+                          <span className="text-xl leading-none">{selectedMoodEmoji}</span>
+                          <span className="capitalize">{selectedMoodLabel}</span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
+                      )
                     ) : (
-                      <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
-                    )
-                  ) : (
-                    <span className="inline-flex items-center gap-2 ml-1">
-                      <span className="relative">
-                        <RadialMoodMenu
-                          moods={moodOptions}
-                          currentMoodEmoji={draftMoodEmoji}
-                          currentMoodLabel={draftMoodLabel}
-                          onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
-                          disabled={saving}
-                        />
-                        <NewFeatureDot className="-right-[-3px]" />
-                      </span>
-                      <span className="inline-flex flex-col leading-tight">
-                        {draftMoodLabel ? (
-                          <>
-                            <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
-                              {draftMoodLabel}
-                            </span>
+                      <span className="inline-flex items-center gap-2 ml-1">
+                        <span className="relative">
+                          <RadialMoodMenu
+                            moods={moodOptions}
+                            currentMoodEmoji={draftMoodEmoji}
+                            currentMoodLabel={draftMoodLabel}
+                            onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
+                            disabled={saving}
+                          />
+                          <NewFeatureDot className="-right-[-3px]" />
+                        </span>
+                        <span className="inline-flex flex-col leading-tight">
+                          {draftMoodLabel ? (
+                            <>
+                              <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
+                                {draftMoodLabel}
+                              </span>
 
-                            <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
-                              hover to change
+                              <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
+                                hover to change
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
+                              pick a mood
                             </span>
+                          )}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Journal content */}
+                  {!isEditing ? (
+                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
+                      {journal ? (
+                        <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                          {journal}
+                        </p>
+                      ) : (
+                        <p className="text-gray-400 dark:text-gray-500 italic text-sm">
+                          No journal entry for this day.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
+                      value={draftJournal}
+                      onChange={(e) => setDraftJournal(e.target.value)}
+                      disabled={saving}
+                      placeholder="Write your thoughts..."
+                    />
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="flex items-center justify-between gap-2 mt-5">
+                    {/* View Insights button (left side) */}
+                    <div>
+                      {isAuthed && userId && !isEditing && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (showInsights) {
+                              setShowInsights(false);
+                              return;
+                            }
+                            setLoadingInsights(true);
+                            setShowInsights(true);
+                            try {
+                              const docRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
+                              const snapshot = await getDoc(docRef);
+                              if (snapshot.exists()) {
+                                const stored = snapshot.data();
+                                if (stored && typeof stored === "object") {
+                                  setDayInsights(stored);
+                                  return;
+                                }
+                              }
+
+                              setDayInsights(null);
+                            } catch (err) {
+                              console.error("Failed to load insights:", err);
+                            } finally {
+                              setLoadingInsights(false);
+                            }
+                          }}
+                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
+                            ? "bg-indigo-600 text-white"
+                            : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
+                            }`}
+                        >
+                          <Sparkles size={14} />
+                          {showInsights ? "Hide Insights" : "View Insights"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Edit/Delete/Save buttons (right side) */}
+                    <div className="flex items-center gap-2">
+                      {!isEditing ? (
+                        hasEntry ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (saving || deleting) return;
+                                setIsEditing(true);
+                                setDraftJournal(journal || "");
+                                setDraftMood(mood);
+                              }}
+                              disabled={!isAuthed || saving || deleting}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                            >
+                              <Pencil size={16} />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (saving || deleting) return;
+                                confirmDeleteTriggerRef.current = document.activeElement;
+                                setConfirmDelete(true);
+                              }}
+                              disabled={!isAuthed || saving || deleting}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
                           </>
                         ) : (
-                          <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
-                            pick a mood
-                          </span>
-                        )}
-                      </span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Journal content */}
-                {!isEditing ? (
-                  <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
-                    {journal ? (
-                      <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                        {journal}
-                      </p>
-                    ) : (
-                      <p className="text-gray-400 dark:text-gray-500 italic text-sm">
-                        No journal entry for this day.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <textarea
-                    className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
-                    value={draftJournal}
-                    onChange={(e) => setDraftJournal(e.target.value)}
-                    disabled={saving}
-                    placeholder="Write your thoughts..."
-                  />
-                )}
-
-                {/* Action buttons */}
-                <div className="flex items-center justify-between gap-2 mt-5">
-                  {/* View Insights button (left side) */}
-                  <div>
-                    {isAuthed && userId && !isEditing && (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (showInsights) {
-                            setShowInsights(false);
-                            return;
-                          }
-                          setLoadingInsights(true);
-                          setShowInsights(true);
-                          try {
-                            const docRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
-                            const snapshot = await getDoc(docRef);
-                            if (snapshot.exists()) {
-                              const stored = snapshot.data();
-                              if (stored && typeof stored === "object") {
-                                setDayInsights(stored);
-                                return;
-                              }
-                            }
-
-                            setDayInsights(null);
-                          } catch (err) {
-                            console.error("Failed to load insights:", err);
-                          } finally {
-                            setLoadingInsights(false);
-                          }
-                        }}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
-                          ? "bg-indigo-600 text-white"
-                          : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
-                          }`}
-                      >
-                        <Sparkles size={14} />
-                        {showInsights ? "Hide Insights" : "View Insights"}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Edit/Delete/Save buttons (right side) */}
-                  <div className="flex items-center gap-2">
-                    {!isEditing ? (
-                      hasEntry ? (
-                        <>
                           <button
                             type="button"
                             onClick={() => {
                               if (saving || deleting) return;
                               setIsEditing(true);
-                              setDraftJournal(journal || "");
+                              setDraftJournal("");
                               setDraftMood(mood);
                             }}
                             disabled={!isAuthed || saving || deleting}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
                           >
                             <Pencil size={16} />
-                            Edit
+                            Write Journal
+                          </button>
+                        )
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                          >
+                            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                            Save
                           </button>
                           <button
                             type="button"
                             onClick={() => {
-                              if (saving || deleting) return;
-                              confirmDeleteTriggerRef.current = document.activeElement;
-                              setConfirmDelete(true);
+                              if (saving) return;
+                              if (hasUnsavedChanges) {
+                                confirmDiscardTriggerRef.current = document.activeElement;
+                                setConfirmDiscard(true);
+                                return;
+                              }
+                              setIsEditing(false);
+                              setDraftJournal("");
+                              setDraftMood(null);
                             }}
-                            disabled={!isAuthed || saving || deleting}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
                           >
-                            <Trash2 size={16} />
-                            Delete
+                            <X size={16} />
+                            Cancel
                           </button>
                         </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (saving || deleting) return;
-                            setIsEditing(true);
-                            setDraftJournal("");
-                            setDraftMood(mood);
-                          }}
-                          disabled={!isAuthed || saving || deleting}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-                        >
-                          <Pencil size={16} />
-                          Write Journal
-                        </button>
-                      )
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleSave}
-                          disabled={saving}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
-                        >
-                          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (saving) return;
-                            if (hasUnsavedChanges) {
-                              confirmDiscardTriggerRef.current = document.activeElement;
-                              setConfirmDiscard(true);
-                              return;
-                            }
-                            setIsEditing(false);
-                            setDraftJournal("");
-                            setDraftMood(null);
-                          }}
-                          disabled={saving}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-100 font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition disabled:opacity-60"
-                        >
-                          <X size={16} />
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Insights & Chat Panel */}
-            {showInsights && (
-              <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'mt-5 pt-5 border-t border-indigo-100 dark:border-slate-700/50'} animate-chat-fade-in`}>
-                {loadingInsights ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 size={24} className="animate-spin text-indigo-400" />
-                    <span className="ml-2 text-sm text-gray-400">Loading insights...</span>
-                  </div>
-                ) : dayInsights ? (
-                  <div className="space-y-4">
-                    {/* Insight summary */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
-                        <MessageCircleMoreIcon size={16} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">
-                          {dayInsights.headline || "Lumi's Thoughts"}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                          {Array.isArray(dayInsights.response)
-                            ? dayInsights.response.join(" ")
-                            : (dayInsights.response || dayInsights.insight)}
-                        </p>
-                      </div>
+                      )}
                     </div>
+                  </div>
+                </>
+              )}
 
-                    {/* Triggers */}
-                    {Array.isArray(dayInsights.triggers) && dayInsights.triggers.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {dayInsights.triggers.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center text-[11px] font-semibold px-2 py-1 rounded-md bg-indigo-50 dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 border border-indigo-100/80 dark:border-slate-700/80"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Follow-up question */}
-                    {dayInsights.followUpQuestion && (
-                      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
-                        <div className="flex items-start gap-2">
-                          <MessageCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
-                          <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">
-                            {dayInsights.followUpQuestion}
+              {/* Insights & Chat Panel */}
+              {showInsights && (
+                <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'mt-5 pt-5 border-t border-indigo-100 dark:border-slate-700/50'} animate-chat-fade-in`}>
+                  {loadingInsights ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 size={24} className="animate-spin text-indigo-400" />
+                      <span className="ml-2 text-sm text-gray-400">Loading insights...</span>
+                    </div>
+                  ) : dayInsights ? (
+                    <div className="space-y-4">
+                      {/* Insight summary */}
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                          <MessageCircleMoreIcon size={16} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                            {dayInsights.headline || "Lumi's Thoughts"}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            {Array.isArray(dayInsights.response)
+                              ? dayInsights.response.join(" ")
+                              : (dayInsights.response || dayInsights.insight)}
                           </p>
                         </div>
                       </div>
-                    )}
 
-                    {/* Chat for this day */}
-                    <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'pt-2'}`}>
-                      <ChatContainer
-                        chatId={`chat_${userId}_${year}_${month}_${day}`}
-                        userId={userId}
-                        journalText={journal}
-                        onFullscreenChange={setChatFullscreen}
-                      />
+                      {/* Triggers */}
+                      {Array.isArray(dayInsights.triggers) && dayInsights.triggers.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {dayInsights.triggers.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center text-[11px] font-semibold px-2 py-1 rounded-md bg-indigo-50 dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 border border-indigo-100/80 dark:border-slate-700/80"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Follow-up question */}
+                      {dayInsights.followUpQuestion && (
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
+                          <div className="flex items-start gap-2">
+                            <MessageCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                            <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                              {dayInsights.followUpQuestion}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Chat for this day */}
+                      <div className={`${chatFullscreen ? 'flex-1 flex flex-col overflow-hidden' : 'pt-2'}`}>
+                        <ChatContainer
+                          chatId={`chat_${userId}_${year}_${month}_${day}`}
+                          userId={userId}
+                          journalText={journal}
+                          onFullscreenChange={setChatFullscreen}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <Sparkles size={24} className="text-gray-300 dark:text-gray-600 mb-2" />
-                    <p className="text-sm text-gray-400 dark:text-gray-500">
-                      No insights generated for this day.
-                    </p>
-                    <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
-                      Write a journal entry and click &ldquo;Ask Lumi&rdquo; to get Lumi&apos;s thoughts.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                      <Sparkles size={24} className="text-gray-300 dark:text-gray-600 mb-2" />
+                      <p className="text-sm text-gray-400 dark:text-gray-500">
+                        No insights generated for this day.
+                      </p>
+                      <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
+                        Write a journal entry and click &ldquo;Ask Lumi&rdquo; to get Lumi&apos;s thoughts.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
