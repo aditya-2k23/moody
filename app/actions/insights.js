@@ -2,6 +2,7 @@
 
 import { redis } from "@/lib/redis";
 import { GoogleGenAI } from "@google/genai";
+import { getAdminAuth } from "@/lib/firebase-admin";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -323,9 +324,22 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
 
 // ===== CORE GENERATOR =====
 
-export async function generateInsight(userId, journalText, forceRegenerate = false) {
-  if (!userId || !journalText?.trim()) {
-    return { success: false, error: "User ID and journal text are required." };
+export async function generateInsight(idToken, journalText, forceRegenerate = false) {
+  if (!idToken) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  let userId;
+  try {
+    const decodedToken = await getAdminAuth().verifyIdToken(idToken);
+    userId = decodedToken.uid;
+  } catch (error) {
+    console.error("[Insights] Token verification failed:", error.message);
+    return { success: false, error: "Invalid or expired session. Please log in again." };
+  }
+
+  if (!journalText?.trim()) {
+    return { success: false, error: "Journal text is required." };
   }
 
   const normalizedJournalText = normalizeEntryText(journalText);

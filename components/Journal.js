@@ -538,9 +538,10 @@ export default function Journal({
     setLoadingInsights(true);
 
     try {
+      const idToken = await currentUser.getIdToken();
       // Call server action with Redis cache-first logic
       // Returns { success, data/error } to avoid Next.js production error sanitization
-      const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
+      const result = await generateInsight(idToken, entry, forceRegenerate);
 
       if (!result.success) {
         const errorMessage = result.error || "Failed to generate insights.";
