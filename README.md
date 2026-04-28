@@ -203,6 +203,9 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
    # Redis Caching (v3.0.0 beta)
    UPSTASH_REDIS_REST_URL=...
    UPSTASH_REDIS_REST_TOKEN=...
+
+   # Demo session signing (recommended)
+   DEMO_SESSION_SECRET=...
    ```
 
 4. **Run the development server:**
