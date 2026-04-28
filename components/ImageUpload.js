@@ -94,10 +94,16 @@ export default function ImageUpload({
     URL.revokeObjectURL(urlToRemove);
     previewUrlsRef.current.delete(urlToRemove);
 
-    onImagesChange?.(
-      selectedImages.filter((_, i) => i !== index),
-      imagePreviews.filter((_, i) => i !== index)
-    );
+    const newSelectedImages = [];
+    const newImagePreviews = [];
+
+    for (let i = 0; i < imagePreviews.length; i++)
+      if (i !== index) {
+        newSelectedImages.push(selectedImages[i]);
+        newImagePreviews.push(imagePreviews[i]);
+      }
+
+    onImagesChange?.(newSelectedImages, newImagePreviews);
   };
 
   const triggerFileSelect = () => {
