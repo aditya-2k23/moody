@@ -14,8 +14,9 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [isRegister, setIsRegister] = useState(initialRegister);
   const [authenticating, setAuthenticating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
-  const { signUp, signIn, signInWithGoogle } = useAuth();
+  const { signUp, signIn, signInWithGoogle, sendPasswordReset } = useAuth();
 
   const handleSubmit = async () => {
     setAuthenticating(true);
@@ -48,6 +49,29 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
       setAuthenticating(false);
     }
   }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email to reset your password.");
+      return;
+    }
+
+    setResettingPassword(true);
+    try {
+      await sendPasswordReset(email);
+      toast.success("Password reset link sent. Check your email.");
+    } catch (error) {
+      if (error.message?.includes("user-not-found")) {
+        toast.error("No account found for this email.");
+      } else if (error.message?.includes("invalid-email")) {
+        toast.error("Please enter a valid email address.");
+      } else {
+        toast.error("Could not send reset email. Please try again.");
+      }
+    } finally {
+      setResettingPassword(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setAuthenticating(true);
@@ -110,6 +134,19 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
             {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
           </button>
         </div>
+
+        {!isRegister && (
+          <div className="w-full max-w-[400px] mx-auto flex justify-end">
+            <button
+              type="button"
+              className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-80 underline disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={handleForgotPassword}
+              disabled={resettingPassword}
+            >
+              {resettingPassword ? "Sending reset link..." : "Forgot password?"}
+            </button>
+          </div>
+        )}
 
         <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
           <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
