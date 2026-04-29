@@ -12,7 +12,13 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
         <div className="h-[4px] flex-1 bg-gradient-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
 
         <button
-          onClick={!hasMemories ? onUploadPrompt : onToggle}
+          onClick={() => {
+            if (!hasMemories) {
+              if (typeof onUploadPrompt === 'function') onUploadPrompt();
+            } else {
+              if (typeof onToggle === 'function') onToggle();
+            }
+          }}
           className={`mx-4 p-2.5 rounded-full shadow-sm border transition-all duration-300
             ${!hasMemories
               ? "bg-indigo-50 dark:bg-slate-800 text-indigo-400 dark:text-indigo-300 border-indigo-200 dark:border-slate-600 hover:bg-indigo-100/80 hover:scale-110"
