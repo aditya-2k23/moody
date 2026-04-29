@@ -61,9 +61,10 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
       await sendPasswordReset(email);
       toast.success("Password reset link sent. Check your email.");
     } catch (error) {
-      if (error.message?.includes("user-not-found")) {
+      const errorCode = typeof error?.code === "string" ? error.code : "";
+      if (errorCode === "auth/user-not-found") {
         toast.error("No account found for this email.");
-      } else if (error.message?.includes("invalid-email")) {
+      } else if (errorCode === "auth/invalid-email") {
         toast.error("Please enter a valid email address.");
       } else {
         toast.error("Could not send reset email. Please try again.");
