@@ -735,11 +735,9 @@ function DashboardContent() {
             const journalSection = document.getElementById("journal-section");
             if (journalSection) {
               journalSection.scrollIntoView({ behavior: "smooth", block: "start" });
-              setTimeout(() => {
-                const fileInput = document.getElementById("journal-image-upload");
-                if (fileInput) fileInput.click();
-              }, 500);
             }
+            const fileInput = document.getElementById("journal-image-upload");
+            if (fileInput) fileInput.click();
           }}
         />
 

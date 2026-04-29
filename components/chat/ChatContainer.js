@@ -269,8 +269,9 @@ export default function ChatContainer({
     const status = Number(error?.status);
     const code = typeof error?.code === "string" ? error.code : "";
     const retryAfter = Number(error?.retryAfter);
+    const isAuthExpired = status === 401 || code === "UNAUTHORIZED" || code === "INVALID_TOKEN";
 
-    if (status === 401 || status === 403 || code === "UNAUTHORIZED" || code === "INVALID_TOKEN") {
+    if (isAuthExpired) {
       return "Your session expired. Please refresh and try again.";
     }
 
@@ -481,7 +482,7 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          const apiError = data.error || data.message || data.retry || "Failed to send message";
+          const apiErrorMessage = data.error || data.message || data.retry || "Failed to send message";
           const apiCode = data.code || null;
 
           if (isDemo && res.status === 403 && apiCode === "DEMO_LIMIT_REACHED") {
@@ -491,7 +492,11 @@ export default function ChatContainer({
             }
           }
 
-          throw new Error(apiError);
+          const apiError = new Error(apiErrorMessage);
+          apiError.status = res.status;
+          apiError.code = data.code;
+          apiError.retryAfter = data.retryAfter;
+          throw apiError;
         }
 
         if (isDemo && capturedToken === sessionRequestIdRef.current) {

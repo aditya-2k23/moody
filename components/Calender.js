@@ -30,6 +30,8 @@ export default function Calender({
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
+  const [insightDates, setInsightDates] = useState(new Set());
+  const [chatDates, setChatDates] = useState(new Set());
   const [lumiDays, setLumiDays] = useState(new Set());
 
   const selectedMonth = monthsArr[selectedMonthIndex];
@@ -42,28 +44,24 @@ export default function Calender({
     const chatsRef = collection(db, "users", currentUser.uid, "chats");
 
     const insightsUnsub = onSnapshot(insightsRef, (snap) => {
-      setLumiDays(prev => {
-        const next = new Set(prev);
-        snap.forEach(doc => next.add(doc.id));
-        return next;
-      });
+      const nextInsightDates = new Set();
+      snap.forEach(doc => nextInsightDates.add(doc.id));
+      setInsightDates(nextInsightDates);
     }, (err) => console.warn("Lumi insights listener err:", err));
 
     const chatsUnsub = onSnapshot(chatsRef, (snap) => {
-      setLumiDays(prev => {
-        const next = new Set(prev);
-        snap.forEach(doc => {
-          const parts = doc.id.split('_');
-          if (parts.length >= 5 && parts[0] === 'chat') {
-            const year = parts[2];
-            const month = Number(parts[3]) + 1;
-            const day = parts[4];
-            const cleanDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            next.add(cleanDate);
-          }
-        });
-        return next;
+      const nextChatDates = new Set();
+      snap.forEach(doc => {
+        const parts = doc.id.split('_');
+        if (parts.length >= 5 && parts[0] === 'chat') {
+          const year = parts[2];
+          const month = Number(parts[3]) + 1;
+          const day = parts[4];
+          const cleanDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          nextChatDates.add(cleanDate);
+        }
       });
+      setChatDates(nextChatDates);
     }, (err) => console.warn("Lumi chats listener err:", err));
 
     return () => {
@@ -71,6 +69,10 @@ export default function Calender({
       chatsUnsub();
     };
   }, [currentUser?.uid, demo]);
+
+  useEffect(() => {
+    setLumiDays(new Set([...insightDates, ...chatDates]));
+  }, [insightDates, chatDates]);
 
   // Sync with externally controlled month/year (e.g. from Memories nav buttons)
   useEffect(() => {
