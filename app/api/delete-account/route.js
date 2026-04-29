@@ -112,14 +112,21 @@ async function deleteRedisData(uid) {
 
   for (const pattern of patterns) {
     try {
-      const keys = await redis.keys(pattern);
-      if (!Array.isArray(keys) || keys.length === 0) {
-        continue;
-      }
+      let cursor = "0";
+      do {
+        // Upstash Redis scan implementation returns [nextCursor, keysArray]
+        const [nextCursor, keys] = await redis.scan(cursor, {
+          match: pattern,
+          count: 100,
+        });
+        cursor = nextCursor;
 
-      for (const key of keys) {
-        await redis.del(key);
-      }
+        if (Array.isArray(keys) && keys.length > 0) {
+          for (const key of keys) {
+            await redis.del(key);
+          }
+        }
+      } while (cursor !== "0" && cursor !== 0);
     } catch (error) {
       console.warn("[Delete Account] Failed to cleanup Redis keys for pattern", pattern, error?.message || error);
     }
@@ -177,11 +184,32 @@ export async function POST(request) {
 
     const memoryPublicIds = await collectMemoryPublicIds(uid);
 
-    await Promise.all([
-      deleteCloudinaryAssets(memoryPublicIds, uid),
-      deleteRedisData(uid),
-      deleteUserFirestoreData(uid),
-    ]);
+    // Sequential deletion to handle dependencies and avoid partial state.
+    // We delete external assets (Cloudinary, Redis) first, then Firestore data, and finally the Auth user.
+    // If external cleanup fails, we log it but continue with the core account deletion (Firestore + Auth).
+
+    try {
+      await deleteCloudinaryAssets(memoryPublicIds, uid);
+    } catch (e) {
+      console.warn("[Delete Account] Memory asset cleanup failed during account deletion:", e);
+    }
+
+    try {
+      await deleteRedisData(uid);
+    } catch (e) {
+      console.warn("[Delete Account] Redis data cleanup failed during account deletion:", e);
+    }
+
+    try {
+      await deleteUserFirestoreData(uid);
+    } catch (e) {
+      console.error("[Delete Account] Critical Firestore data deletion failed:", e);
+      return apiError({
+        status: 500,
+        code: "FIRESTORE_DELETE_FAILED",
+        message: "Failed to delete account data. Please try again or contact support."
+      });
+    }
 
     try {
       await getAdminAuth().deleteUser(uid);
