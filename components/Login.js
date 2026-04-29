@@ -36,11 +36,23 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         return;
       }
 
-      if (!isRegister) {
+      const errorCode = typeof error?.code === "string" ? error.code : "";
+
+      if (isRegister) {
         toast.error(
-          error.message.includes("user-not-found")
+          errorCode === "auth/email-already-in-use"
+            ? "An account already exists for this email."
+            : errorCode === "auth/invalid-email"
+              ? "Please enter a valid email address."
+              : errorCode === "auth/weak-password"
+                ? "Password should be at least 6 characters."
+                : "Registration failed. Please try again."
+        );
+      } else {
+        toast.error(
+          errorCode === "auth/user-not-found"
             ? "User does not exist."
-            : error.message.includes("wrong-password")
+            : errorCode === "auth/wrong-password"
               ? "Incorrect password."
               : "Login failed. Please check your email or password."
         );
