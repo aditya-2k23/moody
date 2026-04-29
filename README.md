@@ -9,7 +9,7 @@ Check it out live at: [https://moody-adi.netlify.app/](https://moody-adi.netlify
 
 Moody is a **minimalistic** and modern mood-tracking web application built with Next.js, React, and Firebase. Designed for simplicity and ease of use, it allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback—all while maintaining a clutter-free, focused experience.
 
-Current release channel: **v3.0.0 (beta)** for the Lumi chatbot experience.
+Current release channel: **v3.0.3** for the Lumi chatbot experience.
 
 ## Table of Contents
 
@@ -34,7 +34,15 @@ Current release channel: **v3.0.0 (beta)** for the Lumi chatbot experience.
 - **Lumi Demo Chat (Landing Experience)**: First-time visitors get a dedicated onboarding conversation tone with a **5-message demo cap** and a clear limit toast before sign-in.
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
-- **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary).
+- **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary) and a robust, sequential account deletion process that cleans up all Redis, Cloudinary, and Firebase records.
+
+### 🆕 Performance & Security Pass (v3.0.3)
+
+- **🚀 Highly Parallel Deletions**: Account removal is now much faster, utilizing parallelized Cloudinary asset destruction and batched Redis key scanning.
+- **🛡️ CI/CD Hardening**: GitHub Action workflows are now pinned to immutable commit SHAs for maximum supply-chain security.
+- **🔒 HMAC-Signed Demo Sessions**: Enhanced unauthenticated chat security with signed session cookies and robust Redis quota management.
+- **⚡ Next.js 16 Ready**: Fully migrated to asynchronous cookie handling and optimized server-side flows.
+- **🩹 Stability Patches**: Fixed various edge cases in focus management, DOM ID collisions, and real-time calendar syncing.
 
 ### 🆕 Chatbot Release (v3.0.0 beta)
 

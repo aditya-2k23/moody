@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [3.0.3] - 2026-04-29
+
+### 🚀 Performance & Scaling
+
+- **Parallel Asset Cleanup**: Optimized account deletion in `app/api/delete-account/route.js` by parallelizing Cloudinary asset destruction using `Promise.allSettled`, significantly reducing the wait time during account removal.
+- **Batched Redis Deletion**: Improved Redis cleanup efficiency during account deletion by using batched `redis.del` commands and larger scan chunks, reducing network overhead.
+- **Optimized State Management**: Refactored `Calender.js` to rebuild state from fresh snapshots instead of appending, preventing stale UI data after deletions.
+
+### 🛡️ Security & Reliability
+
+- **Immutable Actions**: Hardened CI/CD security in `auto-label-jules.yml` by pinning all GitHub Actions to immutable full commit SHAs, protecting against mutable tag risks.
+- **Robust Session Signing**: Implemented HMAC-based signing for demo session IDs to prevent spoofing and ensure quota integrity.
+- **Fail-Safe Quotas**: Added emergency cleanup for Redis demo quota keys; if a TTL failed to set, the key is now deleted to prevent non-expiring records.
+- **Standardized API Responses**: Normalized all Chat API endpoints (`history`, `clear`, `persist`) to use a central `apiError` helper, ensuring consistent error payloads for the frontend.
+
+### 🎨 UI & UX Refinement
+
+- **Collision-Proof Multi-Upload**: Implemented dynamic IDs for journal image inputs, allowing multiple `ImageUpload` instances to coexist without DOM ID collisions.
+- **Standardized Auth Errors**: Migrated login, registration, and password reset flows to use stable Firebase `error.code` instead of fragile `error.message` strings for localized user feedback.
+- **Improved Focus Logic**: Streamlined focus traps in the chat history modal, removing redundant effects and enhancing keyboard navigation reliability.
+- **Password Reset**: Added a dedicated "Forgot Password" flow to the login experience.
+
+### 🐛 Bug Fixes
+
+- **Next.js 16 Compatibility**: Fixed a runtime error in chat routes by correctly `await`-ing the asynchronous `cookies()` API (introduced in Next.js 15 and strictly enforced in v16).
+- **Gesture Persistence**: Fixed a bug where `setTimeout` in the dashboard triggered a "User gesture required" error during file uploads; transitions are now handled synchronously.
+- **Chat Error Mapping**: Added specific handling for `DEMO_LIMIT_REACHED` in `getFriendlyChatError` to show a helpful sign-in nudge instead of a generic error.
+
 ## [3.0.2-beta] - 2026-04-14
 
 ### ✨ Improvements
