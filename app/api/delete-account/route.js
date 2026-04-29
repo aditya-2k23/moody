@@ -113,8 +113,8 @@ async function deleteRedisData(uid) {
 
   const patterns = [
     `chat:chat_${uid}_*`,
-    `rate:*user:${uid}:*`,
-    `rate:*user:${uid}`,
+    `rate:*:${uid}:*`,
+    `rate:*:${uid}`,
   ];
 
   for (const pattern of patterns) {
@@ -203,13 +203,15 @@ export async function POST(request) {
     try {
       await deleteCloudinaryAssets(memoryPublicIds, uid);
     } catch (e) {
-      console.warn("[Delete Account] Memory asset cleanup failed during account deletion:", e);
+      console.error("[Delete Account] Memory asset cleanup failed during account deletion:", e);
+      throw e;
     }
 
     try {
       await deleteRedisData(uid);
     } catch (e) {
-      console.warn("[Delete Account] Redis data cleanup failed during account deletion:", e);
+      console.error("[Delete Account] Redis data cleanup failed during account deletion:", e);
+      throw e;
     }
 
     try {

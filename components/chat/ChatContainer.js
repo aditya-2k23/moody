@@ -47,8 +47,13 @@ export default function ChatContainer({
   const demoCountStorageKey = useMemo(() => {
     if (!isDemo) return null;
     const scopedChatId = chatId || "demo-chat";
-    return `lumi-demo-count:${scopedChatId}:${sessionId}`;
-  }, [isDemo, chatId, sessionId]);
+    let demoSessionId = "fallback-demo-session";
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/(?:^|;\s*)moody_demo_sid=([^;]*)/);
+      if (match) demoSessionId = match[1];
+    }
+    return `lumi-demo-count:${scopedChatId}:${demoSessionId}`;
+  }, [isDemo, chatId]);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);

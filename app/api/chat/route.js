@@ -24,6 +24,10 @@ let demoSecretWarned = false;
 function getDemoSessionSecret() {
   if (process.env.DEMO_SESSION_SECRET) return process.env.DEMO_SESSION_SECRET;
 
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DEMO_SESSION_SECRET must be set in production");
+  }
+
   if (!demoSecretWarned) {
     console.warn("[Chat API] DEMO_SESSION_SECRET is not set; using a temporary in-memory secret.");
     demoSecretWarned = true;
@@ -124,6 +128,8 @@ function extractRetryDelaySeconds(errorMessage) {
 
 export async function POST(req) {
   let demoCookieValueToSet = null;
+  let demoReserved = false;
+  let demoQuotaKey = null;
   const respond = (payload, init) => {
     const response = NextResponse.json(payload, init);
     if (demoCookieValueToSet) {
@@ -217,12 +223,14 @@ export async function POST(req) {
     }
 
     // Enforce per-session demo cap for unauthenticated users.
+    demoQuotaKey = isDemoUser ? `quota:demo:${demoSessionId}` : null;
     if (isDemoUser) {
-      const demoQuotaKey = `quota:demo:${demoSessionId}`;
       try {
         const nextCount = await redis.incr(demoQuotaKey);
+        demoReserved = true;
 
         if (nextCount > DEMO_CHAT_LIMIT) {
+          demoReserved = false;
           try {
             await redis.decr(demoQuotaKey);
           } catch (rollbackError) {
@@ -270,6 +278,9 @@ export async function POST(req) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("[Chat API] GEMINI_API_KEY is missing");
+      if (demoReserved && demoQuotaKey) {
+        try { await redis.decr(demoQuotaKey); } catch(e) {}
+      }
       return respond({ error: "AI service is not configured" }, { status: 500 });
     }
 
@@ -458,28 +469,46 @@ export async function POST(req) {
     if (!result) {
       console.error("[Chat API] All chat models unavailable:", lastModelError?.message || lastModelError);
 
+      if (demoReserved && demoQuotaKey) {
+        try { await redis.decr(demoQuotaKey); } catch(e) {}
+      }
+
       if (sawQuotaError) {
         const retryAfter = extractRetryDelaySeconds(lastModelError?.message || "");
+        const msg = retryAfter
+          ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
+          : "Lumi hit the current Gemini quota. Please try again shortly.";
 
         return respond(
           {
-            error: retryAfter
-              ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
-              : "Lumi hit the current Gemini quota. Please try again shortly.",
+            code: "quota_exceeded",
+            retryAfter: retryAfter || null,
+            message: msg,
+            error: msg,
           },
           { status: 429 }
         );
       }
 
       if (sawRetryableCapacityError) {
+        const msg = "Lumi is experiencing high demand right now. Please try again in a few moments.";
         return respond(
-          { error: "Lumi is experiencing high demand right now. Please try again in a few moments." },
+          { 
+            code: "high_capacity",
+            message: msg,
+            error: msg,
+          },
           { status: 503 }
         );
       }
 
+      const msg = "Lumi is temporarily unavailable right now. Please try again shortly.";
       return respond(
-        { error: "Lumi is temporarily unavailable right now. Please try again shortly." },
+        { 
+          code: "unavailable",
+          message: msg,
+          error: msg,
+        },
         { status: 503 }
       );
     }
@@ -578,6 +607,9 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("[Chat API] Error:", error);
+    if (demoReserved && demoQuotaKey) {
+      try { await redis.decr(demoQuotaKey); } catch(e) {}
+    }
     return respond({ error: "Internal server error" }, { status: 500 });
 
   }
