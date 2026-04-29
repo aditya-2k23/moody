@@ -123,21 +123,22 @@ function extractRetryDelaySeconds(errorMessage) {
 }
 
 export async function POST(req) {
+  let demoCookieValueToSet = null;
+  const respond = (payload, init) => {
+    const response = NextResponse.json(payload, init);
+    if (demoCookieValueToSet) {
+      response.cookies.set(DEMO_SESSION_COOKIE, demoCookieValueToSet, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: DEMO_SESSION_TTL_SECONDS,
+      });
+    }
+    return response;
+  };
+
   try {
-    let demoCookieValueToSet = null;
-    const respond = (payload, init) => {
-      const response = NextResponse.json(payload, init);
-      if (demoCookieValueToSet) {
-        response.cookies.set(DEMO_SESSION_COOKIE, demoCookieValueToSet, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: DEMO_SESSION_TTL_SECONDS,
-        });
-      }
-      return response;
-    };
 
     let body;
     try {
@@ -205,7 +206,7 @@ export async function POST(req) {
     let demoSessionId = null;
     if (isDemoUser) {
       const secret = getDemoSessionSecret();
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       const cookieValue = cookieStore.get(DEMO_SESSION_COOKIE)?.value;
       const parsedDemoSessionId = parseDemoSessionId(cookieValue, secret);
 
