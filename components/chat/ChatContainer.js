@@ -228,6 +228,10 @@ export default function ChatContainer({
       return "Message too long. Please keep it shorter and try again.";
     }
 
+    if (status === 403 && code === "DEMO_LIMIT_REACHED") {
+      return "Demo limit reached. Sign in to continue chatting with Lumi! 🌟";
+    }
+
     if (status === 429 || code === "RATE_LIMITED" || code === "AI_QUOTA_EXCEEDED") {
       if (Number.isFinite(retryAfter) && retryAfter > 0) {
         return `Lumi is busy right now. Please try again in about ${Math.ceil(retryAfter)}s.`;

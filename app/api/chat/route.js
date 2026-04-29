@@ -218,11 +218,6 @@ export async function POST(req) {
 
     // Enforce per-session demo cap for unauthenticated users.
     if (isDemoUser) {
-      if (!demoSessionId) {
-        demoSessionId = crypto.randomUUID();
-        demoCookieValueToSet = buildDemoSessionCookieValue(demoSessionId, getDemoSessionSecret());
-      }
-
       const demoQuotaKey = `quota:demo:${demoSessionId}`;
       try {
         const nextCount = await redis.incr(demoQuotaKey);
@@ -248,7 +243,17 @@ export async function POST(req) {
 
         // Start the quota window when the key is first created.
         if (nextCount === 1) {
-          await redis.expire(demoQuotaKey, DEMO_SESSION_TTL_SECONDS);
+          try {
+            await redis.expire(demoQuotaKey, DEMO_SESSION_TTL_SECONDS);
+          } catch (expireError) {
+            console.error("[Chat API] Failed to set expiry for demo quota key", demoQuotaKey, expireError);
+            // Cleanup: delete the key so it doesn't linger forever without an expiry
+            try {
+              await redis.del(demoQuotaKey);
+            } catch (delError) {
+              console.error("[Chat API] Emergency cleanup failed for non-expiring demo quota", delError);
+            }
+          }
         }
       } catch (e) {
         console.error("[Chat API] Demo quota verification failed; denying request", e);

@@ -82,12 +82,19 @@ async function deleteCloudinaryAssets(publicIds, uid) {
     return;
   }
 
-  for (const publicId of publicIds) {
-    try {
-      await cloudinary.uploader.destroy(publicId);
-    } catch (error) {
-      console.warn("[Delete Account] Failed to delete Cloudinary asset:", publicId, error?.message || error);
-    }
+  // Delete specific assets in parallel
+  if (publicIds.length > 0) {
+    const results = await Promise.allSettled(
+      publicIds.map(id => cloudinary.uploader.destroy(id))
+    );
+
+    results.forEach((result, idx) => {
+      if (result.status === "rejected") {
+        console.warn("[Delete Account] Failed to delete Cloudinary asset:", publicIds[idx], result.reason?.message || result.reason);
+      } else if (result.value?.result !== "ok") {
+        console.warn("[Delete Account] Unexpected result deleting asset:", publicIds[idx], result.value);
+      }
+    });
   }
 
   try {
@@ -113,20 +120,25 @@ async function deleteRedisData(uid) {
   for (const pattern of patterns) {
     try {
       let cursor = "0";
+      let totalDeleted = 0;
       do {
         // Upstash Redis scan implementation returns [nextCursor, keysArray]
         const [nextCursor, keys] = await redis.scan(cursor, {
           match: pattern,
-          count: 100,
+          count: 500,
         });
         cursor = nextCursor;
 
         if (Array.isArray(keys) && keys.length > 0) {
-          for (const key of keys) {
-            await redis.del(key);
-          }
+          // Batch delete keys found in this scan chunk
+          await redis.del(...keys);
+          totalDeleted += keys.length;
         }
       } while (cursor !== "0" && cursor !== 0);
+
+      if (totalDeleted > 0) {
+        console.log(`[Delete Account] Cleaned up ${totalDeleted} keys for pattern: ${pattern}`);
+      }
     } catch (error) {
       console.warn("[Delete Account] Failed to cleanup Redis keys for pattern", pattern, error?.message || error);
     }
