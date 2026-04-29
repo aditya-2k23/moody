@@ -11,11 +11,11 @@ export async function POST(req) {
 
     // Validate sessionId: string, non-empty, max 256 chars, no control/newline characters
     if (!isValidSessionId(sessionId)) {
-      return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
+      return apiError({ status: 400, code: "INVALID_SESSION", message: "Invalid sessionId" });
     }
 
     if (!chatId) {
-      return NextResponse.json({ error: "Missing required field: chatId" }, { status: 400 });
+      return apiError({ status: 400, code: "MISSING_CHAT_ID", message: "Missing required field: chatId" });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -33,7 +33,7 @@ export async function POST(req) {
         decodedToken = { uid: "demo-user", isDemo: true };
       } else {
         console.error("[Clear Chat API] Token verification failed:", error);
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
       }
     }
 
@@ -45,7 +45,7 @@ export async function POST(req) {
     }
 
     if (!isChatIdScopedToUser(chatId, uid)) {
-      return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+      return apiError({ status: 403, code: "INVALID_CHAT_SCOPE", message: "Invalid chat scope" });
     }
 
     if (isDemoUser) {

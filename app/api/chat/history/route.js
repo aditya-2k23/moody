@@ -10,12 +10,12 @@ export async function GET(req) {
     const userId = searchParams.get("userId");
 
     if (!chatId || !userId) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+      return apiError({ status: 400, code: "BAD_REQUEST", message: "Missing parameters" });
     }
 
     // Preliminary validation: chatId should follow the scoped pattern even if we haven't verified the token yet
     if (!isChatIdScopedToUser(chatId, userId)) {
-      return NextResponse.json({ error: "Invalid chatId" }, { status: 400 });
+      return apiError({ status: 400, code: "INVALID_CHAT_ID", message: "Invalid chatId" });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -33,12 +33,12 @@ export async function GET(req) {
         decodedToken = { uid: "demo-user", isDemo: true };
       } else {
         console.error("[Chat History API] Token verification failed:", error);
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
       }
     }
 
     if (decodedToken.uid !== userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return apiError({ status: 403, code: "FORBIDDEN", message: "Forbidden" });
     }
 
     // After verification, we check if it's a demo user to return empty history as before
