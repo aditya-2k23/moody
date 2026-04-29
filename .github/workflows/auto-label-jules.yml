@@ -23,7 +23,7 @@ jobs:
             let labels = ['jules'];
             let number;
 
-            if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+            if (context.eventName === 'pull_request_target') {
               const branchName = context.payload.pull_request.head.ref;
               const author = context.payload.pull_request.user.login;
               number = context.payload.pull_request.number;
