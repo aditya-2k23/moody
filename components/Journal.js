@@ -7,6 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
+import { journalPlaceholders } from "@/utils";
 import { uploadToCloudinary, getCloudinaryUploadSignature } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";

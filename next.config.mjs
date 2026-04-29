@@ -5,7 +5,6 @@ const nextConfig = {
   output: "standalone",
 
   experimental: {
-    turbopackUseSystemTlsCerts: true,
   },
 
   productionBrowserSourceMaps: false,
