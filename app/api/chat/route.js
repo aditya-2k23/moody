@@ -1,8 +1,11 @@
 import { redis } from "@/lib/redis";
+import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId, isValidString } from "@/lib/validation";
 import { DEMO_CHAT_LIMIT } from "@/utils";
+import crypto from "node:crypto";
 import { GoogleGenAI } from "@google/genai";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 const HISTORY_LIMIT = 20;
@@ -13,6 +16,55 @@ const CHAT_MODEL_CHAIN = [
   "gemini-2.5-flash-lite",
 ];
 
+const DEMO_SESSION_COOKIE = "moody_demo_sid";
+const DEMO_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
+const FALLBACK_DEMO_SESSION_SECRET = crypto.randomBytes(32).toString("base64url");
+let demoSecretWarned = false;
+
+function getDemoSessionSecret() {
+  if (process.env.DEMO_SESSION_SECRET) return process.env.DEMO_SESSION_SECRET;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DEMO_SESSION_SECRET must be set in production");
+  }
+
+  if (!demoSecretWarned) {
+    console.warn("[Chat API] DEMO_SESSION_SECRET is not set; using a temporary in-memory secret.");
+    demoSecretWarned = true;
+  }
+
+  return FALLBACK_DEMO_SESSION_SECRET;
+}
+
+function signDemoSessionId(sessionId, secret) {
+  return crypto.createHmac("sha256", secret).update(sessionId).digest("base64url");
+}
+
+function safeTimingEqual(a, b) {
+  if (!a || !b) return false;
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  if (aBuffer.length !== bBuffer.length) return false;
+  return crypto.timingSafeEqual(aBuffer, bBuffer);
+}
+
+function parseDemoSessionId(cookieValue, secret) {
+  if (!cookieValue) return null;
+  const parts = cookieValue.split(".");
+  if (parts.length !== 2) return null;
+
+  const [sessionId, signature] = parts;
+  if (!isValidSessionId(sessionId)) return null;
+
+  const expected = signDemoSessionId(sessionId, secret);
+  if (!safeTimingEqual(signature, expected)) return null;
+
+  return sessionId;
+}
+
+function buildDemoSessionCookieValue(sessionId, secret) {
+  return `${sessionId}.${signDemoSessionId(sessionId, secret)}`;
+}
 
 function isRetryableModelError(error) {
   const msg = (error?.message || "").toLowerCase();
@@ -75,31 +127,49 @@ function extractRetryDelaySeconds(errorMessage) {
 }
 
 export async function POST(req) {
+  let demoCookieValueToSet = null;
+  let demoReserved = false;
+  let demoQuotaKey = null;
+  const respond = (payload, init) => {
+    const response = NextResponse.json(payload, init);
+    if (demoCookieValueToSet) {
+      response.cookies.set(DEMO_SESSION_COOKIE, demoCookieValueToSet, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: DEMO_SESSION_TTL_SECONDS,
+      });
+    }
+    return response;
+  };
+
   try {
+
     let body;
     try {
       body = await req.json();
     } catch (e) {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return respond({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     const { chatId, userId: requestedUserId, message, journalText, sessionId = "default" } = body;
 
     // Validate types and content
     if (!isValidString(chatId, { min: 8, max: 200 })) {
-      return NextResponse.json({ error: "Invalid or missing field: chatId (must be string 8-200 chars)" }, { status: 400 });
+      return respond({ error: "Invalid or missing field: chatId (must be string 8-200 chars)" }, { status: 400 });
     }
     if (!isValidString(message, { min: 1, max: 2000 })) {
-      return NextResponse.json({ error: "Invalid or missing field: message (must be string 1-2000 chars)" }, { status: 400 });
+      return respond({ error: "Invalid or missing field: message (must be string 1-2000 chars)" }, { status: 400 });
     }
     if (requestedUserId && typeof requestedUserId !== "string") {
-      return NextResponse.json({ error: "Invalid field: userId (must be string)" }, { status: 400 });
+      return respond({ error: "Invalid field: userId (must be string)" }, { status: 400 });
     }
     if (journalText && !isValidString(journalText, { min: 0, max: 10000 })) {
-      return NextResponse.json({ error: "Invalid field: journalText (max 10000 chars)" }, { status: 400 });
+      return respond({ error: "Invalid field: journalText (max 10000 chars)" }, { status: 400 });
     }
     if (!isValidSessionId(sessionId)) {
-      return NextResponse.json({ error: "Invalid field: sessionId (must be 1-256 chars, no special control chars)" }, { status: 400 });
+      return respond({ error: "Invalid field: sessionId (must be 1-256 chars, no special control chars)" }, { status: 400 });
     }
 
     const authHeader = req.headers.get("authorization");
@@ -119,7 +189,7 @@ export async function POST(req) {
         effectiveUserId = decodedToken.uid;
       } catch (error) {
         console.error("[Chat API] Token verification failed:", error);
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        return respond({ error: "Invalid token" }, { status: 401 });
       }
     } else {
       // If no token is provided, check if client requested demo access
@@ -127,32 +197,47 @@ export async function POST(req) {
         isDemoUser = true;
         effectiveUserId = "demo-user";
       } else {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return respond({ error: "Unauthorized" }, { status: 401 });
       }
     }
 
     if (requestedUserId && requestedUserId !== "demo-user" && requestedUserId !== effectiveUserId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return respond({ error: "Forbidden" }, { status: 403 });
     }
 
     if (!isDemoUser && !isChatIdScopedToUser(chatId, effectiveUserId)) {
-      return NextResponse.json({ error: "Invalid chat scope" }, { status: 403 });
+      return respond({ error: "Invalid chat scope" }, { status: 403 });
+    }
+
+    let demoSessionId = null;
+    if (isDemoUser) {
+      const secret = getDemoSessionSecret();
+      const cookieStore = await cookies();
+      const cookieValue = cookieStore.get(DEMO_SESSION_COOKIE)?.value;
+      const parsedDemoSessionId = parseDemoSessionId(cookieValue, secret);
+
+      demoSessionId = parsedDemoSessionId || crypto.randomUUID();
+      if (!parsedDemoSessionId) {
+        demoCookieValueToSet = buildDemoSessionCookieValue(demoSessionId, secret);
+      }
     }
 
     // Enforce per-session demo cap for unauthenticated users.
+    demoQuotaKey = isDemoUser ? `quota:demo:${demoSessionId}` : null;
     if (isDemoUser) {
-      const demoQuotaKey = `quota:demo:${effectiveUserId}:${chatId}:${sessionId}`;
       try {
         const nextCount = await redis.incr(demoQuotaKey);
+        demoReserved = true;
 
         if (nextCount > DEMO_CHAT_LIMIT) {
+          demoReserved = false;
           try {
             await redis.decr(demoQuotaKey);
           } catch (rollbackError) {
             console.error("[Chat API] Demo quota rollback failed after limit exceed", rollbackError);
           }
 
-          return NextResponse.json(
+          return respond(
             {
               error: "Demo limit reached. Please sign in to continue chatting with Lumi! 🌟",
               code: "DEMO_LIMIT_REACHED",
@@ -166,11 +251,21 @@ export async function POST(req) {
 
         // Start the quota window when the key is first created.
         if (nextCount === 1) {
-          await redis.expire(demoQuotaKey, 7 * 24 * 60 * 60);
+          try {
+            await redis.expire(demoQuotaKey, DEMO_SESSION_TTL_SECONDS);
+          } catch (expireError) {
+            console.error("[Chat API] Failed to set expiry for demo quota key", demoQuotaKey, expireError);
+            // Cleanup: delete the key so it doesn't linger forever without an expiry
+            try {
+              await redis.del(demoQuotaKey);
+            } catch (delError) {
+              console.error("[Chat API] Emergency cleanup failed for non-expiring demo quota", delError);
+            }
+          }
         }
       } catch (e) {
         console.error("[Chat API] Demo quota verification failed; denying request", e);
-        return NextResponse.json(
+        return respond(
           {
             error: "Demo chat is temporarily unavailable. Please try again in a moment.",
             code: "DEMO_QUOTA_UNAVAILABLE",
@@ -183,7 +278,10 @@ export async function POST(req) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("[Chat API] GEMINI_API_KEY is missing");
-      return NextResponse.json({ error: "AI service is not configured" }, { status: 500 });
+      if (demoReserved && demoQuotaKey) {
+        try { await redis.decr(demoQuotaKey); } catch(e) {}
+      }
+      return respond({ error: "AI service is not configured" }, { status: 500 });
     }
 
     const redisKey = `chat:${chatId}:${sessionId}`;
@@ -371,27 +469,46 @@ export async function POST(req) {
     if (!result) {
       console.error("[Chat API] All chat models unavailable:", lastModelError?.message || lastModelError);
 
+      if (demoReserved && demoQuotaKey) {
+        try { await redis.decr(demoQuotaKey); } catch(e) {}
+      }
+
       if (sawQuotaError) {
         const retryAfter = extractRetryDelaySeconds(lastModelError?.message || "");
-        return NextResponse.json(
+        const msg = retryAfter
+          ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
+          : "Lumi hit the current Gemini quota. Please try again shortly.";
+
+        return respond(
           {
-            error: retryAfter
-              ? `Lumi hit the current Gemini quota. Please retry in about ${retryAfter} seconds.`
-              : "Lumi hit the current Gemini quota. Please try again shortly.",
+            code: "quota_exceeded",
+            retryAfter: retryAfter || null,
+            message: msg,
+            error: msg,
           },
           { status: 429 }
         );
       }
 
       if (sawRetryableCapacityError) {
-        return NextResponse.json(
-          { error: "Lumi is experiencing high demand right now. Please try again in a few moments." },
+        const msg = "Lumi is experiencing high demand right now. Please try again in a few moments.";
+        return respond(
+          { 
+            code: "high_capacity",
+            message: msg,
+            error: msg,
+          },
           { status: 503 }
         );
       }
 
-      return NextResponse.json(
-        { error: "Lumi is temporarily unavailable right now. Please try again shortly." },
+      const msg = "Lumi is temporarily unavailable right now. Please try again shortly.";
+      return respond(
+        { 
+          code: "unavailable",
+          message: msg,
+          error: msg,
+        },
         { status: 503 }
       );
     }
@@ -486,10 +603,14 @@ export async function POST(req) {
     }
 
     // 6. Return response
-    return NextResponse.json({ reply: replyBubbles });
+    return respond({ reply: replyBubbles });
 
   } catch (error) {
     console.error("[Chat API] Error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (demoReserved && demoQuotaKey) {
+      try { await redis.decr(demoQuotaKey); } catch(e) {}
+    }
+    return respond({ error: "Internal server error" }, { status: 500 });
+
   }
 }

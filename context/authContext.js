@@ -1,7 +1,7 @@
 "use client";
 
 import { auth, db } from "@/firebase";
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 
@@ -33,6 +33,10 @@ export function AuthProvider({ children }) {
   function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
+  }
+
+  function sendPasswordReset(email) {
+    return sendPasswordResetEmail(auth, email);
   }
 
   useEffect(() => {
@@ -70,6 +74,7 @@ export function AuthProvider({ children }) {
     signIn,
     logOut,
     signInWithGoogle,
+    sendPasswordReset,
     loading
   };
 

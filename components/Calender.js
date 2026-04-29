@@ -1,7 +1,9 @@
 "use client";
 
-import convertMood, { baseRating, gradients, months, dayList } from "@/utils";
+import { baseRating, gradients, months, dayList } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebase";
 import Button from "./Button";
 import JournalModal from "./JournalModal";
 import { Calendar, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
@@ -23,17 +25,60 @@ export default function Calender({
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  const [selectedMonth, setSelectedMonth] = useState(monthsArr[currentMonth]);
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState("");
   const [selectedMood, setSelectedMood] = useState(null);
+  const [insightDates, setInsightDates] = useState(new Set());
+  const [chatDates, setChatDates] = useState(new Set());
+  const [lumiDays, setLumiDays] = useState(new Set());
+
+  const selectedMonth = monthsArr[selectedMonthIndex];
+
+  // Real-time listener for Lumi/Insight activity
+  useEffect(() => {
+    if (!currentUser?.uid || demo) return;
+
+    const insightsRef = collection(db, "users", currentUser.uid, "insights");
+    const chatsRef = collection(db, "users", currentUser.uid, "chats");
+
+    const insightsUnsub = onSnapshot(insightsRef, (snap) => {
+      const nextInsightDates = new Set();
+      snap.forEach(doc => nextInsightDates.add(doc.id));
+      setInsightDates(nextInsightDates);
+    }, (err) => console.warn("Lumi insights listener err:", err));
+
+    const chatsUnsub = onSnapshot(chatsRef, (snap) => {
+      const nextChatDates = new Set();
+      snap.forEach(doc => {
+        const parts = doc.id.split('_');
+        if (parts.length >= 5 && parts[0] === 'chat') {
+          const year = parts[2];
+          const month = Number(parts[3]) + 1;
+          const day = parts[4];
+          const cleanDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          nextChatDates.add(cleanDate);
+        }
+      });
+      setChatDates(nextChatDates);
+    }, (err) => console.warn("Lumi chats listener err:", err));
+
+    return () => {
+      insightsUnsub();
+      chatsUnsub();
+    };
+  }, [currentUser?.uid, demo]);
+
+  useEffect(() => {
+    setLumiDays(new Set([...insightDates, ...chatDates]));
+  }, [insightDates, chatDates]);
 
   // Sync with externally controlled month/year (e.g. from Memories nav buttons)
   useEffect(() => {
     if (controlledYear != null && controlledMonth != null) {
       setSelectedYear(controlledYear);
-      setSelectedMonth(monthsArr[controlledMonth]);
+      setSelectedMonthIndex(controlledMonth);
       // If a day is selected, clamp to new month's range; journal/mood synced by other effect
       if (selectedDay) {
         const newDaysInMonth = new Date(controlledYear, controlledMonth + 1, 0).getDate();
@@ -45,10 +90,9 @@ export default function Calender({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controlledYear, controlledMonth]);
 
-  const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = useMemo(() => {
-    return completeData?.[selectedYear]?.[numericMonth] || {};
-  }, [completeData, selectedYear, numericMonth]);
+    return completeData?.[selectedYear]?.[selectedMonthIndex] || {};
+  }, [completeData, selectedYear, selectedMonthIndex]);
 
   const isAuthed = !!currentUser?.uid;
 
@@ -64,7 +108,7 @@ export default function Calender({
   }, [data, selectedDay]);
 
   // Check if we're at the current month (can't go forward)
-  const isAtCurrentMonth = selectedYear === currentYear && numericMonth === currentMonth;
+  const isAtCurrentMonth = selectedYear === currentYear && selectedMonthIndex === currentMonth;
 
   function handleIncrementMonth(val) {
     // Block navigation to future months
@@ -73,7 +117,7 @@ export default function Calender({
     }
 
     let newYear = selectedYear;
-    let newMonthIndex = numericMonth + val;
+    let newMonthIndex = selectedMonthIndex + val;
 
     // if we hit the bounds of the months, then we can just adjust the year that is displayed instead
     if (newMonthIndex < 0) {
@@ -81,7 +125,7 @@ export default function Calender({
       newYear = selectedYear - 1;
       newMonthIndex = 11;
       setSelectedYear(newYear);
-      setSelectedMonth(monthsArr[11]);
+      setSelectedMonthIndex(11);
     } else if (newMonthIndex > 11) {
       // Would go to next year - check if that's in the future
       if (selectedYear + 1 > currentYear) {
@@ -90,13 +134,13 @@ export default function Calender({
       newYear = selectedYear + 1;
       newMonthIndex = 0;
       setSelectedYear(newYear);
-      setSelectedMonth(monthsArr[0]);
+      setSelectedMonthIndex(0);
     } else {
       // Check if the new month would be in the future
       if (newYear === currentYear && newMonthIndex > currentMonth) {
         return; // Block future month navigation
       }
-      setSelectedMonth(monthsArr[newMonthIndex]);
+      setSelectedMonthIndex(newMonthIndex);
     }
 
     // If a day is selected, clamp it to the new month's range so the modal
@@ -115,9 +159,9 @@ export default function Calender({
     }
   }
 
-  const monthNow = new Date(selectedYear, monthsArr.indexOf(selectedMonth), 1);
+  const monthNow = new Date(selectedYear, selectedMonthIndex, 1);
   const firstDayOfMonth = monthNow.getDay();
-  const daysInMonth = new Date(selectedYear, monthsArr.indexOf(selectedMonth) + 1, 0).getDate();
+  const daysInMonth = new Date(selectedYear, selectedMonthIndex + 1, 0).getDate();
 
   const daysToDisplay = firstDayOfMonth + daysInMonth;
   const numRows = (Math.floor(daysToDisplay / 7)) + (daysToDisplay % 7 ? 1 : 0);
@@ -135,7 +179,7 @@ export default function Calender({
         <JournalModal
           isOpen={!!selectedDay}
           day={selectedDay}
-          month={numericMonth}
+          month={selectedMonthIndex}
           monthName={selectedMonth}
           year={selectedYear}
           mood={selectedMood}
@@ -218,7 +262,7 @@ export default function Calender({
               }
 
               // Check if this day is today
-              let isToday = dayIndex === now.getDate() && numericMonth === currentMonth && selectedYear === currentYear;
+              let isToday = dayIndex === now.getDate() && selectedMonthIndex === currentMonth && selectedYear === currentYear;
 
               // Determine the background color based on mood data
               let backgroundColor = "transparent"; // Default color
@@ -266,25 +310,27 @@ export default function Calender({
               let isSelected = (dayIndex === selectedDay);
 
               // Check if this date is in the future
-              const isFutureDay = (selectedYear === currentYear && numericMonth === currentMonth && dayIndex > now.getDate()) ||
-                (selectedYear === currentYear && numericMonth > currentMonth) ||
+              const isFutureDay = (selectedYear === currentYear && selectedMonthIndex === currentMonth && dayIndex > now.getDate()) ||
+                (selectedYear === currentYear && selectedMonthIndex > currentMonth) ||
                 (selectedYear > currentYear);
 
               const hasJournal = !!data[`journal_${dayIndex}`];
+              const dateString = `${selectedYear}-${String(selectedMonthIndex + 1).padStart(2, '0')}-${String(dayIndex).padStart(2, '0')}`;
+              const hasLumiActivity = lumiDays.has(dateString);
 
-              return (
+              const innerContent = (
                 <div
                   style={{ background: backgroundColor !== "transparent" ? backgroundColor : undefined }}
                   className={`
                     text-xs sm:text-sm border border-solid p-1.5 sm:p-2 rounded-lg
-                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between
+                    flex flex-col sm:flex-row items-center sm:gap-2 sm:justify-between h-full w-full
                     ${isFutureDay ? "cursor-not-allowed opacity-40" : "cursor-pointer"}
                     ${isToday ? "border-indigo-500 dark:border-indigo-400" : "border-indigo-100 dark:border-slate-700"}
-                    ${isSelected && !isFutureDay ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
+                    ${isSelected && !isFutureDay && !hasLumiActivity ? "ring-2 ring-indigo-600 dark:ring-indigo-400" : ""}
                     ${backgroundColor === "transparent" ? "bg-white dark:bg-slate-800" : backgroundColor}
                     ${textColor}
+                    ${hasLumiActivity ? "border-transparent dark:border-transparent" : ""}
                   `}
-                  key={dayOfWeekIndex}
                   onClick={() => {
                     if (isFutureDay) return; // Block click on future dates
 
@@ -315,6 +361,18 @@ export default function Calender({
                       )}
                     </div>
                   )}
+                </div>
+              );
+
+              return (
+                <div
+                  key={dayOfWeekIndex}
+                  className={`relative flex rounded-xl transition duration-300 ${hasLumiActivity ? "rainbow-border" : ""}
+                  ${isSelected && hasLumiActivity && !isFutureDay
+                      ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900"
+                      : ""
+                    }`}>
+                  {innerContent}
                 </div>
               )
             })}

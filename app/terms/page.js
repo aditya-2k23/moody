@@ -2,7 +2,7 @@
 import LandingFooter from "@/components/landing/LandingFooter";
 import { ShieldAlert, AlignLeft, ChevronDown, ChevronUp, Link } from "lucide-react";
 import { useState, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function TermsOfService() {
   const [activeSection, setActiveSection] = useState("intro");
@@ -114,7 +114,6 @@ export default function TermsOfService() {
 
   return (
     <main className="flex-1 flex flex-col w-full relative">
-      <Toaster position="bottom-right" />
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-4 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}

@@ -120,7 +120,6 @@ class Media {
     img.crossOrigin = "anonymous";
     img.src = this.image;
     img.onerror = () => {
-      console.error(`Failed to load image: ${this.image}`);
       // Don't update uImageSizes or call fadeIn for failed images
     };
     img.onload = () => {

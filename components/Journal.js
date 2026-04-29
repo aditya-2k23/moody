@@ -7,6 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateInsight } from "@/app/actions/insights";
 import { getJournalPlaceholder } from "@/utils/generatePlaceholder";
+import { journalPlaceholders } from "@/utils";
 import { uploadToCloudinary, getCloudinaryUploadSignature } from "@/utils/cloudinary";
 import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
@@ -15,7 +16,6 @@ import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
-import { journalPlaceholders } from "@/utils/generatePlaceholder";
 
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -34,12 +34,14 @@ export default function Journal({
   onGuestTextChange,
   autoGenerateInsights,
   onInsightsAutoTriggered,
+  imageInputId = "journal-image-upload",
 }) {
   const isGuest = mode === "guest";
   const [entry, setEntry] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
 
   const insightsRef = useRef(null);
   const textareaRef = useRef(null);
@@ -217,7 +219,6 @@ export default function Journal({
       onJournalSavedRef.current?.(entry);
       return true;
     } catch (error) {
-      console.error("Auto-save error:", error);
       return false;
     }
   }, [entry, currentUser, isGuest]);
@@ -514,7 +515,6 @@ export default function Journal({
         toast.success("Journal entry saved!");
       }
     } catch (error) {
-      console.error("Save error:", error);
       toast.error("Failed to save. Please try again.");
       setCloudStatus("idle");
     } finally {
@@ -545,19 +545,24 @@ export default function Journal({
       return;
     }
 
+    setInsightsError("");
     setLoadingInsights(true);
 
     try {
+      const idToken = await currentUser.getIdToken();
       // Call server action with Redis cache-first logic
       // Returns { success, data/error } to avoid Next.js production error sanitization
-      const result = await generateInsight(currentUser.uid, entry, forceRegenerate);
+      const result = await generateInsight(idToken, entry, forceRegenerate);
 
       if (!result.success) {
-        toast.error(result.error || "Failed to generate insights.");
+        const errorMessage = result.error || "Failed to generate insights.";
+        setInsightsError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
 
       setInsights(result.data);
+      setInsightsError("");
 
       // Scroll to insights section after a short delay to ensure DOM is updated
       setTimeout(() => {
@@ -575,6 +580,7 @@ export default function Journal({
       }
     } catch (error) {
       console.error("Error generating insights:", error);
+      setInsightsError("Failed to generate insights. Please try again.");
       toast.error("Failed to generate insights. Please try again.");
     } finally {
       setLoadingInsights(false);
@@ -582,7 +588,7 @@ export default function Journal({
   };
 
   return (
-    <div className="py-4 flex flex-col gap-6">
+    <div id="journal-section" className="py-4 flex flex-col gap-6">
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
         <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
@@ -685,6 +691,7 @@ export default function Journal({
               onImagesChange={handleImagesChange}
               disabled={saving || uploading}
               className="bottom-4 right-3.5"
+              inputId={imageInputId}
             />
           )}
         </div>
@@ -719,7 +726,14 @@ export default function Journal({
 
       {/* AI Insights Section */}
       <div ref={insightsRef} className="scroll-mt-10">
-        <AIInsightsSection insights={insights} isLoading={loadingInsights} userId={currentUser?.uid} journalText={entry} />
+        <AIInsightsSection
+          insights={insights}
+          isLoading={loadingInsights}
+          userId={currentUser?.uid}
+          journalText={entry}
+          errorMessage={insightsError}
+          onRetry={() => handleGenerateInsights(true)}
+        />
       </div>
     </div>
   );

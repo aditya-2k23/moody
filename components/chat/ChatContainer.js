@@ -39,14 +39,21 @@ export default function ChatContainer({
   const chatContentRef = useRef(null);
   const historyModalBackdropRef = useRef(null);
   const historyModalContentRef = useRef(null);
+  const historyTriggerRef = useRef(null);
+  const historyTitleId = "chat-history-modal-title";
   const sessionRequestIdRef = useRef(0);
   const demoLimitToastShownRef = useRef(false);
 
   const demoCountStorageKey = useMemo(() => {
     if (!isDemo) return null;
     const scopedChatId = chatId || "demo-chat";
-    return `lumi-demo-count:${scopedChatId}:${sessionId}`;
-  }, [isDemo, chatId, sessionId]);
+    let demoSessionId = "fallback-demo-session";
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/(?:^|;\s*)moody_demo_sid=([^;]*)/);
+      if (match) demoSessionId = match[1];
+    }
+    return `lumi-demo-count:${scopedChatId}:${demoSessionId}`;
+  }, [isDemo, chatId]);
 
   const requestHistoryRefresh = useCallback(() => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -86,18 +93,74 @@ export default function ChatContainer({
           opacity: 0,
           duration: 0.2,
           delay: 0.1,
-          onComplete: () => setShowHistoryModal(false)
+          onComplete: () => {
+            setShowHistoryModal(false);
+            historyTriggerRef.current?.focus();
+          }
         });
       } else {
         setShowHistoryModal(false);
+        historyTriggerRef.current?.focus();
       }
     });
   }, []);
 
-  const openHistoryModal = useCallback(() => {
+  const openHistoryModal = useCallback((event) => {
+    historyTriggerRef.current = event?.currentTarget || document.activeElement;
     requestHistoryRefresh();
     setShowHistoryModal(true);
   }, [requestHistoryRefresh]);
+
+  useEffect(() => {
+    if (!showHistoryModal) return;
+
+    const focusFirstInteractive = () => {
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const firstFocusable = root.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (firstFocusable && typeof firstFocusable.focus === "function") {
+        firstFocusable.focus();
+      }
+    };
+
+    const timer = setTimeout(focusFirstInteractive, 50);
+
+    const handleTrap = (e) => {
+      if (e.key !== "Tab") return;
+
+      const root = historyModalContentRef.current;
+      if (!root) return;
+
+      const focusable = Array.from(
+        root.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTrap);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", handleTrap);
+    };
+  }, [showHistoryModal]);
 
   // Load demo count per demo session key
   useEffect(() => {
@@ -154,6 +217,38 @@ export default function ChatContainer({
 
     const delay = 220 + (wordCount * 90) + Math.floor(charCount * 8) + punctuationPause;
     return Math.min(1800, Math.max(260, delay));
+  }, []);
+
+  const getFriendlyChatError = useCallback((error, fallbackMessage) => {
+    const status = Number(error?.status);
+    const code = typeof error?.code === "string" ? error.code : "";
+    const retryAfter = Number(error?.retryAfter);
+    const isAuthExpired = status === 401 || code === "UNAUTHORIZED" || code === "INVALID_TOKEN";
+
+    if (isAuthExpired) {
+      return "Your session expired. Please refresh and try again.";
+    }
+
+    if (status === 413 || code === "MESSAGE_TOO_LARGE") {
+      return "Message too long. Please keep it shorter and try again.";
+    }
+
+    if (status === 403 && code === "DEMO_LIMIT_REACHED") {
+      return "Demo limit reached. Sign in to continue chatting with Lumi! 🌟";
+    }
+
+    if (status === 429 || code === "RATE_LIMITED" || code === "AI_QUOTA_EXCEEDED") {
+      if (Number.isFinite(retryAfter) && retryAfter > 0) {
+        return `Lumi is busy right now. Please try again in about ${Math.ceil(retryAfter)}s.`;
+      }
+      return "Lumi is busy right now. Please try again shortly.";
+    }
+
+    if (status === 503 || code === "AI_CAPACITY_HIGH" || code === "AI_TEMPORARILY_UNAVAILABLE") {
+      return "Lumi is experiencing high demand. Please try again in a moment.";
+    }
+
+    return fallbackMessage;
   }, []);
 
   const formatTimestampIST = useCallback((value) => {
@@ -345,7 +440,7 @@ export default function ChatContainer({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          const apiError = data.error || data.message || data.retry || "Failed to send message";
+          const apiErrorMessage = data.error || data.message || data.retry || "Failed to send message";
           const apiCode = data.code || null;
 
           if (isDemo && res.status === 403 && apiCode === "DEMO_LIMIT_REACHED") {
@@ -355,7 +450,11 @@ export default function ChatContainer({
             }
           }
 
-          throw new Error(apiError);
+          const apiError = new Error(apiErrorMessage);
+          apiError.status = res.status;
+          apiError.code = data.code;
+          apiError.retryAfter = data.retryAfter;
+          throw apiError;
         }
 
         if (isDemo && capturedToken === sessionRequestIdRef.current) {
@@ -405,14 +504,14 @@ export default function ChatContainer({
       } catch (error) {
         if (capturedToken !== sessionRequestIdRef.current) return;
         console.error(error);
-        toast.error(error.message || "Lumi is busy! Try again later.");
+        toast.error(getFriendlyChatError(error, "Lumi is busy! Try again later."));
       } finally {
         if (capturedToken === sessionRequestIdRef.current) {
           setIsTyping(false);
         }
       }
     },
-    [chatId, userId, isDemo, demoCount, demoCountStorageKey, journalText, sessionId, getBubbleDelayMs, formatTimestampIST]
+    [chatId, userId, isDemo, demoCount, demoCountStorageKey, journalText, sessionId, getBubbleDelayMs, formatTimestampIST, getFriendlyChatError]
   );
 
   // ─── Reflection Question Integration ────────────────────────────
@@ -505,14 +604,21 @@ export default function ChatContainer({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to clear chat cache");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const apiError = new Error(data.error || "Failed to clear chat cache");
+        apiError.status = res.status;
+        apiError.code = data.code;
+        apiError.retryAfter = data.retryAfter;
+        throw apiError;
+      }
       requestHistoryRefresh();
       toast.success("Chat cleared");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to clear chat memory completely");
+      toast.error(getFriendlyChatError(error, "Failed to clear chat memory completely"));
     }
-  }, [chatId, isDemo, sessionId, requestHistoryRefresh]);
+  }, [chatId, isDemo, sessionId, requestHistoryRefresh, getFriendlyChatError]);
 
   // ─── Handle New Chat Button ─────────────────────────────────────
   const startNewChat = useCallback(() => {
@@ -576,15 +682,19 @@ export default function ChatContainer({
         >
           <div
             ref={historyModalContentRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={historyTitleId}
             className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 max-h-[80vh] flex flex-col opacity-0 scale-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
+              <h3 id={historyTitleId} className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
               <button
                 onClick={closeHistoryModal}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 transition-colors"
                 title="Close"
+                aria-label="Close chat history dialog"
               >
                 <X size={18} />
               </button>

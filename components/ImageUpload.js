@@ -15,6 +15,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
  * @param {File[]} props.selectedImages - Currently selected image files
  * @param {Function} props.onImagesChange - Callback when images change (files, previews)
  * @param {boolean} props.disabled - Whether the component is disabled
+ * @param {string} props.inputId - Unique ID for the file input element
  */
 export default function ImageUpload({
   selectedImages = [],
@@ -22,6 +23,7 @@ export default function ImageUpload({
   onImagesChange,
   disabled = false,
   className = "",
+  inputId = "journal-image-upload",
 }) {
   const fileInputRef = useRef(null);
   // Track all created URLs for cleanup - updated immediately when URLs are created/removed
@@ -94,10 +96,16 @@ export default function ImageUpload({
     URL.revokeObjectURL(urlToRemove);
     previewUrlsRef.current.delete(urlToRemove);
 
-    onImagesChange?.(
-      selectedImages.filter((_, i) => i !== index),
-      imagePreviews.filter((_, i) => i !== index)
-    );
+    const newSelectedImages = [];
+    const newImagePreviews = [];
+
+    for (let i = 0; i < imagePreviews.length; i++)
+      if (i !== index) {
+        newSelectedImages.push(selectedImages[i]);
+        newImagePreviews.push(imagePreviews[i]);
+      }
+
+    onImagesChange?.(newSelectedImages, newImagePreviews);
   };
 
   const triggerFileSelect = () => {
@@ -167,6 +175,7 @@ export default function ImageUpload({
 
       {/* Hidden file input - accepts multiple */}
       <input
+        id={inputId}
         type="file"
         ref={fileInputRef}
         onChange={handleImageSelect}

@@ -5,7 +5,7 @@ import Button from "./Button";
 import Input from "./Input";
 import Link from "next/link";
 import { useAuth } from "@/context/authContext";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import GlowBackground from "./GlowBackground";
 
 export default function Login({ initialRegister = false, onAuthSuccess }) {
@@ -14,8 +14,9 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [isRegister, setIsRegister] = useState(initialRegister);
   const [authenticating, setAuthenticating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
-  const { signUp, signIn, signInWithGoogle } = useAuth();
+  const { signUp, signIn, signInWithGoogle, sendPasswordReset } = useAuth();
 
   const handleSubmit = async () => {
     setAuthenticating(true);
@@ -30,17 +31,28 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         onAuthSuccess?.();
       }
     } catch (error) {
-      console.log(`${isRegister ? "Sign Up" : "Sign In"} Error:`, error.message);
       if (!email || !password || password.length < 6) {
         toast.error("Please fill in all fields with valid information.");
         return;
       }
 
-      if (!isRegister) {
+      const errorCode = typeof error?.code === "string" ? error.code : "";
+
+      if (isRegister) {
         toast.error(
-          error.message.includes("user-not-found")
+          errorCode === "auth/email-already-in-use"
+            ? "An account already exists for this email."
+            : errorCode === "auth/invalid-email"
+              ? "Please enter a valid email address."
+              : errorCode === "auth/weak-password"
+                ? "Password should be at least 6 characters."
+                : "Registration failed. Please try again."
+        );
+      } else {
+        toast.error(
+          errorCode === "auth/user-not-found"
             ? "User does not exist."
-            : error.message.includes("wrong-password")
+            : errorCode === "auth/wrong-password"
               ? "Incorrect password."
               : "Login failed. Please check your email or password."
         );
@@ -49,6 +61,30 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
       setAuthenticating(false);
     }
   }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email to reset your password.");
+      return;
+    }
+
+    setResettingPassword(true);
+    try {
+      await sendPasswordReset(email);
+      toast.success("Password reset link sent. Check your email.");
+    } catch (error) {
+      const errorCode = typeof error?.code === "string" ? error.code : "";
+      if (errorCode === "auth/user-not-found") {
+        toast.error("No account found for this email.");
+      } else if (errorCode === "auth/invalid-email") {
+        toast.error("Please enter a valid email address.");
+      } else {
+        toast.error("Could not send reset email. Please try again.");
+      }
+    } finally {
+      setResettingPassword(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setAuthenticating(true);
@@ -80,8 +116,6 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        <Toaster position="top-center" />
-
         <h3 className="text-4xl sm:text-5xl md:text-6xl fugaz">{isRegister ? "Register" : "Login"}</h3>
         <p className="font-semibold font-sans">{isRegister ? "Start a new journey!" : "You are just one step away!"}</p>
 
@@ -113,6 +147,19 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
             {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
           </button>
         </div>
+
+        {!isRegister && (
+          <div className="w-full max-w-[400px] mx-auto flex justify-end">
+            <button
+              type="button"
+              className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-80 underline disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={handleForgotPassword}
+              disabled={resettingPassword}
+            >
+              {resettingPassword ? "Sending reset link..." : "Forgot password?"}
+            </button>
+          </div>
+        )}
 
         <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
           <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
