@@ -157,57 +157,6 @@ export default function ChatContainer({
     };
   }, [showHistoryModal]);
 
-  useEffect(() => {
-    if (!showHistoryModal) return;
-
-    const focusFirstInteractive = () => {
-      const root = historyModalContentRef.current;
-      if (!root) return;
-
-      const firstFocusable = root.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (firstFocusable && typeof firstFocusable.focus === "function") {
-        firstFocusable.focus();
-      }
-    };
-
-    const timer = setTimeout(focusFirstInteractive, 50);
-
-    const handleTrap = (e) => {
-      if (e.key !== "Tab") return;
-
-      const root = historyModalContentRef.current;
-      if (!root) return;
-
-      const focusable = Array.from(
-        root.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((el) => !el.hasAttribute("disabled"));
-
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleTrap);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("keydown", handleTrap);
-    };
-  }, [showHistoryModal]);
-
   // Load demo count per demo session key
   useEffect(() => {
     if (!isDemo || !demoCountStorageKey) return;
