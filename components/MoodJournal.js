@@ -40,6 +40,7 @@ export default function MoodJournal({
   saveDraft,
   autoGenerateInsights,
   onInsightsAutoTriggered,
+  imageInputId = "journal-image-upload",
 }) {
   const isGuest = mode === "guest";
 
@@ -144,6 +145,7 @@ export default function MoodJournal({
         autoGenerateInsights={autoGenerateInsights}
         onInsightsAutoTriggered={onInsightsAutoTriggered}
         onAuthRequired={onAuthRequired}
+        imageInputId={imageInputId}
         onGuestTextChange={(text) => {
           setGuestJournalText(text);
           if (isGuest) {

@@ -33,6 +33,7 @@ export default function Journal({
   onGuestTextChange,
   autoGenerateInsights,
   onInsightsAutoTriggered,
+  imageInputId = "journal-image-upload",
 }) {
   const isGuest = mode === "guest";
   const [entry, setEntry] = useState(initialText);
@@ -689,6 +690,7 @@ export default function Journal({
               onImagesChange={handleImagesChange}
               disabled={saving || uploading}
               className="bottom-4 right-3.5"
+              inputId={imageInputId}
             />
           )}
         </div>

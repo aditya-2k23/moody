@@ -81,6 +81,9 @@ function DashboardContent() {
   // Cached ID token for synchronous beacon requests
   const cachedIdTokenRef = useRef(null);
 
+  // Unique ID for journal image input to prevent DOM collisions
+  const [journalInputId] = useState(() => `journal-upload-${Math.random().toString(36).substring(2, 9)}`);
+
   // Keep ID token fresh
   useEffect(() => {
     if (!currentUser) {
@@ -699,6 +702,7 @@ function DashboardContent() {
           }}
           autoGenerateInsights={autoGenerateInsights}
           onInsightsAutoTriggered={() => setAutoGenerateInsights(false)}
+          imageInputId={journalInputId}
           onJournalSaved={(savedEntry) => {
             // Compute fresh date values to avoid stale dates if tab was open past midnight
             const now = new Date();
@@ -736,7 +740,7 @@ function DashboardContent() {
             if (journalSection) {
               journalSection.scrollIntoView({ behavior: "smooth", block: "start" });
             }
-            const fileInput = document.getElementById("journal-image-upload");
+            const fileInput = document.getElementById(journalInputId);
             if (fileInput) fileInput.click();
           }}
         />
