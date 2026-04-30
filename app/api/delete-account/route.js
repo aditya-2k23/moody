@@ -35,8 +35,8 @@ async function collectMemoryPublicIds(uid) {
   return Array.from(publicIds);
 }
 
-async function deleteCollectionTree(collectionRef) {
-  const PAGE_SIZE = 100;
+async function deleteCollectionTree(collectionRef, db) {
+  const PAGE_SIZE = 500;
 
   while (true) {
     const snapshot = await collectionRef.limit(PAGE_SIZE).get();
@@ -44,14 +44,16 @@ async function deleteCollectionTree(collectionRef) {
       break;
     }
 
+    const batch = db.batch();
     for (const docSnap of snapshot.docs) {
       const nestedCollections = await docSnap.ref.listCollections();
       for (const nestedCollection of nestedCollections) {
-        await deleteCollectionTree(nestedCollection);
+        await deleteCollectionTree(nestedCollection, db);
       }
 
-      await docSnap.ref.delete();
+      batch.delete(docSnap.ref);
     }
+    await batch.commit();
   }
 }
 
@@ -66,7 +68,7 @@ async function deleteUserFirestoreData(uid) {
 
   const nestedCollections = await userRef.listCollections();
   for (const nestedCollection of nestedCollections) {
-    await deleteCollectionTree(nestedCollection);
+    await deleteCollectionTree(nestedCollection, db);
   }
 
   await userRef.delete();
