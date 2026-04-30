@@ -11,6 +11,33 @@ const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your product
 // Floating emoji pool
 const FLOATING_EMOJIS = ["😊", "😢", "😍", "😐", "😭", "🧠", "✨", "💜"];
 
+const glowVariants = [
+  {
+    top: "35%",
+    left: "55%",
+    size: "min(60vw, 500px)",
+    blur: 60,
+    gradient:
+      "radial-gradient(circle, color-mix(in srgb, var(--color-primary-500) 24%, transparent) 0%, color-mix(in srgb, var(--color-primary-400) 16%, transparent) 40%, transparent 70%)",
+  },
+  {
+    top: "55%",
+    left: "35%",
+    size: "min(45vw, 400px)",
+    blur: 80,
+    gradient:
+      "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 20%, transparent) 0%, color-mix(in srgb, var(--color-primary-500) 12%, transparent) 50%, transparent 75%)",
+  },
+  {
+    top: "45%",
+    left: "70%",
+    size: "min(35vw, 300px)",
+    blur: 70,
+    gradient:
+      "radial-gradient(circle, color-mix(in srgb, var(--color-danger) 16%, transparent) 0%, color-mix(in srgb, var(--color-accent) 10%, transparent) 50%, transparent 75%)",
+  },
+];
+
 export default function Splashscreen({
   message = "✨ Fetching Lumi's thoughts...",
   progress = null,
@@ -140,56 +167,24 @@ export default function Splashscreen({
 
       {/* ── Glow Orbs ── */}
       {/* Primary — indigo */}
-      <div
-        ref={(el) => (orbRefs.current[0] = el)}
-        className="fixed pointer-events-none"
-        style={{
-          top: "35%",
-          left: "55%",
-          transform: "translate(-50%, -50%)",
-          width: "min(60vw, 500px)",
-          height: "min(60vw, 500px)",
-          background:
-            "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(129,140,248,0.08) 40%, transparent 70%)",
-          filter: "blur(60px)",
-          borderRadius: "50%",
-        }}
-        aria-hidden="true"
-      />
-      {/* Secondary — purple */}
-      <div
-        ref={(el) => (orbRefs.current[1] = el)}
-        className="fixed pointer-events-none"
-        style={{
-          top: "55%",
-          left: "35%",
-          transform: "translate(-50%, -50%)",
-          width: "min(45vw, 400px)",
-          height: "min(45vw, 400px)",
-          background:
-            "radial-gradient(circle, rgba(139,92,246,0.10) 0%, rgba(99,102,241,0.06) 50%, transparent 75%)",
-          filter: "blur(80px)",
-          borderRadius: "50%",
-        }}
-        aria-hidden="true"
-      />
-      {/* Tertiary — warm accent */}
-      <div
-        ref={(el) => (orbRefs.current[2] = el)}
-        className="fixed pointer-events-none"
-        style={{
-          top: "45%",
-          left: "70%",
-          transform: "translate(-50%, -50%)",
-          width: "min(35vw, 300px)",
-          height: "min(35vw, 300px)",
-          background:
-            "radial-gradient(circle, rgba(244,114,182,0.08) 0%, rgba(251,146,60,0.05) 50%, transparent 75%)",
-          filter: "blur(70px)",
-          borderRadius: "50%",
-        }}
-        aria-hidden="true"
-      />
+      {glowVariants.map((orb, index) => (
+        <div
+          key={index}
+          ref={(el) => (orbRefs.current[index] = el)}
+          className="fixed pointer-events-none"
+          style={{
+            top: orb.top,
+            left: orb.left,
+            transform: "translate(-50%, -50%)",
+            width: orb.size,
+            height: orb.size,
+            background: orb.gradient,
+            filter: `blur(${orb.blur}px)`,
+            borderRadius: "50%",
+          }}
+          aria-hidden="true"
+        />
+      ))}
 
       {/* ── Floating Mood Emojis ── */}
       {emojiPositions.map((ej, i) => (

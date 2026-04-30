@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Fugaz+One&display=swap");
+@import "./design-tokens.css";
 
 @tailwind base;
 @tailwind components;
@@ -39,46 +40,7 @@ textarea,
   initial-value: 0px;
 }
 
-:root {
-  /* Fonts */
-  --font-fugaz: "Fugaz One", sans-serif;
-
-  /* Theme Palette */
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-shadow-lavender: lavender;
-  --color-shadow-dark: rgba(2, 6, 23, 0.75);
-  --color-shadow-dark-hover: rgba(2, 6, 23, 0.35);
-  --color-glow-light: rgba(254, 240, 138, 0.822);
-  --color-glow-dark: rgba(254, 240, 138, 0.47);
-  --color-blob-bg-light: #ffffff;
-  --color-blob-bg-dark: rgb(24 30 41);
-  --color-theme-reveal-light: #f6f8ff;
-  --color-theme-reveal-dark: #141414;
-
-  /* Active Theme Tokens (Light Default) */
-  --shadow-purple: 3px 3px 1px 1px var(--color-shadow-lavender);
-  --shadow-purple-hover: 0px 0px 1px 1px var(--color-shadow-lavender);
-  --glow-shadow-hover: 2px 1px 2px 2px var(--color-glow-light);
-  --color-resizer: var(--color-brand-400);
-  --theme-reveal-bg: var(--color-theme-reveal-light);
-
-  /* Blob Button Tokens */
-  --color-blob: var(--color-brand-500);
-  --color-blob-border: var(--color-brand-500);
-  --color-blob-text: var(--color-brand-500);
-  --color-blob-text-hover: var(--color-white);
-  --color-blob-bg: var(--color-blob-bg-light);
-
-  /* Cursor Theme Awareness */
-  --cursor-start: #a78bfa;
-  --cursor-mid: #60a5fa;
-  --cursor-end: #f472b6;
-  --cursor-glow: rgba(167, 139, 250, 0.35);
-  --cursor-size: 26px;
-}
+/* design tokens are imported from app/design-tokens.css */
 
 /* Smooth transition utility for consistent animations */
 .smooth-transition {
@@ -123,12 +85,12 @@ textarea,
 
 /* Shadows */
 .purpleShadow {
-  box-shadow: var(--shadow-purple);
+  box-shadow: var(--shadow-md);
 }
 
 .purpleShadow:hover {
   transform: translate(3px, 3px);
-  box-shadow: var(--shadow-purple-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Glow */
@@ -137,7 +99,7 @@ textarea,
 }
 
 .glow:hover {
-  box-shadow: var(--glow-shadow-hover);
+  box-shadow: var(--glow-primary);
 }
 
 /* Animations */
@@ -423,7 +385,7 @@ textarea,
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  background: var(--theme-reveal-bg);
+  background: var(--color-theme-reveal-light);
   -webkit-mask: radial-gradient(circle at var(--x) var(--y),
       transparent 0,
       transparent var(--r),
@@ -518,11 +480,11 @@ textarea,
 }
 
 .theme-reveal-light {
-  --theme-reveal-bg: var(--color-theme-reveal-light);
+  background: var(--color-theme-reveal-light);
 }
 
 .theme-reveal-dark {
-  --theme-reveal-bg: var(--color-theme-reveal-dark);
+  background: var(--color-theme-reveal-dark);
 }
 
 @keyframes theme-reveal {
@@ -533,23 +495,6 @@ textarea,
   to {
     --r: var(--max-r);
   }
-}
-
-/* Dark Mode Overrides */
-.dark {
-  color-scheme: dark;
-  --shadow-purple: 4px 6px 18px -6px rgba(2, 6, 23, 0.6);
-  --shadow-purple-hover: 0px 0px 12px -6px rgba(2, 6, 23, 0.45);
-  --glow-shadow-hover: 0 6px 30px rgba(79, 70, 229, 0.12);
-  --color-resizer: var(--color-brand-500);
-  --theme-reveal-bg: var(--color-theme-reveal-dark);
-  --color-blob-bg: var(--color-blob-bg-dark);
-  --color-blob-text: var(--color-white);
-
-  --cursor-start: #c4b5fd;
-  --cursor-mid: #818cf8;
-  --cursor-end: #f9a8d4;
-  --cursor-glow: rgba(167, 139, 250, 0.85);
 }
 
 .dark .purpleShadow {
@@ -744,7 +689,7 @@ textarea,
   --blob-border: var(--color-blob-border, var(--color-brand-500));
   --blob-text: var(--color-blob-text, var(--color-brand-500));
   --blob-text-hover: var(--color-blob-text-hover, var(--color-white));
-  --blob-bg: var(--color-blob-bg, var(--color-white));
+  --blob-bg: var(--color-blob-bg, transparent);
   --border-width: 2px;
 
   z-index: 1;
@@ -805,7 +750,7 @@ textarea,
   width: 100%;
   height: 100%;
   border-radius: 9999px;
-  background: var(--blob-bg);
+  background: transparent;
 }
 
 .blob-btn__blobs {
@@ -869,6 +814,11 @@ textarea,
   place-items: center;
 }
 
+/* Dark mode text color for regular blob button */
+.dark .blob-btn:not(.blob-btn--dark) {
+  --blob-text: var(--color-white);
+}
+
 /* Size variants */
 .blob-btn--sm {
   padding: 8px 20px;
@@ -880,21 +830,21 @@ textarea,
   font-size: 1.125rem;
 }
 
-/* Dark variant - inverted colors: purple bg, white blob fill */
+/* Dark variant - indigo text in light mode, blob fill on hover */
 .blob-btn--dark {
-  --blob-color: var(--color-white);
+  --blob-color: var(--color-brand-500);
   --blob-border: var(--color-brand-500);
-  --blob-text: var(--color-white);
-  --blob-text-hover: var(--color-brand-500);
-  --blob-bg: var(--color-brand-500);
+  --blob-text: var(--color-brand-500);
+  --blob-text-hover: var(--color-white);
+  --blob-bg: transparent;
 }
 
 .dark .blob-btn--dark {
   --blob-border: var(--color-brand-400);
-  --blob-bg: var(--color-brand-500);
+  --blob-bg: rgba(255, 255, 255, 0.06);
   --blob-text: var(--color-white);
-  --blob-text-hover: var(--color-brand-500);
-  --blob-color: var(--color-white);
+  --blob-text-hover: var(--color-white);
+  --blob-color: var(--color-brand-500);
 }
 
 /* ========== Journal Modal Animations ========== */

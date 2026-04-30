@@ -183,7 +183,7 @@ export default function GlowBackground() {
             maxWidth: 700,
             maxHeight: 700,
             background:
-              "radial-gradient(circle at 50% 50%, rgba(99,102,241,0.16) 0%, rgba(129,140,248,0.13) 30%, rgba(139,92,246,0.1) 60%, transparent 100%)",
+              "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-primary-500) 24%, transparent) 0%, color-mix(in srgb, var(--color-primary-400) 18%, transparent) 30%, color-mix(in srgb, var(--color-accent) 14%, transparent) 60%, transparent 100%)",
             filter: "blur(60px)",
             borderRadius: "50%",
             willChange: "transform, top",
@@ -206,7 +206,7 @@ export default function GlowBackground() {
             maxWidth: 500,
             maxHeight: 500,
             background:
-              "radial-gradient(circle at 30% 70%, rgba(139,92,246,0.14) 0%, rgba(99,102,241,0.11) 45%, rgba(129,140,248,0.12) 75%, transparent 100%)",
+              "radial-gradient(circle at 30% 70%, color-mix(in srgb, var(--color-accent) 22%, transparent) 0%, color-mix(in srgb, var(--color-primary-500) 16%, transparent) 45%, color-mix(in srgb, var(--color-primary-400) 18%, transparent) 75%, transparent 100%)",
             filter: "blur(80px)",
             borderRadius: "50%",
             willChange: "transform, top",
@@ -229,7 +229,7 @@ export default function GlowBackground() {
             maxWidth: 800,
             maxHeight: 400,
             background:
-              "linear-gradient(135deg, rgba(99,102,241,0.14) 0%, rgba(139,92,246,0.11) 35%, rgba(129,140,248,0.12) 70%, rgba(109,82,226,0.08) 100%)",
+              "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-danger) 18%, transparent) 0%, color-mix(in srgb, var(--color-primary-500) 14%, transparent) 35%, color-mix(in srgb, var(--color-primary-400) 12%, transparent) 65%, transparent 100%)",
             filter: "blur(100px)",
             borderRadius: "50%",
             willChange: "transform, top",
@@ -252,7 +252,7 @@ export default function GlowBackground() {
             maxWidth: 550,
             maxHeight: 550,
             background:
-              "radial-gradient(circle at 60% 40%, rgba(139,92,246,0.14) 0%, rgba(99,102,241,0.11) 40%, rgba(129,140,248,0.06) 70%, transparent 100%)",
+              "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-primary-500) 20%, transparent) 0%, color-mix(in srgb, var(--color-primary-400) 18%, transparent) 40%, color-mix(in srgb, var(--color-accent) 14%, transparent) 70%, transparent 100%)",
             filter: "blur(70px)",
             borderRadius: "50%",
             willChange: "transform, top",
