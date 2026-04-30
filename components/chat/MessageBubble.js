@@ -64,7 +64,7 @@ export default function MessageBubble({ message, isLatest }) {
           }`}
       >
         <div
-          className={`relative px-4 py-2.5 text-sm leading-relaxed break-words ${isUser
+          className={`relative px-4 py-2.5 text-sm leading-relaxed break-words smooth-transition ${isUser
             ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-600/20"
             : "bg-white dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700/80 shadow-sm"
             } ${isLatest ? "message-bubble--latest ring-1 ring-indigo-300/70 dark:ring-indigo-400/50" : ""}`}

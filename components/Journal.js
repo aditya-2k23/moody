@@ -642,7 +642,7 @@ export default function Journal({
             name="journal"
             id="journal"
             aria-label={placeholder}
-            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 pb-12 sm:pb-12 md:pb-14 pr-20 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs resize-none"
+            className="journal-textarea smooth-transition bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 pb-12 sm:pb-12 md:pb-14 pr-20 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs resize-none"
             value={displayEntry}
             onChange={(e) => {
               const newValue = e.target.value;

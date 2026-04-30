@@ -26,7 +26,7 @@ const ToastItem = ({ t }) => {
   return (
     <div
       ref={elRef}
-      className="max-w-md w-full bg-slate-50 dark:bg-[#1a162f] shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgba(79,70,229,0.15)] rounded-xl pointer-events-auto flex items-center relative overflow-hidden ring-1 ring-slate-200/50 dark:ring-indigo-500/10"
+      className="max-w-md w-full bg-slate-50 dark:bg-[#0f1624] smooth-transition shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgba(79,70,229,0.15)] rounded-xl pointer-events-auto flex items-center relative overflow-hidden ring-1 ring-slate-200/50 dark:ring-indigo-500/10"
       style={{ opacity: 0 }} // Initial state before gsap takes over
     >
       {/* Left accented border */}

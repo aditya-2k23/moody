@@ -49,8 +49,8 @@ textarea,
   --color-brand-400: #818cf8;
   --color-brand-500: #6366f1;
   --color-shadow-lavender: lavender;
-  --color-shadow-dark: rgb(51 65 85 / 0.8);
-  --color-shadow-dark-hover: rgb(51 65 85 / 0.2);
+  --color-shadow-dark: rgba(2, 6, 23, 0.75);
+  --color-shadow-dark-hover: rgba(2, 6, 23, 0.35);
   --color-glow-light: rgba(254, 240, 138, 0.822);
   --color-glow-dark: rgba(254, 240, 138, 0.47);
   --color-blob-bg-light: #ffffff;
@@ -78,6 +78,14 @@ textarea,
   --cursor-end: #f472b6;
   --cursor-glow: rgba(167, 139, 250, 0.35);
   --cursor-size: 26px;
+}
+
+/* Smooth transition utility for consistent animations */
+.smooth-transition {
+  transition: background-color 220ms cubic-bezier(.2, .9, .2, 1),
+    color 220ms cubic-bezier(.2, .9, .2, 1),
+    box-shadow 220ms cubic-bezier(.2, .9, .2, 1),
+    transform 220ms cubic-bezier(.2, .9, .2, 1);
 }
 
 .fugaz {
@@ -361,6 +369,7 @@ textarea,
 
 /* Floating animations for splash screen orbs */
 @keyframes float-slow {
+
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -372,6 +381,7 @@ textarea,
 }
 
 @keyframes float-medium {
+
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -414,18 +424,14 @@ textarea,
   z-index: 9999;
   pointer-events: none;
   background: var(--theme-reveal-bg);
-  -webkit-mask: radial-gradient(
-    circle at var(--x) var(--y),
-    transparent 0,
-    transparent var(--r),
-    #000 calc(var(--r) + 1px)
-  );
-  mask: radial-gradient(
-    circle at var(--x) var(--y),
-    transparent 0,
-    transparent var(--r),
-    #000 calc(var(--r) + 1px)
-  );
+  -webkit-mask: radial-gradient(circle at var(--x) var(--y),
+      transparent 0,
+      transparent var(--r),
+      #000 calc(var(--r) + 1px));
+  mask: radial-gradient(circle at var(--x) var(--y),
+      transparent 0,
+      transparent var(--r),
+      #000 calc(var(--r) + 1px));
   animation: theme-reveal 650ms ease-in-out forwards;
 }
 
@@ -436,112 +442,76 @@ textarea,
     --petal-offset: calc(var(--r) * 0.35);
     -webkit-mask:
       /* Center circle */
-      radial-gradient(
-        circle at var(--x) var(--y),
+      radial-gradient(circle at var(--x) var(--y),
         transparent 0,
         transparent calc(var(--r) * 0.5),
-        #000 calc(var(--r) * 0.5 + 1px)
-      ),
+        #000 calc(var(--r) * 0.5 + 1px)),
       /* Petal 1 - Top */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 2 - Top Right */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-            calc(var(--y) - var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 3 - Bottom Right */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-            calc(var(--y) + var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 4 - Bottom */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 5 - Bottom Left */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-            calc(var(--y) + var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 6 - Top Left */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-            calc(var(--y) - var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        );
+      radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px));
     mask:
       /* Center circle */
-      radial-gradient(
-        circle at var(--x) var(--y),
+      radial-gradient(circle at var(--x) var(--y),
         transparent 0,
         transparent calc(var(--r) * 0.5),
-        #000 calc(var(--r) * 0.5 + 1px)
-      ),
+        #000 calc(var(--r) * 0.5 + 1px)),
       /* Petal 1 - Top */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) - var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 2 - Top Right */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-            calc(var(--y) - var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 3 - Bottom Right */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866)
-            calc(var(--y) + var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) + var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 4 - Bottom */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x)) calc(var(--y) + var(--petal-offset)),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 5 - Bottom Left */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-            calc(var(--y) + var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        ),
+      radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) + var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px)),
       /* Petal 6 - Top Left */
-        radial-gradient(
-          ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866)
-            calc(var(--y) - var(--petal-offset) * 0.5),
-          transparent 0,
-          transparent var(--petal-r),
-          #000 calc(var(--petal-r) + 1px)
-        );
+      radial-gradient(ellipse 45% 70% at calc(var(--x) - var(--petal-offset) * 0.866) calc(var(--y) - var(--petal-offset) * 0.5),
+        transparent 0,
+        transparent var(--petal-r),
+        #000 calc(var(--petal-r) + 1px));
     -webkit-mask-composite: destination-out;
     mask-composite: intersect;
   }
@@ -568,9 +538,9 @@ textarea,
 /* Dark Mode Overrides */
 .dark {
   color-scheme: dark;
-  --shadow-purple: 3px 3px 1px 1px var(--color-shadow-dark);
-  --shadow-purple-hover: 0px 0px 1px 1px var(--color-shadow-dark-hover);
-  --glow-shadow-hover: 1px 1px 1px 1px var(--color-glow-dark);
+  --shadow-purple: 4px 6px 18px -6px rgba(2, 6, 23, 0.6);
+  --shadow-purple-hover: 0px 0px 12px -6px rgba(2, 6, 23, 0.45);
+  --glow-shadow-hover: 0 6px 30px rgba(79, 70, 229, 0.12);
   --color-resizer: var(--color-brand-500);
   --theme-reveal-bg: var(--color-theme-reveal-dark);
   --color-blob-bg: var(--color-blob-bg-dark);
@@ -621,18 +591,36 @@ textarea,
   overflow: hidden;
 }
 
+/* Stronger contrast for textarea in light & dark modes and smoother focus */
+.journal-textarea {
+  background: var(--color-white);
+  color: #0f1724;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.06);
+}
+
+.dark .journal-textarea {
+  background: #071025;
+  /* richer dark background */
+  color: #e6eef8;
+  box-shadow: 0 6px 22px rgba(2, 6, 23, 0.6);
+}
+
+.journal-textarea:focus {
+  outline: none;
+  box-shadow: 0 8px 30px rgba(79, 70, 229, 0.12);
+  border-color: rgba(79, 70, 229, 0.9);
+}
+
 .journal-textarea::-webkit-resizer {
-  background: linear-gradient(
-    135deg,
-    transparent 50%,
-    var(--color-resizer) 50%,
-    var(--color-resizer) 60%,
-    transparent 60%,
-    transparent 75%,
-    var(--color-resizer) 75%,
-    var(--color-resizer) 85%,
-    transparent 85%
-  );
+  background: linear-gradient(135deg,
+      transparent 50%,
+      var(--color-resizer) 50%,
+      var(--color-resizer) 60%,
+      transparent 60%,
+      transparent 75%,
+      var(--color-resizer) 75%,
+      var(--color-resizer) 85%,
+      transparent 85%);
   border-radius: 0 0 8px 0;
 }
 
@@ -644,6 +632,7 @@ textarea,
 }
 
 @keyframes insights-skeleton-pulse {
+
   0%,
   100% {
     opacity: 0.7;
@@ -672,6 +661,34 @@ textarea,
 /* Content fade-in animation */
 .animate-insights-content {
   animation: insights-content-reveal 0.3s ease-out forwards;
+}
+
+/* Message bubble latest highlight for better visibility */
+.message-bubble--latest {
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.06);
+  transform: translateY(-4px);
+}
+
+.dark .message-bubble--latest {
+  box-shadow: 0 12px 36px rgba(79, 70, 229, 0.12);
+}
+
+/* Markdown preview content tweaks for contrast and link affordance */
+.markdown-content p {
+  color: #0f1724;
+}
+
+.dark .markdown-content p {
+  color: #e6eef8;
+}
+
+.markdown-content a {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
+.dark .markdown-content a {
+  color: #a78bfa;
 }
 
 @keyframes insights-content-reveal {
@@ -974,16 +991,14 @@ textarea,
   content: "";
   position: absolute;
   inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    #fbbf24,
-    #fb7185,
-    #a855f7,
-    #6366f1,
-    #06b6d4,
-    #10b981,
-    #fbbf24
-  );
+  background: conic-gradient(from 0deg,
+      #fbbf24,
+      #fb7185,
+      #a855f7,
+      #6366f1,
+      #06b6d4,
+      #10b981,
+      #fbbf24);
   animation: rainbow-spin 5s linear infinite;
 }
 
@@ -1000,7 +1015,7 @@ textarea,
   background: rgb(15 23 42 / 0.9);
 }
 
-.rainbow-border > * {
+.rainbow-border>* {
   position: relative;
   z-index: 2;
   border-radius: inherit;
