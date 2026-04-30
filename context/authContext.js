@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
 
         setUserDataObj(firebaseData);
       } catch (error) {
-        console.log("Error in AuthProvider useEffect:", error.message);
+        console.error("Error in AuthProvider useEffect:", error.message);
       } finally {
         setLoading(false);
       }
