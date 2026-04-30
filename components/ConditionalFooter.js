@@ -16,8 +16,8 @@ export default function ConditionalFooter() {
     <footer className="p-4 md:px-8 flex justify-between text-xs sm:text-sm md:text-base">
       {/* Logo */}
       <div className="flex items-center">
-        <Link href="/?ref=internal" className="fugaz text-sm sm:text-base md:text-lg text-gray-300">
-          <span className="text-indigo-400">✦</span> Moody
+        <Link href="/?ref=internal" className="fugaz text-sm sm:text-base md:text-lg text-slate-600 dark:text-gray-300">
+          <span className="text-indigo-500 dark:text-indigo-400">✦</span> Moody
           <span className="text-[6px] sm:text-[8px] md:text-[10px] self-end ml-0.5 sm:ml-1">
             {APP_VERSION_LABEL}
           </span>

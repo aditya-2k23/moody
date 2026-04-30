@@ -272,7 +272,6 @@ function DashboardContent() {
 
   useEffect(() => {
     if (!wasAuthenticated && currentUser) {
-      toast.success("Successfully logged in!");
       toast(
         "Tip: Click any date in the calendar to view your previous journal logs!",
         {
