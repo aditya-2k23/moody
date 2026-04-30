@@ -5,8 +5,10 @@ import { AlertTriangle, Loader2, Pencil, Save, Trash2, X, Sparkles, MessageCircl
 import toast from "react-hot-toast";
 import convertMood, { moods } from "@/utils";
 import RadialMoodMenu from "./RadialMoodMenu";
+import StyleTools from "./StyleTools";
 import NewFeatureDot from "./NewFeatureDot";
 import ChatContainer from "./chat/ChatContainer";
+import ReactMarkdown from "react-markdown";
 import { db } from "@/firebase";
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
@@ -46,6 +48,7 @@ export default function JournalModal({
   const [chatFullscreen, setChatFullscreen] = useState(false);
 
   const modalRef = useRef(null);
+  const editAreaRef = useRef(null);
   const closeButtonRef = useRef(null);
   const deleteDialogRef = useRef(null);
   const discardDialogRef = useRef(null);
@@ -392,11 +395,23 @@ export default function JournalModal({
 
                   {/* Journal content */}
                   {!isEditing ? (
-                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
+                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar markdown-content">
                       {journal ? (
-                        <p className="whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                          {journal}
-                        </p>
+                        <div className="break-words text-gray-700 dark:text-gray-300 text-[15px] leading-[1.6]">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ node, ...props }) => <p className="mb-3 last:mb-0" {...props} />,
+                              a: ({ node, ...props }) => <a className="underline underline-offset-2 decoration-indigo-400 font-medium hover:text-indigo-500 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
+                              ul: ({ node, ...props }) => <ul className="my-3 ml-5 list-disc space-y-1.5" {...props} />,
+                              ol: ({ node, ...props }) => <ol className="my-3 ml-5 list-decimal space-y-1.5" {...props} />,
+                              li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                              strong: ({ node, ...props }) => <strong className="font-semibold text-slate-900 dark:text-slate-100" {...props} />,
+                              em: ({ node, ...props }) => <em className="italic" {...props} />,
+                            }}
+                          >
+                            {journal}
+                          </ReactMarkdown>
+                        </div>
                       ) : (
                         <p className="text-gray-400 dark:text-gray-500 italic text-sm">
                           No journal entry for this day.
@@ -404,13 +419,17 @@ export default function JournalModal({
                       )}
                     </div>
                   ) : (
-                    <textarea
-                      className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
-                      value={draftJournal}
-                      onChange={(e) => setDraftJournal(e.target.value)}
-                      disabled={saving}
-                      placeholder="Write your thoughts..."
-                    />
+                    <div className="relative">
+                      <StyleTools textareaRef={editAreaRef} />
+                      <textarea
+                        ref={editAreaRef}
+                        className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
+                        value={draftJournal}
+                        onChange={(e) => setDraftJournal(e.target.value)}
+                        disabled={saving}
+                        placeholder="Write your thoughts..."
+                      />
+                    </div>
                   )}
 
                   {/* Action buttons */}

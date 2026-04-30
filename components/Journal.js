@@ -13,6 +13,7 @@ import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
+import StyleTools from "./StyleTools";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
@@ -624,8 +625,9 @@ export default function Journal({
         </div>
 
         <div className="relative">
+          <StyleTools textareaRef={textareaRef} />
           {!displayEntry && (
-            <div className="absolute top-4 left-4 right-12 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
+            <div className="absolute top-4 left-4 right-20 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
               <TypeAnimation
                 sequence={typingSequence}
                 wrapper="span"
