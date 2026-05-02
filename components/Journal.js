@@ -580,7 +580,7 @@ export default function Journal({
   };
 
   return (
-    <div id="journal-section" className="py-4 flex flex-col gap-6">
+    <div id="journal-section" className="py-4 flex flex-col gap-6" style={{ overflowAnchor: "none" }}>
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
         <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
@@ -631,7 +631,7 @@ export default function Journal({
               />
             </div>
           )}
-          <div className="journal-textarea-container bg-white dark:bg-slate-700/80 w-full min-h-28 max-h-[300px] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus-within:ring-2 focus-within:ring-indigo-500/90 dark:focus-within:ring-indigo-300/90 transition-[ring,border-color] duration-200 dark:text-gray-200 break-words whitespace-pre-wrap">
+          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/70 focus-within:border-transparent transition-[ring,border-color] duration-200 break-words whitespace-pre-wrap text-sm leading-relaxed">
             <RichTextEditor
               value={displayEntry}
               onChange={(newValue) => {
