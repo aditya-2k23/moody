@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import gsap from "gsap";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import ChatContainer from "../chat/ChatContainer";
 import Button from "../Button";
 import Login from "../Login";
@@ -121,7 +121,10 @@ export default function LumiDemoSection() {
           </p>
           <div className="pt-2">
             <Button
-              text="Start Chatting"
+              text={<span className="flex items-center gap-1.5">
+                Chat with Lumi
+                <ArrowRight size={20} />
+              </span>}
               dark
               onClick={handleStartChatting}
             />

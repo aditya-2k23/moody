@@ -31,7 +31,7 @@ const ToastItem = ({ t }) => {
     >
       {/* Left accented border */}
       <div
-        className={`absolute left-0 top-0 bottom-0 w-1.5 ${isSuccess ? "bg-emerald-500" : "bg-gradient-to-b from-[#d946ef] to-[#9333ea]"
+        className={`absolute left-0 top-0 bottom-0 w-1.5 ${isSuccess ? "bg-emerald-400" : "bg-indigo-400 dark:bg-indigo-500"
           }`}
       />
 
@@ -41,13 +41,17 @@ const ToastItem = ({ t }) => {
             <div
               className={`w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${isSuccess
                 ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
-                : "bg-[#fee2e2] dark:bg-[#2d1b4e] text-red-400 dark:text-[#a78bfa]"
+                : "bg-indigo-100 dark:bg-indigo-400/30 text-indigo-500 dark:text-white"
                 }`}
             >
-              {isSuccess ? <CheckCircle className="w-5 h-5" /> : <span className="text-xl font-bold pb-0.5">!</span>}
+              {isSuccess ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <span className="text-xl font-bold pb-0.5">{isError ? "!" : "i"}</span>
+              )}
             </div>
           </div>
-          <div className="w-px h-8 lg:h-10 border-l border-slate-200 dark:border-indigo-500/20" />
+          <div className="w-px h-8 lg:h-10 border-l border-indigo-300 dark:border-indigo-500/20" />
           <div className="flex-1">
             <p className="text-[14px] lg:text-[15px] font-medium text-slate-800 dark:text-slate-100 leading-snug">
               {resolveValue(t.message, t)}
@@ -58,7 +62,7 @@ const ToastItem = ({ t }) => {
       <div className="flex border-slate-200 dark:border-slate-700 h-full">
         <button
           onClick={() => toast.dismiss(t.id)}
-          className="w-full h-full border border-transparent rounded-none rounded-r-xl p-3 lg:p-4 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-indigo-400/60 dark:hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+          className="w-full h-full p-3 lg:p-4 text-slate-500 hover:text-slate-600 dark:text-indigo-200/80 dark:hover:text-indigo-300"
         >
           <X className="w-4 h-4 lg:w-5 lg:h-5" />
         </button>
