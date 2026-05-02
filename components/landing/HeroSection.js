@@ -64,6 +64,7 @@ export default function HeroSection() {
                   Go to your Dashboard <ArrowRightToLine size={20} />
                 </span>
               }
+              dark
               size="lg"
               className="w-full sm:w-auto sm:!px-56 flex justify-center"
             />

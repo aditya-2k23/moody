@@ -109,6 +109,15 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
   return (
     <>
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute inset-0 opacity-[0.15] dark:opacity-10" style={{
+          maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
+        }}>
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(var(--color-brand-500) 1px, transparent 1px), linear-gradient(to right, var(--color-brand-500) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
         <GlowBackground />
       </div>
 
