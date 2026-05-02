@@ -15,8 +15,12 @@ html {
 /* Custom cursor on interactive elements */
 button,
 a,
-input,
 select,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
 [role="button"],
 .cursor-pointer,
 .blob-btn,
@@ -35,6 +39,7 @@ button:disabled,
 }
 
 textarea,
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
 [role="textbox"],
 [contenteditable="true"] {
   cursor:

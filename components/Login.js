@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/authContext";
 import toast from "react-hot-toast";
 import GlowBackground from "./GlowBackground";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [email, setEmail] = useState("");
@@ -122,7 +123,7 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
       </div>
 
       <div
-        className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-4 z-10'
+        className='flex flex-col flex-1 justify-center items-center gap-3 md:gap-3.5 z-10'
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
@@ -148,13 +149,13 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
           />
           <button
             type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-75 transition"
+            className="absolute right-4 top-1/2 -translate-y-1/2 hover:opacity-75 transition-all p-1"
             onClick={() => setShowPassword((prev) => !prev)}
             tabIndex={0}
             aria-label={showPassword ? "Hide password" : "Show password"}
             title={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <i className="fas fa-eye"></i> : <i className="fas fa-eye-slash"></i>}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
 
@@ -162,7 +163,7 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
           <div className="w-full max-w-[400px] mx-auto flex justify-end">
             <button
               type="button"
-              className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-80 underline disabled:opacity-60 disabled:cursor-not-allowed"
+              className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-85 font-semibold underline disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={handleForgotPassword}
               disabled={resettingPassword}
             >
