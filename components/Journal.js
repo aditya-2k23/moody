@@ -631,7 +631,7 @@ export default function Journal({
               />
             </div>
           )}
-          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/70 focus-within:border-transparent transition-[ring,border-color] duration-200 break-words whitespace-pre-wrap text-sm leading-relaxed">
+          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/70 dark:focus-within:ring-indigo-500/70 focus-within:border-transparent transition-all duration-300 break-words whitespace-pre-wrap text-sm leading-relaxed outline-none shadow-sm focus-within:shadow-[0_0_20px_rgba(99,102,241,0.6)] dark:focus-within:shadow-[0_0_25px_rgba(99,102,241,0.40)]">
             <RichTextEditor
               value={displayEntry}
               onChange={(newValue) => {
@@ -641,7 +641,7 @@ export default function Journal({
               onEditorCreated={setEditor}
               placeholder=""
               disabled={saving || uploading}
-              className="min-h-full"
+              className="flex-1 min-h-full"
             />
           </div>
 

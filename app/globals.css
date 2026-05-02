@@ -556,6 +556,10 @@ textarea,
   border-color: rgba(79, 70, 229, 0.9);
 }
 
+.journal-textarea-container::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .journal-textarea-container::-webkit-resizer {
   background: linear-gradient(135deg,
       transparent 40%,
@@ -567,8 +571,8 @@ textarea,
       var(--color-resizer) 85%,
       transparent 85%);
   border-radius: 0 0 12px 0;
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
 }
 
 /* ========== AI Insights Section Animations ========== */
