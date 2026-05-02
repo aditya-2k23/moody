@@ -72,6 +72,7 @@ function DashboardContent() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
+  const [minTimeMet, setMinTimeMet] = useState(false);
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
@@ -157,8 +158,21 @@ function DashboardContent() {
     const timer = setInterval(() => {
       setTimeRemaining(getTimeRemaining());
     }, 1000);
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
+
+  // Force splash screen to stay for at least 2.5s AFTER auth is ready
+  useEffect(() => {
+    if (!loading && currentUser && !minTimeMet) {
+      const splashTimer = setTimeout(() => {
+        setMinTimeMet(true);
+      }, 2500);
+      return () => clearTimeout(splashTimer);
+    }
+  }, [loading, currentUser, minTimeMet]);
 
   // Real loading state: track auth + data loading stages
   useEffect(() => {
@@ -170,33 +184,30 @@ function DashboardContent() {
 
     // Stage 1: Authenticated (30%)
     setLoadingProgress(30);
-    setLoadingMessage("🔐 Authenticated! Loading your data...");
+    setLoadingMessage("Authenticated! Loading your data...");
   }, [currentUser]);
 
-  // Stage 2: User data loaded (70%) → Complete (100%)
+  // Stage 2: User data loaded (70%) → Complete (100%) after min time
   useEffect(() => {
     if (!currentUser || loading) return;
 
     if (userDataObj !== null) {
+      // Data is ready, but we wait for minTimeMet (2s)
       setLoadingProgress(70);
       setLoadingMessage("Preparing your dashboard...");
 
-      // Brief delay for the user to see 100% before dismissing
-      const finishTimer = setTimeout(() => {
+      if (minTimeMet) {
         setLoadingProgress(100);
-        setLoadingMessage("✅ Ready!");
-      }, 400);
+        setLoadingMessage("Ready!");
 
-      const dismissTimer = setTimeout(() => {
-        setInitialLoading(false);
-      }, 800);
+        const dismissTimer = setTimeout(() => {
+          setInitialLoading(false);
+        }, 500);
 
-      return () => {
-        clearTimeout(finishTimer);
-        clearTimeout(dismissTimer);
-      };
+        return () => clearTimeout(dismissTimer);
+      }
     }
-  }, [currentUser, loading, userDataObj]);
+  }, [currentUser, loading, userDataObj, minTimeMet]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -272,20 +283,6 @@ function DashboardContent() {
 
   useEffect(() => {
     if (!wasAuthenticated && currentUser) {
-      toast(
-        "Tip: Click any date in the calendar to view your previous journal logs!",
-        {
-          position: "bottom-center",
-          icon: "📝",
-          duration: 8000,
-          style: {
-            background: "#f5f3ff",
-            color: "#3730a3",
-            fontWeight: "bold"
-          },
-          removeDelay: 1000
-        }
-      );
       setWasAuthenticated(true);
     }
   }, [currentUser, wasAuthenticated]);
