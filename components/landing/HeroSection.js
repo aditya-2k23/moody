@@ -34,7 +34,7 @@ export default function HeroSection() {
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8">
         <span className="w-2 h-2 rounded-full bg-green-400" />
         <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium italic font-sans">
-          {`${APP_VERSION_LABEL} chatbot release is now live!`}
+          {`${APP_VERSION_LABEL} public release is now live!`}
         </span>
       </div>
 

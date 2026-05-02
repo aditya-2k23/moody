@@ -69,19 +69,15 @@ export default function MessageBubble({ message, isLatest }) {
             : "bg-white dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700/80 shadow-sm"
             } ${isLatest ? "message-bubble--latest ring-1 ring-indigo-300/70 dark:ring-indigo-400/50" : ""}`}
         >
-          <ReactMarkdown
-            components={{
-              p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-              a: ({ node, ...props }) => <a className="underline underline-offset-2 decoration-indigo-400 font-medium" target="_blank" rel="noopener noreferrer" {...props} />,
-              ul: ({ node, ...props }) => <ul className="my-2 ml-4 list-disc space-y-1" {...props} />,
-              ol: ({ node, ...props }) => <ol className="my-2 ml-4 list-decimal space-y-1" {...props} />,
-              li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-              strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
-              em: ({ node, ...props }) => <em className="italic" {...props} />,
-            }}
-          >
-            {message.content}
-          </ReactMarkdown>
+          <div className={`prose prose-sm max-w-none ${isUser ? "prose-invert" : "dark:prose-invert"}`}>
+            <ReactMarkdown
+              components={{
+                a: ({ node, ...props }) => <a className={`${isUser ? "text-white" : "text-indigo-500"} underline underline-offset-2 font-medium`} target="_blank" rel="noopener noreferrer" {...props} />,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
         </div>
         {message.timestamp && (
           <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 mx-1.5 select-none">

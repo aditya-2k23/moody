@@ -556,17 +556,19 @@ textarea,
   border-color: rgba(79, 70, 229, 0.9);
 }
 
-.journal-textarea::-webkit-resizer {
+.journal-textarea-container::-webkit-resizer {
   background: linear-gradient(135deg,
-      transparent 50%,
-      var(--color-resizer) 50%,
-      var(--color-resizer) 60%,
-      transparent 60%,
-      transparent 75%,
-      var(--color-resizer) 75%,
+      transparent 40%,
+      var(--color-resizer) 40%,
+      var(--color-resizer) 55%,
+      transparent 55%,
+      transparent 70%,
+      var(--color-resizer) 70%,
       var(--color-resizer) 85%,
       transparent 85%);
-  border-radius: 0 0 8px 0;
+  border-radius: 0 0 12px 0;
+  width: 14px;
+  height: 14px;
 }
 
 /* ========== AI Insights Section Animations ========== */

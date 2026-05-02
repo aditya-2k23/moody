@@ -8,7 +8,7 @@ import RadialMoodMenu from "./RadialMoodMenu";
 import StyleTools from "./StyleTools";
 import NewFeatureDot from "./NewFeatureDot";
 import ChatContainer from "./chat/ChatContainer";
-import ReactMarkdown from "react-markdown";
+import RichTextEditor from "./RichTextEditor";
 import { db } from "@/firebase";
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
@@ -48,7 +48,7 @@ export default function JournalModal({
   const [chatFullscreen, setChatFullscreen] = useState(false);
 
   const modalRef = useRef(null);
-  const editAreaRef = useRef(null);
+  const [editor, setEditor] = useState(null);
   const closeButtonRef = useRef(null);
   const deleteDialogRef = useRef(null);
   const discardDialogRef = useRef(null);
@@ -245,8 +245,10 @@ export default function JournalModal({
 
     const hasMood = typeof draftMood === "number";
     const hasJournal = typeof draftJournal === "string" && draftJournal.trim().length > 0;
-
-    if (!hasMood && !hasJournal) {
+    
+    // We only show error if the user is trying to save a completely blank NEW entry.
+    // If they are clearing an existing one, we should let them.
+    if (!hasMood && !hasJournal && !journal) {
       toast.error("Nothing to save — use Delete instead.");
       return;
     }
@@ -349,69 +351,61 @@ export default function JournalModal({
                   </h3>
 
                   {/* Mood display */}
-                  <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 mb-4 flex items-center gap-1">
-                    <span className="font-semibold">You felt:</span>
-                    {!isEditing ? (
-                      selectedMoodLabel ? (
-                        <span className="inline-flex items-center gap-1 ml-1">
-                          <span className="text-xl leading-none">{selectedMoodEmoji}</span>
-                          <span className="capitalize">{selectedMoodLabel}</span>
-                        </span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="text-sm text-indigo-600/90 dark:text-indigo-200/80 flex items-center gap-2">
+                      <span className="font-semibold">{isEditing ? "" : "You felt:"}</span>
+                      {!isEditing ? (
+                        selectedMoodLabel ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="text-2xl leading-none">{selectedMoodEmoji}</span>
+                            <span className="capitalize text-base font-medium font-fugaz">{selectedMoodLabel}</span>
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
+                        )
                       ) : (
-                        <span className="text-gray-500 dark:text-gray-400 italic ml-1">Not logged</span>
-                      )
-                    ) : (
-                      <span className="inline-flex items-center gap-2 ml-1">
-                        <span className="relative">
-                          <RadialMoodMenu
-                            moods={moodOptions}
-                            currentMoodEmoji={draftMoodEmoji}
-                            currentMoodLabel={draftMoodLabel}
-                            onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
-                            disabled={saving}
-                          />
-                          <NewFeatureDot className="-right-[-3px]" />
-                        </span>
-                        <span className="inline-flex flex-col leading-tight">
-                          {draftMoodLabel ? (
-                            <>
-                              <span className="text-sm font-medium capitalize text-indigo-600 dark:text-indigo-200">
-                                {draftMoodLabel}
-                              </span>
+                        <div className="flex items-center gap-3 ml-1">
+                          <div className="relative">
+                            <RadialMoodMenu
+                              moods={moodOptions}
+                              currentMoodEmoji={draftMoodEmoji}
+                              currentMoodLabel={draftMoodLabel}
+                              onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
+                              disabled={saving}
+                            />
+                            <NewFeatureDot className="-right-[-3px]" />
+                          </div>
+                          <div className="flex flex-col leading-tight min-w-[80px]">
+                            {draftMoodLabel ? (
+                              <>
+                                <span className="text-sm font-bold capitalize text-indigo-700 dark:text-indigo-100">
+                                  {draftMoodLabel}
+                                </span>
 
-                              <span className="text-[0.65rem] text-indigo-400/70 dark:text-indigo-300/80 tracking-wide animate-bounce mt-0.5">
-                                hover to change
+                                <span className="text-[0.65rem] text-indigo-400/80 dark:text-indigo-300/80 tracking-wide mt-1 font-medium animate-bounce">
+                                  hover to change
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide">
+                                pick a mood
                               </span>
-                            </>
-                          ) : (
-                            <span className="text-xs text-indigo-400/80 dark:text-indigo-300/60 italic tracking-wide animate-pulse">
-                              pick a mood
-                            </span>
-                          )}
-                        </span>
-                      </span>
-                    )}
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {isEditing && <StyleTools editor={editor} className="hidden lg:flex" />}
                   </div>
 
                   {/* Journal content */}
                   {!isEditing ? (
-                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar markdown-content">
+                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
                       {journal ? (
-                        <div className="break-words text-gray-700 dark:text-gray-300 text-[15px] leading-[1.6]">
-                          <ReactMarkdown
-                            components={{
-                              p: ({ node, ...props }) => <p className="mb-3 last:mb-0" {...props} />,
-                              a: ({ node, ...props }) => <a className="underline underline-offset-2 decoration-indigo-400 font-medium hover:text-indigo-500 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
-                              ul: ({ node, ...props }) => <ul className="my-3 ml-5 list-disc space-y-1.5" {...props} />,
-                              ol: ({ node, ...props }) => <ol className="my-3 ml-5 list-decimal space-y-1.5" {...props} />,
-                              li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                              strong: ({ node, ...props }) => <strong className="font-semibold text-slate-900 dark:text-slate-100" {...props} />,
-                              em: ({ node, ...props }) => <em className="italic" {...props} />,
-                            }}
-                          >
-                            {journal}
-                          </ReactMarkdown>
-                        </div>
+                        <RichTextEditor
+                          value={journal}
+                          disabled={true}
+                        />
                       ) : (
                         <p className="text-gray-400 dark:text-gray-500 italic text-sm">
                           No journal entry for this day.
@@ -420,15 +414,16 @@ export default function JournalModal({
                     </div>
                   ) : (
                     <div className="relative">
-                      <StyleTools textareaRef={editAreaRef} />
-                      <textarea
-                        ref={editAreaRef}
-                        className="w-full min-h-[140px] max-h-[40vh] p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-transparent whitespace-pre-wrap break-words text-sm leading-relaxed resize-y custom-scrollbar"
-                        value={draftJournal}
-                        onChange={(e) => setDraftJournal(e.target.value)}
-                        disabled={saving}
-                        placeholder="Write your thoughts..."
-                      />
+                      <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/70 focus-within:border-transparent transition-[ring,border-color] duration-200 break-words whitespace-pre-wrap text-sm leading-relaxed">
+                        <RichTextEditor
+                          value={draftJournal}
+                          onChange={setDraftJournal}
+                          onEditorCreated={setEditor}
+                          disabled={saving}
+                          placeholder="Write your thoughts..."
+                          className="min-h-full"
+                        />
+                      </div>
                     </div>
                   )}
 

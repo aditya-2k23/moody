@@ -79,7 +79,7 @@
   --color-blob-text-hover: var(--color-white);
   --color-blob-bg-light: var(--color-bg);
   --color-blob-bg-dark: var(--color-surface);
-  --color-resizer: var(--color-primary-400);
+  --color-resizer: var(--color-primary-500);
   --cursor-start: #a78bfa;
   --cursor-mid: #60a5fa;
   --cursor-end: #f472b6;
@@ -120,4 +120,5 @@
   --shadow-lg: 0 18px 48px rgba(2, 6, 23, 0.6);
   --shadow-xl: 0 28px 80px rgba(2, 6, 23, 0.7);
   --glow-primary: 0 12px 40px rgba(99, 102, 241, 0.12);
+  --color-resizer: var(--color-primary-400);
 }
