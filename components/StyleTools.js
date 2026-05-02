@@ -6,8 +6,10 @@ const MenuButton = ({ onClick, isActive, icon: Icon, title }) => (
   <button
     type="button"
     title={title}
+    aria-label={title}
+    aria-pressed={isActive}
     onClick={onClick}
-    className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-indigo-100/60 dark:hover:bg-slate-700/60 transition-colors ${isActive ? "text-indigo-500 dark:text-slate-400 bg-indigo-100/70 dark:bg-slate-700/60" : "text-slate-500 dark:text-slate-400/70"}`}
+    className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-indigo-100/60 dark:hover:bg-slate-700/60 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900 outline-none transition-all ${isActive ? "text-indigo-500 dark:text-slate-100 bg-indigo-100/70 dark:bg-slate-700" : "text-slate-500 dark:text-slate-400/70"}`}
   >
     <Icon size={14} strokeWidth={2.5} />
   </button>

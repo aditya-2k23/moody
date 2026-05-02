@@ -16,7 +16,7 @@ import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
 import StyleTools from "./StyleTools";
 import RichTextEditor from "./RichTextEditor";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
+import { CloudUpload, Mic, Square, NotebookPen, Sparkles, CloudCheck } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 
 function getDateKey(date = new Date()) {
@@ -603,7 +603,7 @@ export default function Journal({
               {cloudStatus === "saving" ? (
                 <CloudUpload className="text-indigo-400 dark:text-indigo-300 animate-pulse" size={14} />
               ) : (
-                <Check className="text-green-500 dark:text-green-400" size={14} />
+                <CloudCheck className="text-green-500 dark:text-green-400" size={14} />
               )}
               <span
                 className={`text-xs font-medium ${cloudStatus === "saving"

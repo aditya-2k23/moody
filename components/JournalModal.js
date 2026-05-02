@@ -245,10 +245,10 @@ export default function JournalModal({
 
     const hasMood = typeof draftMood === "number";
     const hasJournal = typeof draftJournal === "string" && draftJournal.trim().length > 0;
-    
+
     // We only show error if the user is trying to save a completely blank NEW entry.
     // If they are clearing an existing one, we should let them.
-    if (!hasMood && !hasJournal && !journal) {
+    if (!hasMood && !hasJournal && typeof mood !== "number" && !journal) {
       toast.error("Nothing to save — use Delete instead.");
       return;
     }

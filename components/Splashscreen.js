@@ -226,6 +226,11 @@ export default function Splashscreen({
         delay: Math.random() * 2
       });
     });
+
+    // Cleanup: Revert SplitText to avoid duplicated spans on re-render
+    return () => {
+      split.revert();
+    };
   }, { scope: containerRef, dependencies: [iconPositions] });
 
   return (

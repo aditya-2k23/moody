@@ -62,6 +62,7 @@ const ToastItem = ({ t }) => {
       <div className="flex border-slate-200 dark:border-slate-700 h-full">
         <button
           onClick={() => toast.dismiss(t.id)}
+          aria-label="Dismiss notification"
           className="w-full h-full p-3 lg:p-4 text-slate-500 hover:text-slate-600 dark:text-indigo-200/80 dark:hover:text-indigo-300"
         >
           <X className="w-4 h-4 lg:w-5 lg:h-5" />
