@@ -65,9 +65,13 @@ export async function GET(req) {
       const sId = data.sessionId || "default";
 
       if (!groupedSessions[sId]) {
+        let cleanContent = data.content || "";
+        if (typeof cleanContent === "string") {
+            cleanContent = cleanContent.trim().replace(/^["']+|["']+$/g, "");
+        }
         groupedSessions[sId] = {
           sessionId: sId,
-          preview: (data.content || "").substring(0, 40) + ((data.content || "").length > 40 ? '...' : ''),
+          preview: cleanContent.substring(0, 40) + (cleanContent.length > 40 ? '...' : ''),
           messages: []
         };
       }
@@ -79,15 +83,19 @@ export async function GET(req) {
             groupedSessions[sId].messages.push({
               id: `${doc.id}_${index}`,
               role: "assistant",
-              content: bubble,
+              content: bubble.trim().replace(/^["']|["']$/g, ""),
               timestamp,
             });
           });
       } else {
+        let cleanContent = data.content;
+        if (typeof cleanContent === "string") {
+            cleanContent = cleanContent.trim().replace(/^["']+|["']+$/g, "");
+        }
         groupedSessions[sId].messages.push({
           id: doc.id,
           role: data.role,
-          content: data.content,
+          content: cleanContent,
           timestamp,
         });
       }

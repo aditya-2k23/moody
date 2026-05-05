@@ -1,5 +1,4 @@
 import { redis } from "@/lib/redis";
-import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId, isValidString } from "@/lib/validation";
 import { DEMO_CHAT_LIMIT } from "@/utils";
@@ -594,7 +593,7 @@ export async function POST(req) {
       }
 
       replyBubbles = parsed
-        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .map((item) => (typeof item === "string" ? item.trim().replace(/^["']+|["']+$/g, "") : ""))
         .filter(Boolean);
 
       if (replyBubbles.length === 0) {
