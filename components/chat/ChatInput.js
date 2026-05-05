@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useCallback, useState, forwardRef, useImperativeHandle, useRef } from "react";
 import { Send, Loader2, Type } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -25,11 +25,12 @@ const ChatInput = forwardRef(function ChatInput({
   const [isComposing, setIsComposing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showStyleTools, setShowStyleTools] = useState(false);
+  const styleToolsRef = useRef(null);
 
   const toggleStyleTools = useCallback(() => {
     import("gsap").then(({ default: gsap }) => {
       if (showStyleTools) {
-        gsap.to(".style-tools-container", {
+        gsap.to(styleToolsRef.current, {
           opacity: 0,
           y: 10,
           scale: 0.95,
@@ -43,10 +44,12 @@ const ChatInput = forwardRef(function ChatInput({
         setShowStyleTools(true);
         // Animate in next frame after mount
         requestAnimationFrame(() => {
-          gsap.fromTo(".style-tools-container",
-            { opacity: 0, y: 10, scale: 0.95 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.5)" }
-          );
+          if (styleToolsRef.current) {
+            gsap.fromTo(styleToolsRef.current,
+              { opacity: 0, y: 10, scale: 0.95 },
+              { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.5)" }
+            );
+          }
         });
       }
     });
@@ -158,7 +161,10 @@ const ChatInput = forwardRef(function ChatInput({
     <div className="p-4 bg-transparent backdrop-blur-md border-t border-gray-100/50 dark:border-white/5">
       {/* StyleTools in document flow when fullscreen */}
       {!isMobile && isFullscreen && editor && showStyleTools && (
-        <div className="mb-3 flex justify-start pl-2 style-tools-container">
+        <div
+          ref={styleToolsRef}
+          className="mb-3 flex justify-start pl-2 style-tools-container"
+        >
           <StyleTools editor={editor} />
         </div>
       )}
@@ -173,7 +179,10 @@ const ChatInput = forwardRef(function ChatInput({
         <div className="flex-1 relative">
           {/* StyleTools floating when not fullscreen */}
           {!isMobile && !isFullscreen && editor && showStyleTools && (
-            <div className="absolute -top-[3.25rem] left-2 z-20 style-tools-container">
+            <div
+              ref={styleToolsRef}
+              className="absolute -top-[3.25rem] left-2 z-20 style-tools-container"
+            >
               <StyleTools editor={editor} />
             </div>
           )}

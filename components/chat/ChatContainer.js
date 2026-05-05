@@ -694,8 +694,8 @@ export default function ChatContainer({
             className="bg-white dark:bg-slate-900 p-3 sm:p-4 md:p-5 rounded-xl shadow-2xl w-full max-w-sm border border-gray-300 dark:border-slate-600/40 max-h-[80vh] flex flex-col opacity-0 scale-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 id={historyTitleId} className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
+            <div className="flex justify-between items-center mb-2 md:mb-4 shrink-0">
+              <h3 id={historyTitleId} className="font-semibold sm:text-lg dark:text-white">Today&apos;s Chat History</h3>
               <button
                 onClick={closeHistoryModal}
                 className="p-1 rounded-xl bg-gray-100/80 hover:bg-gray-200/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 text-gray-500 transition-colors"
@@ -720,14 +720,14 @@ export default function ChatContainer({
                     className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-300/90 dark:border-slate-700/50 shadow-sm hover:shadow group outline-none"
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <p className="text-sm text-indigo-600 dark:text-indigo-400">
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400">
                         {session.messages.length} messages
                       </p>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         {session.messages[0]?.timestamp}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 line-clamp-2 max-w-none">
+                    <div className="text-[13px] sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 line-clamp-1 max-w-none">
                       <ReactMarkdown>
                         {session.preview}
                       </ReactMarkdown>
