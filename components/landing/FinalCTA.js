@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Button from "../Button";
+import Loader from "../Loader";
 import { useAuth } from "@/context/authContext";
 import { ArrowRight } from "lucide-react";
 
 export default function FinalCTA() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
 
   return (
     <section className="w-screen relative left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-950">
@@ -24,19 +25,25 @@ export default function FinalCTA() {
           </div>
 
           {/* Right: CTA */}
-          <div className="flex flex-col items-start md:items-end gap-3">
-            <Link href={currentUser ? "/dashboard" : "/dashboard?register=true"}>
-              <Button
-                text={
-                  <>
-                    {currentUser ? "Go to Dashboard" : "Get Started for Free"}{" "}
-                    <ArrowRight size={18} />
-                  </>
-                }
-                dark
-                size="lg"
-              />
-            </Link>
+          <div className="flex flex-col items-start md:items-end gap-3 min-h-[56px] min-w-[200px]">
+            {loading ? (
+              <div className="flex justify-center items-center w-full h-full">
+                <Loader size="base" />
+              </div>
+            ) : (
+              <Link href={currentUser ? "/dashboard" : "/dashboard?register=true"}>
+                <Button
+                  text={
+                    <>
+                      {currentUser ? "Go to Dashboard" : "Get Started for Free"}{" "}
+                      <ArrowRight size={18} />
+                    </>
+                  }
+                  dark
+                  size="lg"
+                />
+              </Link>
+            )}
             {/* <p className="text-xs text-slate-500 italic">
               No credit card required for 14-day trial.
             </p> */}

@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Button from "../Button";
+import Loader from "../Loader";
 import { useAuth } from "@/context/authContext";
 import { ArrowRightToLine, Play } from "lucide-react";
 import VideoModal from "./VideoModal";
 import { APP_VERSION_LABEL } from "@/lib/release";
 
 export default function HeroSection() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const sectionRef = useRef(null);
 
@@ -55,8 +56,12 @@ export default function HeroSection() {
       </p>
 
       {/* CTAs */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-        {currentUser ? (
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 min-h-[56px]">
+        {loading ? (
+          <div className="flex justify-center items-center w-full">
+            <Loader size="base" />
+          </div>
+        ) : currentUser ? (
           <Link href="/dashboard" className="w-full sm:w-auto">
             <Button
               text={

@@ -3,13 +3,22 @@
 import { useAuth } from "@/context/authContext";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
+import Loader from "./Loader";
 import { LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function Logout() {
-  const { logOut, currentUser } = useAuth();
+  const { logOut, currentUser, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center w-[120px] h-[40px]">
+        <Loader size="sm" />
+      </div>
+    );
+  }
 
   if (!currentUser) return null;
 
