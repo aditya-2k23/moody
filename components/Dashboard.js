@@ -79,6 +79,14 @@ function DashboardContent() {
   const moodDebounceTimerRef = useRef(null);
   const MOOD_DEBOUNCE_MS = 2000; // 2 seconds
 
+  // Hardcoded 2.5s minimum splash screen time
+  useEffect(() => {
+    const splashTimer = setTimeout(() => {
+      setMinTimeMet(true);
+    }, 2500);
+    return () => clearTimeout(splashTimer);
+  }, []);
+
   // Cached ID token for synchronous beacon requests
   const cachedIdTokenRef = useRef(null);
 
@@ -164,35 +172,24 @@ function DashboardContent() {
     };
   }, []);
 
-  // Force splash screen to stay for at least 2.5s AFTER auth is ready
-  useEffect(() => {
-    if (!loading && currentUser && !minTimeMet) {
-      const splashTimer = setTimeout(() => {
-        setMinTimeMet(true);
-      }, 2500);
-      return () => clearTimeout(splashTimer);
-    }
-  }, [loading, currentUser, minTimeMet]);
-
   // Real loading state: track auth + data loading stages
   useEffect(() => {
     if (!currentUser) {
-      // If not logged in, skip splash
-      setInitialLoading(false);
+      if (minTimeMet) setInitialLoading(false);
       return;
     }
 
     // Stage 1: Authenticated (30%)
     setLoadingProgress(30);
     setLoadingMessage("Authenticated! Loading your data...");
-  }, [currentUser]);
+  }, [currentUser, minTimeMet]);
 
   // Stage 2: User data loaded (70%) → Complete (100%) after min time
   useEffect(() => {
     if (!currentUser || loading) return;
 
     if (userDataObj !== null) {
-      // Data is ready, but we wait for minTimeMet (2s)
+      // Data is ready, but we wait for minTimeMet (2.5s)
       setLoadingProgress(70);
       setLoadingMessage("Preparing your dashboard...");
 
