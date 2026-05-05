@@ -52,9 +52,6 @@
   background: rgba(59, 66, 103, 0.8);
 }
 
-/* ======================================================== */
-
-
 /* Global Styles */
 html {
   cursor:
@@ -690,10 +687,6 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="c
 
 /* Markdown preview content tweaks for contrast and link affordance */
 .markdown-content p {
-  color: var(--color-text);
-}
-
-.dark .markdown-content p {
   color: var(--color-text);
 }
 
