@@ -13,6 +13,7 @@ export default function RichTextEditor({
   placeholder = "Write your thoughts...",
   className = "",
   disabled = false,
+  isVoiceInput = false,
   onFocus,
   onBlur,
   onEditorCreated,
@@ -60,21 +61,21 @@ export default function RichTextEditor({
 
     // Get current markdown to compare
     const currentMarkdown = editor.storage.markdown.getMarkdown();
-    
+
     // Only update if content is actually different and the editor isn't being actively used
     // This prevents "jitter" and cursor jumps during manual typing
     if (value !== currentMarkdown) {
       // If the editor is focused, we only update if the change is likely from an external source
       // (like voice transcript or initial load) rather than manual typing
       const isManualTyping = editor.isFocused;
-      
-      if (!isManualTyping) {
+
+      if (!isManualTyping || isVoiceInput) {
         editor.commands.setContent(value, false, {
           preserveWhitespace: "full",
         });
       }
     }
-  }, [value, editor]);
+  }, [value, editor, isVoiceInput]);
 
   // Sync disabled state
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function RichTextEditor({
   }
 
   return (
-    <div 
+    <div
       className="relative w-full min-h-[inherit] cursor-text"
       onClick={() => editor?.commands.focus()}
     >

@@ -634,6 +634,7 @@ export default function Journal({
           <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/50 dark:focus-within:ring-indigo-500/60 focus-within:border-transparent transition-all duration-300 break-words whitespace-pre-wrap text-sm leading-relaxed outline-none shadow-sm focus-within:shadow-[0_0_20px_rgba(99,102,241,0.4)] dark:focus-within:shadow-[0_0_23px_rgba(99,102,241,0.2)]">
             <RichTextEditor
               value={displayEntry}
+              isVoiceInput={isListening}
               onChange={(newValue) => {
                 setEntry(newValue);
                 syncBaseEntry(newValue);
