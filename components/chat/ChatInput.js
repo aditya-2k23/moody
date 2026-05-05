@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useCallback, useState, forwardRef, useImperativeHandle } from "react";
 import { Send, Loader2, Type } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
 import VoiceButton from "./VoiceButton";
 import StyleTools from "@/components/StyleTools";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -25,6 +26,32 @@ const ChatInput = forwardRef(function ChatInput({
   const [isMobile, setIsMobile] = useState(false);
   const [showStyleTools, setShowStyleTools] = useState(false);
 
+  const toggleStyleTools = useCallback(() => {
+    import("gsap").then(({ default: gsap }) => {
+      if (showStyleTools) {
+        gsap.to(".style-tools-container", {
+          opacity: 0,
+          y: 10,
+          scale: 0.95,
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            setShowStyleTools(false);
+          }
+        });
+      } else {
+        setShowStyleTools(true);
+        // Animate in next frame after mount
+        requestAnimationFrame(() => {
+          gsap.fromTo(".style-tools-container",
+            { opacity: 0, y: 10, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.5)" }
+          );
+        });
+      }
+    });
+  }, [showStyleTools]);
+
   // Initialize Tiptap editor
   const editor = useEditor({
     immediatelyRender: false,
@@ -39,6 +66,7 @@ const ChatInput = forwardRef(function ChatInput({
       Placeholder.configure({
         placeholder: "Message Lumi...",
       }),
+      Underline,
     ],
     content: input,
     editorProps: {
@@ -130,7 +158,7 @@ const ChatInput = forwardRef(function ChatInput({
     <div className="p-4 bg-transparent backdrop-blur-md border-t border-gray-100/50 dark:border-white/5">
       {/* StyleTools in document flow when fullscreen */}
       {!isMobile && isFullscreen && editor && showStyleTools && (
-        <div className="mb-3 flex justify-start pl-2">
+        <div className="mb-3 flex justify-start pl-2 style-tools-container">
           <StyleTools editor={editor} />
         </div>
       )}
@@ -145,7 +173,7 @@ const ChatInput = forwardRef(function ChatInput({
         <div className="flex-1 relative">
           {/* StyleTools floating when not fullscreen */}
           {!isMobile && !isFullscreen && editor && showStyleTools && (
-            <div className="absolute -top-[3.25rem] left-2 z-20">
+            <div className="absolute -top-[3.25rem] left-2 z-20 style-tools-container">
               <StyleTools editor={editor} />
             </div>
           )}
@@ -167,8 +195,8 @@ const ChatInput = forwardRef(function ChatInput({
               {!isMobile && (
                 <button
                   type="button"
-                  onClick={() => setShowStyleTools((prev) => !prev)}
-                  className={`h-9 w-9 flex items-center justify-center rounded-full transition-colors ${showStyleTools ? "text-indigo-600 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/40" : "text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:text-slate-400/80 dark:hover:bg-slate-800"}`}
+                  onClick={toggleStyleTools}
+                  className={`h-9 w-9 flex items-center justify-center rounded-full transition-colors ${showStyleTools ? "text-indigo-500 bg-[#eef2ff] dark:bg-[#2f3555] hover:bg-indigo-100 dark:hover:bg-[#3b4267]" : "text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:text-slate-400/80 dark:hover:bg-slate-800"}`}
                   aria-label="Toggle styling tools"
                   title="Formatting tools"
                 >
