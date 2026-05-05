@@ -171,7 +171,8 @@ export default function NavbarLinks() {
               ))}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
