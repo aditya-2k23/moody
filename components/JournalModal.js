@@ -459,13 +459,18 @@ export default function JournalModal({
                               setLoadingInsights(false);
                             }
                           }}
-                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${showInsights
+                          className={`inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold transition ${showInsights
                             ? "bg-indigo-600 text-white"
                             : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
                             }`}
                         >
                           <Sparkles size={14} />
-                          {showInsights ? "Hide Insights" : "View Insights"}
+                          <span className="md:hidden">
+                            {showInsights ? "Hide" : "Insights"}
+                          </span>
+                          <span className="hidden md:inline">
+                            {showInsights ? "Hide Insights" : "View Insights"}
+                          </span>
                         </button>
                       )}
                     </div>
@@ -484,7 +489,7 @@ export default function JournalModal({
                                 setDraftMood(mood);
                               }}
                               disabled={!isAuthed || saving || deleting}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
+                              className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-xl bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-200 font-semibold hover:bg-indigo-300 dark:hover:bg-slate-600 transition disabled:opacity-50"
                             >
                               <Pencil size={16} />
                               Edit
@@ -497,7 +502,7 @@ export default function JournalModal({
                                 setConfirmDelete(true);
                               }}
                               disabled={!isAuthed || saving || deleting}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
+                              className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-xl bg-red-500/30 text-red-600 dark:text-slate-300 border border-red-300 dark:border-red-500/70 font-semibold hover:bg-red-500/20 transition disabled:opacity-50"
                             >
                               <Trash2 size={16} />
                               Delete

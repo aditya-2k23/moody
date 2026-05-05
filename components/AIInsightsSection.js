@@ -124,7 +124,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
       {/* Section Header */}
       <h2 className="text-xl md:text-2xl flex items-center gap-2 mt-2 md:mt-4 mb-6 font-bold text-gray-800 dark:text-gray-200 fugaz">
         <Sparkles size={25} />
-        {insights ? "Lumi's Thoughts" : "Let's talk about your day"}
+        {insights || isLoading ? "Lumi's Thoughts" : "Let's talk about your day"}
         {showContent && insights && (
           <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 animate-insights-badge shadow-sm">
             <Check className="mr-1" size={12} />
