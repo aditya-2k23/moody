@@ -5,6 +5,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ======= Tiptap Editor & Chat Scrollbar overrides ======= */
+.tiptap-chat-editor .ProseMirror {
+  outline: none;
+  min-height: 24px;
+}
+
+.tiptap-chat-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+
+.dark .tiptap-chat-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: #6b7280;
+}
+
+.tiptap-chat-editor .ProseMirror>*+* {
+  margin-top: 0.5em;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(199, 210, 254, 0.5);
+  border-radius: 4px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(199, 210, 254, 0.8);
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 66, 103, 0.5);
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 66, 103, 0.8);
+}
+
+/* ======================================================== */
+
+
 /* Global Styles */
 html {
   cursor:

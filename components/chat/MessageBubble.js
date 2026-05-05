@@ -39,17 +39,17 @@ export default function MessageBubble({ message, isLatest }) {
   return (
     <div
       ref={bubbleRef}
-      className={`flex items-end gap-2.5 opacity-0 ${isUser ? "flex-row-reverse" : "flex-row"
-        }`}
+      className={`flex items-end gap-2 opacity-0 ${isUser ? "flex-row-reverse" : "flex-row"
+        } relative group`}
     >
       {/* Avatar — only for assistant */}
       {!isUser && (
-        <div className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm mb-1 overflow-hidden">
+        <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm overflow-hidden mb-0.5">
           <Image
             src="/lumi-avatar.png"
             alt="Lumi"
-            width={32}
-            height={32}
+            width={28}
+            height={28}
             className="w-full h-full object-cover"
             onError={(e) => {
               // Fallback to gradient icon if avatar not found
@@ -58,16 +58,21 @@ export default function MessageBubble({ message, isLatest }) {
           />
         </div>
       )}
+      {isUser && (
+        <div className="shrink-0 w-7 h-7 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center shadow-sm overflow-hidden mb-0.5 text-xs font-bold text-gray-500 dark:text-gray-400">
+          Me
+        </div>
+      )}
 
       <div
         className={`flex flex-col max-w-[78%] ${isUser ? "items-end" : "items-start"
           }`}
       >
         <div
-          className={`relative px-4 py-2.5 text-sm leading-relaxed break-words smooth-transition ${isUser
-            ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-600/20"
-            : "bg-white dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-slate-700/80 shadow-sm"
-            } ${isLatest ? "message-bubble--latest ring-1 ring-indigo-300/70 dark:ring-indigo-400/50" : ""}`}
+          className={`relative px-3.5 py-2 text-[14px] leading-relaxed break-words smooth-transition ${isUser
+            ? "bg-indigo-600 text-white rounded-[1.25rem] rounded-br-[4px] shadow-sm"
+            : "bg-white dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-[1.25rem] rounded-bl-[4px] border border-gray-100 dark:border-slate-700/80 shadow-sm"
+            }`}
         >
           <div className={`prose prose-sm max-w-none ${isUser ? "prose-invert" : "dark:prose-invert"}`}>
             <ReactMarkdown
@@ -80,9 +85,16 @@ export default function MessageBubble({ message, isLatest }) {
           </div>
         </div>
         {message.timestamp && (
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 mx-1.5 select-none">
-            {message.timestamp}
-          </span>
+          <div className={`flex items-center gap-1 mt-1 mx-1 select-none transition-opacity duration-200 ${isLatest ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              {message.timestamp}
+            </span>
+            {isUser && (
+              <span className="text-[10px] text-indigo-400/80 dark:text-indigo-400/70 ml-0.5">
+                ✓✓
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>

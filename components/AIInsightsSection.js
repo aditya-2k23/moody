@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { moods } from "@/utils";
 import { Check, Sparkles, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
@@ -208,11 +209,13 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                     {insights.headline || "Your Personalized Insight"}
                   </h4>
 
-                  <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">
-                    {Array.isArray(insights.response)
-                      ? insights.response.join(" ")
-                      : (insights.response || insights.insight)}
-                  </p>
+                  <div className="prose prose-sm md:prose-base dark:prose-invert text-gray-700 dark:text-gray-300 leading-relaxed max-w-none">
+                    <ReactMarkdown>
+                      {Array.isArray(insights.response)
+                        ? insights.response.join("\n\n")
+                        : (insights.response || insights.insight)}
+                    </ReactMarkdown>
+                  </div>
                 </div>
 
                 {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
