@@ -4,8 +4,9 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
+import Underline from "@tiptap/extension-underline";
 import { Markdown } from "tiptap-markdown";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export default function RichTextEditor({
   value,
@@ -31,6 +32,7 @@ export default function RichTextEditor({
         emptyEditorClass: "before:content-[attr(data-placeholder)] before:float-left before:text-slate-400 dark:before:text-slate-500 before:pointer-events-none before:h-0 before:text-sm",
       }),
       Typography,
+      Underline,
       Markdown.configure({
         html: false,
         tightLists: true,

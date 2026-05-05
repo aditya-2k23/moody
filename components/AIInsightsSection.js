@@ -15,6 +15,8 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
   const [showContent, setShowContent] = useState(false);
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
   const [wasJustGenerated, setWasJustGenerated] = useState(false);
+  const [tipUsed, setTipUsed] = useState(false);
+  const [chatHasMessages, setChatHasMessages] = useState(false);
   const [currentDay, setCurrentDay] = useState(() => {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Kolkata',
@@ -66,6 +68,13 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
     return `chat_${userId}_${currentDay}`;
   }, [userId, currentDay]);
 
+  // Reset tip visibility when a new chat starts (chatHasMessages becomes false)
+  useEffect(() => {
+    if (!chatHasMessages) {
+      setTipUsed(false);
+    }
+  }, [chatHasMessages]);
+
   // Track if insights were actively generated in this session (vs loaded from cache)
   useEffect(() => {
     if (isLoading) {
@@ -112,7 +121,12 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
 
   // Handle reflection question click → send to chat
   const handleReflectionClick = (question) => {
+    if (tipUsed || chatHasMessages) return;
     setReflectionQuestion(question);
+    setTipUsed(true);
+    if (typeof window !== "undefined" && chatId) {
+      localStorage.setItem(`tip_used_${chatId}`, "true");
+    }
   };
 
   return (
@@ -255,9 +269,11 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                       </div>
                       <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                      Click to chat with Lumi about this →
-                    </p>
+                    {!tipUsed && !chatHasMessages && (
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        Click to chat with Lumi about this →
+                      </p>
+                    )}
                   </button>
                 )}
               </div>
@@ -272,6 +288,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                   journalText={journalText}
                   reflectionQuestion={reflectionQuestion}
                   onReflectionConsumed={() => setReflectionQuestion(null)}
+                  onChatHasMessages={setChatHasMessages}
                 />
               </div>
             )}
