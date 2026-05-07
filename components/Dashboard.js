@@ -17,6 +17,7 @@ import { RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
 import MemoriesToggle from "./MemoriesToggle";
 import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
+import GlowBackground from "./GlowBackground";
 
 function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
@@ -644,6 +645,7 @@ function DashboardContent() {
   return (
     <>
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-12'>
+        <GlowBackground />
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
           <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
