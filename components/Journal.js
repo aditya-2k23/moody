@@ -217,7 +217,7 @@ export default function Journal({
   }, [entry, currentUser, isGuest]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 1700;
+  const TYPING_DEBOUNCE_MS = 3000;
   const VOICE_DEBOUNCE_MS = 2000;
 
   // Trigger auto-save with source-aware debounce

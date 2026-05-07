@@ -1,6 +1,6 @@
 "use client";
 
-import { Bold, Italic, Underline, List, ListOrdered, Quote, Heading1, Heading2 } from "lucide-react";
+import { Bold, Italic, List, ListOrdered, Quote, Heading1, Heading2 } from "lucide-react";
 
 const MenuButton = ({ onClick, isActive, icon: Icon, title }) => (
   <button
@@ -33,12 +33,6 @@ export default function StyleTools({ editor, className = "" }) {
         onClick={() => editor.chain().focus().toggleItalic().run()}
         isActive={editor.isActive("italic")}
         icon={Italic}
-      />
-      <MenuButton
-        title="Underline (Ctrl+U)"
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        isActive={editor.isActive("underline")}
-        icon={Underline}
       />
 
       <Separator />

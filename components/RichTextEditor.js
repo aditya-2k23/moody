@@ -4,7 +4,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
-import Underline from "@tiptap/extension-underline";
 import { Markdown } from "tiptap-markdown";
 import { useEffect } from "react";
 
@@ -32,7 +31,6 @@ export default function RichTextEditor({
         emptyEditorClass: "before:content-[attr(data-placeholder)] before:float-left before:text-slate-400 dark:before:text-slate-500 before:pointer-events-none before:h-0 before:text-sm",
       }),
       Typography,
-      Underline,
       Markdown.configure({
         html: false,
         tightLists: true,
@@ -64,16 +62,20 @@ export default function RichTextEditor({
     // Get current markdown to compare
     const currentMarkdown = editor.storage.markdown.getMarkdown();
 
+    // Normalize spacing and line endings to prevent harmless formatting diffs from triggering a re-render
+    const normalize = (str) => (str || "").replace(/\r\n/g, "\n").replace(/\s+/g, " ").trim();
+
     // Only update if content is actually different and the editor isn't being actively used
     // This prevents "jitter" and cursor jumps during manual typing
-    if (value !== currentMarkdown) {
+    if (normalize(value) !== normalize(currentMarkdown)) {
       // If the editor is focused, we only update if the change is likely from an external source
       // (like voice transcript or initial load) rather than manual typing
       const isManualTyping = editor.isFocused;
 
       if (!isManualTyping || isVoiceInput) {
-        editor.commands.setContent(value, false, {
-          preserveWhitespace: "full",
+        editor.commands.setContent(value, {
+          emitUpdate: false,
+          parseOptions: { preserveWhitespace: "full" },
         });
       }
     }

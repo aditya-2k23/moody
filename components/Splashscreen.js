@@ -6,8 +6,6 @@ import ThemeToggle from "./ThemeToggle";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import SplitText from "gsap/SplitText";
-
-gsap.registerPlugin(SplitText);
 import {
   Sparkles,
   Brain,
@@ -20,6 +18,8 @@ import {
   Stars,
   CheckCircle
 } from "lucide-react";
+
+gsap.registerPlugin(SplitText);
 
 // Fallback tip for SSR
 const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your productivity.";
