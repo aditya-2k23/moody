@@ -27,6 +27,15 @@ const ChatInput = forwardRef(function ChatInput({
   const [showStyleTools, setShowStyleTools] = useState(false);
   const styleToolsRef = useRef(null);
 
+  const isComposingRef = useRef(isComposing);
+  const isTypingRef = useRef(isTyping);
+  const isListeningRef = useRef(false);
+  const stopVoiceInputRef = useRef(null);
+  const handleSubmitRef = useRef(null);
+
+  isComposingRef.current = isComposing;
+  isTypingRef.current = isTyping;
+
   const toggleStyleTools = useCallback(() => {
     import("gsap").then(({ default: gsap }) => {
       if (showStyleTools) {
@@ -75,9 +84,9 @@ const ChatInput = forwardRef(function ChatInput({
     editorProps: {
       handleKeyDown(view, event) {
         // Enter sends message
-        if (event.key === "Enter" && !event.shiftKey && !isComposing) {
+        if (event.key === "Enter" && !event.shiftKey && !isComposingRef.current) {
           event.preventDefault();
-          handleSubmit();
+          handleSubmitRef.current?.();
           return true;
         }
         // Shift+Enter creates newline
@@ -132,6 +141,9 @@ const ChatInput = forwardRef(function ChatInput({
       },
     });
 
+  isListeningRef.current = isListening;
+  stopVoiceInputRef.current = stopVoiceInput;
+
   const displayValue = getDisplayValue(input);
 
   useEffect(() => {
@@ -149,11 +161,11 @@ const ChatInput = forwardRef(function ChatInput({
   }, [isFullscreen, editor]);
 
   const handleSubmit = () => {
-    if (isTyping || !editor) return;
+    if (isTypingRef.current || !editor) return;
 
     let finalInput = editor.storage.markdown.getMarkdown();
-    if (isListening) {
-      stopVoiceInput();
+    if (isListeningRef.current) {
+      stopVoiceInputRef.current?.();
       // grab latest after stop
       finalInput = editor.storage.markdown.getMarkdown();
     }
@@ -166,6 +178,8 @@ const ChatInput = forwardRef(function ChatInput({
     setInput("");
     editor.commands.clearContent();
   };
+
+  handleSubmitRef.current = handleSubmit;
 
   return (
     <div className="p-4 bg-transparent backdrop-blur-md border-t border-gray-100/50 dark:border-white/5">
