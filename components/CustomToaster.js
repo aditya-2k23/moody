@@ -11,16 +11,20 @@ const ToastItem = ({ t }) => {
   const isSuccess = t.type === "success";
 
   useEffect(() => {
+    const element = elRef.current;
+    if (!element) return;
+    gsap.killTweensOf(element);
     if (t.visible) {
-      gsap.fromTo(elRef.current,
+      gsap.fromTo(element,
         { y: -30, opacity: 0, scale: 0.9 },
         { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }
       );
     } else {
-      gsap.to(elRef.current, {
+      gsap.to(element, {
         y: -20, opacity: 0, scale: 0.9, duration: 0.3, ease: "power2.in"
       });
     }
+    return () => { gsap.killTweensOf(element); };
   }, [t.visible]);
 
   return (
@@ -59,7 +63,7 @@ const ToastItem = ({ t }) => {
           </div>
         </div>
       </div>
-      <div className="flex border-slate-200 dark:border-slate-700 h-full">
+      <div className="flex h-full">
         <button
           onClick={() => toast.dismiss(t.id)}
           aria-label="Dismiss notification"

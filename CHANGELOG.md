@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [Unreleased]
+
+## [3.1.0] - Unreleased
+
+### ✨ Features
+- Added Markdown support to chat with rich text formatting.
+- Integrated Tiptap editor for an enhanced chat experience.
+- Implemented smooth splash screen animation.
+- Added GlowBackground component for enhanced visual effects.
+- Added underline support to RichTextEditor and StyleTools.
+
+### 🎨 UI & UX Refinement
+- Rendered NavbarLinks component in the document body for better accessibility.
+- Improved chat scrollbar styles and dark mode support.
+- Streamlined ChatContainer and ChatInput styles and structure.
+- Integrated Loader component for loading states in various sections.
+- Enhanced journal prompt instructions with formatting guidance.
+
+### 🐛 Bug Fixes
+- Sanitized chat content and improved message previews in chat history.
+- Enhanced toast animations and input focus styles.
+
+
+
+### 📝 Documentation
+
+- Added missing JSDoc comments and docstrings to functions and components across API routes (`app/api/chat/route.js`, `app/api/delete-account/route.js`, etc.), React components (`ChatContainer.js`, `Dashboard.js`, `Journal.js`, etc.), and utility files (`lib/rate-limit.js`, `lib/release.js`) to improve codebase maintainability.
+
 ## [3.0.3] - 2026-04-29
 
 ### 🚀 Performance & Scaling

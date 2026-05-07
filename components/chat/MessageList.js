@@ -28,7 +28,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
   return (
     <div
       ref={containerRef}
-      className={`flex-1 flex flex-col overflow-y-auto px-5 py-2 space-y-3 bg-transparent scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : ""
+      className={`flex-1 flex flex-col overflow-y-auto px-5 py-2 space-y-1 bg-transparent scroll-smooth chat-scrollbar ${isFullscreen ? "max-h-full" : ""
         }`}
       role="log"
       aria-live="polite"

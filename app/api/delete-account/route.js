@@ -14,6 +14,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+/**
+ * Collects Cloudinary public IDs for all memory images associated with a user.
+ * @param {string} uid - The user's ID.
+ * @returns {Promise<string[]>} An array of public IDs.
+ */
 async function collectMemoryPublicIds(uid) {
   const db = getAdminDb();
   const memoriesRef = db.collection("users").doc(uid).collection("memories");
@@ -57,6 +62,11 @@ async function deleteCollectionTree(collectionRef, db) {
   }
 }
 
+/**
+ * Deletes all Firestore data associated with a specific user.
+ * @param {string} uid - The user's ID.
+ * @returns {Promise<void>}
+ */
 async function deleteUserFirestoreData(uid) {
   const db = getAdminDb();
   const userRef = db.collection("users").doc(uid);
@@ -74,6 +84,12 @@ async function deleteUserFirestoreData(uid) {
   await userRef.delete();
 }
 
+/**
+ * Deletes specific assets from Cloudinary in parallel.
+ * @param {string[]} publicIds - An array of Cloudinary public IDs to delete.
+ * @param {string} uid - The user's ID for context.
+ * @returns {Promise<void>}
+ */
 async function deleteCloudinaryAssets(publicIds, uid) {
   const hasCloudinaryConfig =
     Boolean(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) &&
@@ -106,6 +122,11 @@ async function deleteCloudinaryAssets(publicIds, uid) {
   }
 }
 
+/**
+ * Deletes all Redis data (e.g., rate limits, sessions) associated with a user.
+ * @param {string} uid - The user's ID.
+ * @returns {Promise<void>}
+ */
 async function deleteRedisData(uid) {
   try {
     await redis.del(`embeddings:${uid}`);
@@ -147,6 +168,11 @@ async function deleteRedisData(uid) {
   }
 }
 
+/**
+ * Handles POST requests to delete a user's account and all associated data across Firestore, Cloudinary, and Redis.
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<Response>} The API response indicating success or failure.
+ */
 export async function POST(request) {
   try {
     const authHeader = request.headers.get("authorization");

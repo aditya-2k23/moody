@@ -19,6 +19,11 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Mic, Square, NotebookPen, Sparkles, CloudCheck } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 
+/**
+ * Generates a unique key based on the provided date (YYYY-MM-DD).
+ * @param {Date} [date=new Date()] - The date to generate the key for.
+ * @returns {string} The formatted date key.
+ */
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -26,6 +31,15 @@ function getDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Renders a journal entry interface, allowing users to write text, select moods, and upload images.
+ * @param {Object} props - The component props.
+ * @param {Date} props.selectedDate - The date the journal entry is for.
+ * @param {Object} props.existingEntry - The existing journal data, if any.
+ * @param {Function} props.onClose - Callback to close the journal.
+ * @param {Function} props.onSave - Callback when the journal is saved.
+ * @returns {JSX.Element} The rendered Journal component.
+ */
 export default function Journal({
   mode = "auth",
   currentUser,
@@ -217,7 +231,7 @@ export default function Journal({
   }, [entry, currentUser, isGuest]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 1700;
+  const TYPING_DEBOUNCE_MS = 3000;
   const VOICE_DEBOUNCE_MS = 2000;
 
   // Trigger auto-save with source-aware debounce
@@ -634,6 +648,7 @@ export default function Journal({
           <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/50 dark:focus-within:ring-indigo-500/60 focus-within:border-transparent transition-all duration-300 break-words whitespace-pre-wrap text-sm leading-relaxed outline-none shadow-sm focus-within:shadow-[0_0_20px_rgba(99,102,241,0.4)] dark:focus-within:shadow-[0_0_23px_rgba(99,102,241,0.2)]">
             <RichTextEditor
               value={displayEntry}
+              isVoiceInput={isListening}
               onChange={(newValue) => {
                 setEntry(newValue);
                 syncBaseEntry(newValue);

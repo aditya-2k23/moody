@@ -9,6 +9,13 @@ import toast from "react-hot-toast";
 import GlowBackground from "./GlowBackground";
 import { Eye, EyeOff } from "lucide-react";
 
+/**
+ * Renders the login and registration form.
+ * @param {Object} props - The component props.
+ * @param {boolean} [props.initialRegister=false] - Whether to start in registration mode.
+ * @param {Function} props.onAuthSuccess - Callback on successful authentication.
+ * @returns {JSX.Element} The rendered Login component.
+ */
 export default function Login({ initialRegister = false, onAuthSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

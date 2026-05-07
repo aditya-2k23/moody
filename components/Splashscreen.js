@@ -6,8 +6,6 @@ import ThemeToggle from "./ThemeToggle";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import SplitText from "gsap/SplitText";
-
-gsap.registerPlugin(SplitText);
 import {
   Sparkles,
   Brain,
@@ -20,6 +18,8 @@ import {
   Stars,
   CheckCircle
 } from "lucide-react";
+
+gsap.registerPlugin(SplitText);
 
 // Fallback tip for SSR
 const DEFAULT_TIP = moodTips?.[0] ?? "Taking small breaks can boost your productivity.";
@@ -78,19 +78,27 @@ export default function Splashscreen({
   const [randomTip, setRandomTip] = useState(DEFAULT_TIP);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
+  // Smoothly animate from 0 to 100% over the splash screen's ~2.5s visible time using GSAP
   useEffect(() => {
-    if (progress !== null) return;
-    const interval = setInterval(() => {
-      setAnimatedProgress((prev) => {
-        if (prev >= 95) { clearInterval(interval); return 95; }
-        const increment = Math.max(0.3, (95 - prev) * 0.04);
-        return Math.min(95, prev + increment);
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [progress]);
+    const progressObj = { value: 0 };
 
-  const displayProgress = progress !== null ? progress : animatedProgress;
+    // Animate the progress object
+    const tween = gsap.to(progressObj, {
+      value: 100,
+      duration: 3.8,
+      ease: "power3.out", // A smoother ease that slows down nicely at the end
+      onUpdate: () => {
+        setAnimatedProgress(progressObj.value);
+      }
+    });
+
+    return () => {
+      tween.kill(); // Cleanup
+    };
+  }, []);
+
+  // Use the smoothly animated tracking number entirely
+  const displayProgress = animatedProgress;
 
   useEffect(() => {
     if (moodTips?.length) {
@@ -150,9 +158,9 @@ export default function Splashscreen({
 
     // Subtle floating loop
     gsap.to(chars, {
-      y: -8,
+      y: -6,
       stagger: 0.04,
-      duration: 2,
+      duration: 1.8,
       ease: "sine.inOut",
       repeat: -1,
       yoyo: true
@@ -161,15 +169,15 @@ export default function Splashscreen({
     // 2. Progress Section - scale in from center
     tl.fromTo(
       progressRef.current,
-      { opacity: 0, scaleX: 0, transformOrigin: "center" },
-      { opacity: 1, scaleX: 1, duration: 1, ease: "expo.out" },
-      "-=0.5"
+      { opacity: 0.5, scaleX: 0, transformOrigin: "center" },
+      { opacity: 1, scaleX: 1, duration: 0.2, ease: "expo.out" },
+      "-=0.4"
     );
 
     // 3. Message & Tip Card - staggered pop with bounce
     tl.fromTo(
       [messageRef.current, tipRef.current],
-      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 0, y: 30, scale: 0.75 },
       {
         opacity: 1,
         y: 0,
@@ -300,7 +308,7 @@ export default function Splashscreen({
         <div ref={progressRef} className="w-56 md:w-full md:max-w-md space-y-4">
           <div className="relative h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 ease-out shadow-[0_0_12px_rgba(99,102,241,0.5)]"
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.5)]"
               style={{ width: `${displayProgress}%` }}
             />
           </div>

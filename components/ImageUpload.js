@@ -17,6 +17,16 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
  * @param {boolean} props.disabled - Whether the component is disabled
  * @param {string} props.inputId - Unique ID for the file input element
  */
+/**
+ * Renders an image upload component that allows users to select, preview, and remove images.
+ * @param {Object} props - The component props.
+ * @param {File[]} props.images - The currently selected image files.
+ * @param {string[]} props.previews - The currently generated image previews.
+ * @param {Function} props.onChange - Callback triggered when images are added or removed.
+ * @param {boolean} [props.disabled=false] - Whether the upload input is disabled.
+ * @param {number} [props.maxImages=5] - The maximum number of allowed images.
+ * @returns {JSX.Element} The rendered ImageUpload component.
+ */
 export default function ImageUpload({
   selectedImages = [],
   imagePreviews = [],

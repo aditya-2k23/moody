@@ -4,6 +4,11 @@ import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId } from "@/lib/validation";
 
+/**
+ * Handles POST requests to clear the user's chat history.
+ * @param {Request} req - The incoming request object.
+ * @returns {Promise<Response>} The API response.
+ */
 export async function POST(req) {
   try {
     const body = await req.json();

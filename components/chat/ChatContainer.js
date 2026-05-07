@@ -8,12 +8,21 @@ import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { APP_RELEASE_TAG } from "@/lib/release";
 import { DEMO_CHAT_LIMIT } from "@/utils";
 
 /**
  * ChatContainer — Root chat component managing fullscreen state,
  * message history, and API communication with Gemini via /api/chat
+ */
+/**
+ * Renders the main chat container component, including the header, message list, and input area.
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Whether the chat is currently open.
+ * @param {Function} props.onClose - Callback to close the chat.
+ * @param {Object} props.currentUser - The currently authenticated user.
+ * @returns {JSX.Element} The rendered ChatContainer component.
  */
 export default function ChatContainer({
   chatId,
@@ -22,6 +31,7 @@ export default function ChatContainer({
   reflectionQuestion,
   onReflectionConsumed,
   onFullscreenChange,
+  onChatHasMessages,
   isDemo = false,
 }) {
   const [messages, setMessages] = useState([]);
@@ -43,6 +53,10 @@ export default function ChatContainer({
   const historyTitleId = "chat-history-modal-title";
   const sessionRequestIdRef = useRef(0);
   const demoLimitToastShownRef = useRef(false);
+
+  useEffect(() => {
+    onChatHasMessages?.(messages.length > 0);
+  }, [messages, onChatHasMessages]);
 
   const demoCountStorageKey = useMemo(() => {
     if (!isDemo) return null;
@@ -677,7 +691,7 @@ export default function ChatContainer({
       {showHistoryModal && (
         <div
           ref={historyModalBackdropRef}
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-2xl p-4 opacity-0"
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 dark:bg-black/40 backdrop-blur-sm rounded-2xl p-4 opacity-0"
           onClick={closeHistoryModal}
         >
           <div
@@ -685,14 +699,14 @@ export default function ChatContainer({
             role="dialog"
             aria-modal="true"
             aria-labelledby={historyTitleId}
-            className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 max-h-[80vh] flex flex-col opacity-0 scale-95"
+            className="bg-white dark:bg-slate-900 p-3 sm:p-4 md:p-5 rounded-xl shadow-2xl w-full max-w-sm border border-gray-300 dark:border-slate-600/40 max-h-[80vh] flex flex-col opacity-0 scale-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 id={historyTitleId} className="font-semibold text-lg dark:text-white">Today&apos;s Chat History</h3>
+            <div className="flex justify-between items-center mb-2 md:mb-4 shrink-0">
+              <h3 id={historyTitleId} className="font-semibold sm:text-lg dark:text-white">Today&apos;s Chat History</h3>
               <button
                 onClick={closeHistoryModal}
-                className="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-500 transition-colors"
+                className="p-1 rounded-xl bg-gray-100/80 hover:bg-gray-200/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 text-gray-500 transition-colors"
                 title="Close"
                 aria-label="Close chat history dialog"
               >
@@ -711,23 +725,25 @@ export default function ChatContainer({
                       sessionRequestIdRef.current++;
                       closeHistoryModal();
                     }}
-                    className="w-full min-h-[84px] text-left p-3 sm:p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-100 dark:border-slate-700/60 shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-300/90 dark:border-slate-700/50 shadow-sm hover:shadow group outline-none"
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <p className="font-medium text-indigo-600 dark:text-indigo-400">
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400">
                         {session.messages.length} messages
                       </p>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         {session.messages[0]?.timestamp}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 italic group-hover:text-gray-900 dark:group-hover:text-gray-100 line-clamp-2">
-                      &quot;{session.preview}&quot;
-                    </p>
+                    <div className="text-[13px] sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 line-clamp-1 max-w-none">
+                      <ReactMarkdown>
+                        {session.preview}
+                      </ReactMarkdown>
+                    </div>
                   </button>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No Previous Chats Today</p>
+                <p className="text-gray-500 text-center py-3">No Previous Chats Today</p>
               )}
             </div>
           </div>
