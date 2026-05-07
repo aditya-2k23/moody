@@ -9,11 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
-## [Unreleased]
-
-## [3.1.0] - Unreleased
+## [3.1.0] - 2026-05-07
 
 ### ✨ Features
+
 - Added Markdown support to chat with rich text formatting.
 - Integrated Tiptap editor for an enhanced chat experience.
 - Implemented smooth splash screen animation.
@@ -21,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added underline support to RichTextEditor and StyleTools.
 
 ### 🎨 UI & UX Refinement
+
 - Rendered NavbarLinks component in the document body for better accessibility.
 - Improved chat scrollbar styles and dark mode support.
 - Streamlined ChatContainer and ChatInput styles and structure.
@@ -28,10 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced journal prompt instructions with formatting guidance.
 
 ### 🐛 Bug Fixes
+
 - Sanitized chat content and improved message previews in chat history.
 - Enhanced toast animations and input focus styles.
-
-
 
 ### 📝 Documentation
 

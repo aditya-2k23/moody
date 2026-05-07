@@ -4,9 +4,6 @@ const skipNextValidation = process.env.SKIP_NEXT_VALIDATION === "1";
 const nextConfig = {
   output: "standalone",
 
-  experimental: {
-  },
-
   productionBrowserSourceMaps: false,
 
   typescript: {
