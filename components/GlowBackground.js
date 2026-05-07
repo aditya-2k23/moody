@@ -167,7 +167,7 @@ export default function GlowBackground() {
 
   return (
     <>
-      <div className="absolute glow-background-container opacity-65">
+      <div className="absolute glow-background-container opacity-70">
         {/* Primary glow — indigo/violet core */}
         <div
           ref={primaryRef}

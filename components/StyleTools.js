@@ -15,13 +15,22 @@ const MenuButton = ({ onClick, isActive, icon: Icon, title }) => (
   </button>
 );
 
-const Separator = () => <div className="w-px h-5 bg-slate-400/70 dark:bg-slate-700 mx-0.5" />;
+const Separator = () => (
+  <div
+    aria-hidden="true"
+    className="w-px h-5 bg-slate-400/70 dark:bg-slate-700 mx-0.5"
+  />
+);
 
 export default function StyleTools({ editor, className = "" }) {
   if (!editor) return null;
 
   return (
-    <div className={`flex items-center gap-0.5 sm:gap-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm py-1 px-1.5 rounded-lg border border-indigo-100 dark:border-slate-700/50 shadow-[0_0_20px_rgba(99,102,241,0.2)] dark:shadow-[0_0_25px_rgba(99,102,241,0.1)] z-10 transition-opacity ${className}`}>
+    <div
+      role="toolbar"
+      aria-label="Formatting toolbar"
+      className={`flex items-center gap-0.5 sm:gap-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm py-1 px-1.5 rounded-lg border border-indigo-100 dark:border-slate-700/50 shadow-[0_0_20px_rgba(99,102,241,0.2)] dark:shadow-[0_0_25px_rgba(99,102,241,0.1)] z-10 transition-opacity ${className}`}
+    >
       <MenuButton
         title="Bold (Ctrl+B)"
         onClick={() => editor.chain().focus().toggleBold().run()}

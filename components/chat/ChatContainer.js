@@ -736,7 +736,13 @@ export default function ChatContainer({
                       </span>
                     </div>
                     <div className="text-[13px] sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 line-clamp-1 max-w-none">
-                      <ReactMarkdown>
+                      <ReactMarkdown
+                        allowedElements={["p", "em", "strong", "del", "code", "a", "br"]}
+                        unwrapDisallowed={true}
+                        components={{
+                          p: ({ children }) => <span>{children}</span>,
+                        }}
+                      >
                         {session.preview}
                       </ReactMarkdown>
                     </div>

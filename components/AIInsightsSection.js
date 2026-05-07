@@ -260,9 +260,14 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                         <h5 className="text-xs font-bold text-emerald-800 dark:text-emerald-400 mb-1">
                           {insights.followUpQuestion ? 'For Your Reflection' : 'Pro Tip'}
                         </h5>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-                          {insights.followUpQuestion || insights.pro_tip}
-                        </p>
+                        <div className="text-sm text-emerald-700 dark:text-emerald-300 font-medium [&>p]:inline">
+                          <ReactMarkdown
+                            allowedElements={["p", "em", "strong", "del", "code", "a", "br"]}
+                            unwrapDisallowed={true}
+                          >
+                            {insights.followUpQuestion || insights.pro_tip}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                       <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>

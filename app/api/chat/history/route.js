@@ -10,14 +10,9 @@ import { NextResponse } from "next/server";
 function stripWrappingQuotes(text) {
   if (typeof text !== "string") return text;
   const trimmed = text.trim();
-  return trimmed.replace(/^(['"])(.*)\1$/, "$2");
+  return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
-/**
- * Handles GET requests to retrieve the user's chat history.
- * @param {Request} req - The incoming request object.
- * @returns {Promise<Response>} The API response containing the chat history.
- */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);

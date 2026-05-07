@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 function stripWrappingQuotes(text) {
   if (typeof text !== "string") return text;
   const trimmed = text.trim();
-  return trimmed.replace(/^(['"])(.*)\1$/, "$2");
+  return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
 const HISTORY_LIMIT = 20;
@@ -474,7 +474,7 @@ export async function POST(req) {
         → Photos not uploading: 10MB limit, no GIFs supported
         → Streak not updating: need to log today's mood to keep it going
         → Voice input not working: Chrome, Edge, Safari only — needs mic permission granted
-
+      
       You can help with these things **casually**, like a friend who knows the app well.
 
       Example:

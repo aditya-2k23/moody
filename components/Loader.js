@@ -4,7 +4,6 @@ const sizeClasses = {
   "xs": "text-base sm:text-xs",
   "base": "text-lg sm:text-base",
   "sm": "text-xl sm:text-sm",
-  "md": "text-2xl sm:text-md",
   "lg": "text-3xl sm:text-lg",
   "xl": "text-4xl sm:text-xl",
   "2xl": "text-5xl sm:text-2xl",

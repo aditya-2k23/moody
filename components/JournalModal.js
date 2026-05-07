@@ -9,6 +9,7 @@ import StyleTools from "./StyleTools";
 import NewFeatureDot from "./NewFeatureDot";
 import ChatContainer from "./chat/ChatContainer";
 import RichTextEditor from "./RichTextEditor";
+import ReactMarkdown from "react-markdown";
 import { db } from "@/firebase";
 import { deleteDoc, doc, getDoc } from "firebase/firestore";
 
@@ -580,11 +581,16 @@ export default function JournalModal({
                           <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                             {dayInsights.headline || "Lumi's Thoughts"}
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            {Array.isArray(dayInsights.response)
-                              ? dayInsights.response.join(" ")
-                              : (dayInsights.response || dayInsights.insight)}
-                          </p>
+                          <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm md:prose-base dark:prose-invert max-w-none [&>p]:inline">
+                            <ReactMarkdown
+                              allowedElements={["p", "em", "strong", "del", "code", "a", "br"]}
+                              unwrapDisallowed={true}
+                            >
+                              {Array.isArray(dayInsights.response)
+                                ? dayInsights.response.join(" ")
+                                : (dayInsights.response || dayInsights.insight)}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                       </div>
 
