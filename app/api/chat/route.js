@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 function stripWrappingQuotes(text) {
   if (typeof text !== "string") return text;
   const trimmed = text.trim();
-  return trimmed.replace(/^(['"])(.*)\1$/, "$2");
+  return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
 const HISTORY_LIMIT = 20;
