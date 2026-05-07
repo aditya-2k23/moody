@@ -93,6 +93,16 @@ const ChatInput = forwardRef(function ChatInput({
     },
   });
 
+  // Sync external input changes (like clearing) to the editor
+  useEffect(() => {
+    if (editor) {
+      const currentContent = editor.storage.markdown.getMarkdown();
+      if (input !== currentContent) {
+        editor.commands.setContent(input || "", false);
+      }
+    }
+  }, [input, editor]);
+
   // Track mobile state
   useEffect(() => {
     const handleResize = () => {
@@ -194,6 +204,7 @@ const ChatInput = forwardRef(function ChatInput({
             >
               <EditorContent
                 editor={editor}
+                aria-label="Message input"
                 className="flex-1 w-full pl-5 pr-2 py-3 min-h-[48px] text-[15px] focus:outline-none dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:!my-0"
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
