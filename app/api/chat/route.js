@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 /**
- * stripWrappingQuotes — Removes exactly one matched pair of wrapping 
+ * stripWrappingQuotes — Removes exactly one matched pair of wrapping
  * single or double quotes after trim.
  */
 function stripWrappingQuotes(text) {
@@ -30,6 +30,11 @@ const DEMO_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 const FALLBACK_DEMO_SESSION_SECRET = crypto.randomBytes(32).toString("base64url");
 let demoSecretWarned = false;
 
+/**
+ * Retrieves the secret used to sign demo session IDs.
+ * @returns {string} The secret string.
+ * @throws {Error} If DEMO_SESSION_SECRET is missing in production.
+ */
 function getDemoSessionSecret() {
   if (process.env.DEMO_SESSION_SECRET) return process.env.DEMO_SESSION_SECRET;
 
@@ -45,10 +50,22 @@ function getDemoSessionSecret() {
   return FALLBACK_DEMO_SESSION_SECRET;
 }
 
+/**
+ * Signs a session ID using HMAC SHA-256.
+ * @param {string} sessionId - The original session ID.
+ * @param {string} secret - The secret used for signing.
+ * @returns {string} The signed session ID.
+ */
 function signDemoSessionId(sessionId, secret) {
   return crypto.createHmac("sha256", secret).update(sessionId).digest("base64url");
 }
 
+/**
+ * Safely compares two strings using a constant-time algorithm to prevent timing attacks.
+ * @param {string} a - The first string.
+ * @param {string} b - The second string.
+ * @returns {boolean} True if the strings are equal, false otherwise.
+ */
 function safeTimingEqual(a, b) {
   if (!a || !b) return false;
   const aBuffer = Buffer.from(a);
@@ -57,6 +74,12 @@ function safeTimingEqual(a, b) {
   return crypto.timingSafeEqual(aBuffer, bBuffer);
 }
 
+/**
+ * Parses and verifies a demo session ID from a cookie value.
+ * @param {string} cookieValue - The raw cookie value.
+ * @param {string} secret - The secret used for verification.
+ * @returns {string|null} The verified session ID, or null if invalid.
+ */
 function parseDemoSessionId(cookieValue, secret) {
   if (!cookieValue) return null;
   const parts = cookieValue.split(".");
@@ -71,10 +94,21 @@ function parseDemoSessionId(cookieValue, secret) {
   return sessionId;
 }
 
+/**
+ * Builds the final cookie value containing the session ID and its signature.
+ * @param {string} sessionId - The session ID.
+ * @param {string} secret - The secret used for signing.
+ * @returns {string} The formatted cookie value.
+ */
 function buildDemoSessionCookieValue(sessionId, secret) {
   return `${sessionId}.${signDemoSessionId(sessionId, secret)}`;
 }
 
+/**
+ * Determines if an error from the AI model is retryable (e.g., 503 Service Unavailable).
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if retryable, false otherwise.
+ */
 function isRetryableModelError(error) {
   const msg = (error?.message || "").toLowerCase();
   const status = error?.status;
@@ -94,6 +128,11 @@ function isRetryableModelError(error) {
   );
 }
 
+/**
+ * Determines if an error indicates the model is completely unavailable (e.g., 404 Not Found).
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if unavailable, false otherwise.
+ */
 function isModelUnavailableError(error) {
   const msg = (error?.message || "").toLowerCase();
   const status = error?.status;
@@ -106,6 +145,11 @@ function isModelUnavailableError(error) {
   );
 }
 
+/**
+ * Determines if an error is due to hitting a quota limit (e.g., 429 Too Many Requests).
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if a quota error, false otherwise.
+ */
 function isQuotaError(error) {
   const msg = (error?.message || "").toLowerCase();
   const status = error?.status;
@@ -119,6 +163,11 @@ function isQuotaError(error) {
   );
 }
 
+/**
+ * Extracts a retry delay from an error message, if present.
+ * @param {string} errorMessage - The error message string.
+ * @returns {number|null} The delay in seconds, or null if not found.
+ */
 function extractRetryDelaySeconds(errorMessage) {
   if (!errorMessage) return null;
 
@@ -135,6 +184,11 @@ function extractRetryDelaySeconds(errorMessage) {
   return null;
 }
 
+/**
+ * Handles POST requests for the chat API, managing demo sessions, rate limiting, and AI interactions.
+ * @param {Request} req - The incoming request object.
+ * @returns {Promise<Response>} The API response.
+ */
 export async function POST(req) {
   let demoCookieValueToSet = null;
   let demoReserved = false;

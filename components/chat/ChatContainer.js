@@ -16,6 +16,14 @@ import { DEMO_CHAT_LIMIT } from "@/utils";
  * ChatContainer — Root chat component managing fullscreen state,
  * message history, and API communication with Gemini via /api/chat
  */
+/**
+ * Renders the main chat container component, including the header, message list, and input area.
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Whether the chat is currently open.
+ * @param {Function} props.onClose - Callback to close the chat.
+ * @param {Object} props.currentUser - The currently authenticated user.
+ * @returns {JSX.Element} The rendered ChatContainer component.
+ */
 export default function ChatContainer({
   chatId,
   userId,

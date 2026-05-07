@@ -10,6 +10,13 @@ import { Calendar, StickyNote, ChevronLeft, ChevronRight } from "lucide-react";
 
 const monthsArr = Object.keys(months);
 
+/**
+ * Renders a calendar interface for selecting dates and viewing entries.
+ * @param {Object} props - The component props.
+ * @param {Date} props.selectedDate - The currently selected date.
+ * @param {Function} props.onSelectDate - Callback when a date is selected.
+ * @returns {JSX.Element} The rendered Calender component.
+ */
 export default function Calender({
   demo,
   currentUser,

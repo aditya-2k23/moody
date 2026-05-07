@@ -1,4 +1,7 @@
-import { apiError } from "@/lib/api-response";
+const fs = require('fs');
+let content = fs.readFileSync('app/api/chat/history/route.js', 'utf-8');
+
+const mergedContent = `import { apiError } from "@/lib/api-response";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -10,9 +13,14 @@ import { NextResponse } from "next/server";
 function stripWrappingQuotes(text) {
   if (typeof text !== "string") return text;
   const trimmed = text.trim();
-  return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
+  return trimmed.replace(/^(['"])(.*)\\1$/, "$2");
 }
 
+/**
+ * Handles GET requests to retrieve the user's chat history.
+ * @param {Request} req - The incoming request object.
+ * @returns {Promise<Response>} The API response containing the chat history.
+ */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -88,7 +96,7 @@ export async function GET(req) {
           .filter((bubble) => typeof bubble === "string" && bubble.trim())
           .forEach((bubble, index) => {
             groupedSessions[sId].messages.push({
-              id: `${doc.id}_${index}`,
+              id: \`\${doc.id}_\${index}\`,
               role: "assistant",
               content: stripWrappingQuotes(bubble),
               timestamp,
@@ -117,3 +125,6 @@ export async function GET(req) {
     return apiError({ status: 500, code: "INTERNAL_ERROR", message: "Failed to fetch history" });
   }
 }
+`;
+
+fs.writeFileSync('app/api/chat/history/route.js', mergedContent);

@@ -19,6 +19,11 @@ import MemoriesToggle from "./MemoriesToggle";
 import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
 import GlowBackground from "./GlowBackground";
 
+/**
+ * Calculates the user's current logging streak based on their historical data.
+ * @param {Object} dataObj - The structured mood and journal data.
+ * @returns {number} The current streak count.
+ */
 function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
   // Streak is based only on mood entries (numeric day fields).
@@ -50,6 +55,10 @@ function calculateStreakFromData(dataObj) {
   return streak;
 }
 
+/**
+ * Renders the main dashboard content, including the calendar, streak, and recent memories.
+ * @returns {JSX.Element} The rendered DashboardContent component.
+ */
 function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const searchParams = useSearchParams();
@@ -758,6 +767,11 @@ function DashboardContent() {
   );
 }
 
+/**
+ * A wrapper component that provides context and handles the main dashboard layout.
+ * @param {Object} props - The component props.
+ * @returns {JSX.Element} The rendered Dashboard component.
+ */
 export default function Dashboard(props) {
   return (
     <Suspense fallback={<Splashscreen />}>

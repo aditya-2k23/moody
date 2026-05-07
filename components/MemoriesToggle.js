@@ -1,6 +1,15 @@
 "use client";
 import { Images } from "lucide-react";
 
+/**
+ * Renders a toggle switch for showing or hiding memories in the UI.
+ * @param {Object} props - The component props.
+ * @param {boolean} props.showMemories - Current state of the toggle.
+ * @param {Function} props.onToggle - Callback when the toggle is clicked.
+ * @param {boolean} [props.hasMemories=true] - Whether the user has any memories.
+ * @param {Function} props.onUploadPrompt - Callback to prompt for upload.
+ * @returns {JSX.Element} The rendered MemoriesToggle component.
+ */
 export default function MemoriesToggle({ showMemories, onToggle, hasMemories = true, onUploadPrompt }) {
   return (
     <div className="flex flex-col items-center justify-center w-full">

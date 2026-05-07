@@ -37,7 +37,7 @@ This document outlines the development plan and future vision for **Moody**. Our
   - Allow users to download their journal history and photos (JSON/PDF).
 - [ ] **🎵 Soothing Background Music**
   - Option to play calming music while journaling.
-- [ ] **📱 Mobile Responsiveness Polish**
+- [x] **📱 Mobile Responsiveness Polish**
   - Better touch targets and gestures for mobile users.
   - PWA (Progressive Web App) installation support.
 - [ ] **🔔 Reminders**

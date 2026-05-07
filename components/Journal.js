@@ -19,6 +19,11 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { CloudUpload, Mic, Square, NotebookPen, Sparkles, CloudCheck } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 
+/**
+ * Generates a unique key based on the provided date (YYYY-MM-DD).
+ * @param {Date} [date=new Date()] - The date to generate the key for.
+ * @returns {string} The formatted date key.
+ */
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -26,6 +31,15 @@ function getDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Renders a journal entry interface, allowing users to write text, select moods, and upload images.
+ * @param {Object} props - The component props.
+ * @param {Date} props.selectedDate - The date the journal entry is for.
+ * @param {Object} props.existingEntry - The existing journal data, if any.
+ * @param {Function} props.onClose - Callback to close the journal.
+ * @param {Function} props.onSave - Callback when the journal is saved.
+ * @returns {JSX.Element} The rendered Journal component.
+ */
 export default function Journal({
   mode = "auth",
   currentUser,
