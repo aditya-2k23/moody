@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Button from "../Button";
+import Loader from "../Loader";
 import { useAuth } from "@/context/authContext";
 import { ArrowRightToLine, Play } from "lucide-react";
 import VideoModal from "./VideoModal";
 import { APP_VERSION_LABEL } from "@/lib/release";
 
 export default function HeroSection() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const sectionRef = useRef(null);
 
@@ -34,7 +35,7 @@ export default function HeroSection() {
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8">
         <span className="w-2 h-2 rounded-full bg-green-400" />
         <span className="text-sm text-indigo-600 dark:text-indigo-300 font-medium italic font-sans">
-          {`${APP_VERSION_LABEL} chatbot release is now live!`}
+          {`${APP_VERSION_LABEL} public release is now live!`}
         </span>
       </div>
 
@@ -55,8 +56,12 @@ export default function HeroSection() {
       </p>
 
       {/* CTAs */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-        {currentUser ? (
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 min-h-[56px]">
+        {loading ? (
+          <div className="flex justify-center items-center w-full">
+            <Loader size="base" />
+          </div>
+        ) : currentUser ? (
           <Link href="/dashboard" className="w-full sm:w-auto">
             <Button
               text={
@@ -64,6 +69,7 @@ export default function HeroSection() {
                   Go to your Dashboard <ArrowRightToLine size={20} />
                 </span>
               }
+              dark
               size="lg"
               className="w-full sm:w-auto sm:!px-56 flex justify-center"
             />

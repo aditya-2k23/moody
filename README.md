@@ -9,8 +9,6 @@ Check it out live at: [https://moody-adi.netlify.app/](https://moody-adi.netlify
 
 Moody is a **minimalistic** and modern mood-tracking web application built with Next.js, React, and Firebase. Designed for simplicity and ease of use, it allows users to log their daily moods, visualize their mood history, and manage their account securely with authentication. The app features a beautiful UI, accessibility enhancements, and real-time feedback—all while maintaining a clutter-free, focused experience.
 
-Current release channel: **v3.0.3** for the Lumi chatbot experience.
-
 ## Table of Contents
 
 - [Features](#-features)
@@ -36,6 +34,14 @@ Current release channel: **v3.0.3** for the Lumi chatbot experience.
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary) and a robust, sequential account deletion process that cleans up all Redis, Cloudinary, and Firebase records.
 
+### 🆕 Editor & Accessibility Overhaul (v3.1.0)
+
+- **📝 Enhanced Markdown Support**: Global integration of `react-markdown` and `@tiptap/react` ensuring that formatting (bolds, italics, lists) is natively rendered across the AI Insights panel, Chat History, and Journal Modals without breaking HTML layouts or swallowing text.
+- **♿ Accessibility Boost**: Extensive audit applying ARIA attributes to style tools, Chat containers, standardizing interactive components, and utilizing localized GSAP refs for more resilient, screen-reader-friendly animations.
+- **✨ Editor Polish**: The TipTap `RichTextEditor` and `ChatInput` now use advanced whitespace and newline normalization alongside reactive `useRef` states to prevent cursor jumping, state-staleness, and redundant synchronization during human vs voice typing.
+- **🛡️ Robust Formatting RegEx**: Replaced brittle string manipulation with `([\s\S]*)` Regex to accurately strip wrapper quotes containing multi-line code blocks and lists returned by AI models.
+- **💅 UX/UI Refinement**: Centralized component sizing (`Loader.js`), optimized GSAP transitions (`Splashscreen.js`, `Memories.js`), updated tailwind background opacities (`GlowBackground.js`), and removed unneeded dependencies.
+
 ### 🆕 Performance & Security Pass (v3.0.3)
 
 - **🚀 Highly Parallel Deletions**: Account removal is now much faster, utilizing parallelized Cloudinary asset destruction and batched Redis key scanning.
@@ -44,9 +50,9 @@ Current release channel: **v3.0.3** for the Lumi chatbot experience.
 - **⚡ Next.js 16 Ready**: Fully migrated to asynchronous cookie handling and optimized server-side flows.
 - **🩹 Stability Patches**: Fixed various edge cases in focus management, DOM ID collisions, and real-time calendar syncing.
 
-### 🆕 Chatbot Release (v3.0.0 beta)
+### 🆕 Chatbot Release (v3.0.0)
 
-- **🤖 Lumi Chat Companion (Beta)**: Added a dedicated conversational flow via `app/api/chat/route.js` and reusable chat UI via `components/chat/ChatContainer.js`.
+- **🤖 Lumi Chat Companion**: Added a dedicated conversational flow via `app/api/chat/route.js` and reusable chat UI via `components/chat/ChatContainer.js`.
 - **🧠 Better Chat Resilience**: Multi-model Gemini fallback for transient capacity failures, with cleaner user-facing error messaging for quota and high-demand states.
 - **💬 Bubble-Aware Responses**: Lumi chat now returns JSON bubble arrays; frontend renders each bubble separately with human-like staggered timing.
 - **🕘 Chat History Sessions**: Daily chat history grouped by session with quick restore in the chat modal.
@@ -54,20 +60,6 @@ Current release channel: **v3.0.3** for the Lumi chatbot experience.
 - **🔒 Demo Quota Reliability**: Demo quota is scoped per session to avoid cross-visitor limit bleed, and the demo cap is currently **5 messages** with a visible toast at limit.
 - **✨ Discovery Improvements**: Added a new landing-nav `Lumi` link with new-feature indicator dot for faster feature discoverability.
 - **🏷️ Beta Branding Pass**: Updated app branding to reflect `v3.0.0 (beta)` across header, hero, footer, metadata, and chat UI.
-
-### 🆕 Recent Features & Improvements (v2.5.1)
-
-- **🌟 Interactive Landing Page**: An entirely new landing page experience with `ScrollAnimations`, `ComparisonSection`, `FeaturesGrid`, and a `ScrollToTopButton`.
-- **🤖 AI Insights with Semantic Caching**: Journal insights are now generated server-side via Next.js Server Actions and cached in Upstash Redis. We use **Gemini Embeddings (`gemini-embedding-001`)** and Cosine Similarity to find past similar journal entries.
-- **🧠 Context-Aware AI**: If a semantic cache hit occurs (with a dynamic similarity threshold + recency factoring), the app utilizes a distinct lightweight prompt. It reuses the past mood and headline while generating a fresh, supportive response and a new follow-up question, saving API tokens and improving latency while remaining conversational.
-- **👤 Guest Experience**: Try the `GuestMoodSection` right from the landing page. It uses local storage (`hooks/useGuestDraft.js`) to save your draft so you don't lose your entry if you decide to log in.
-- **🤖 Server-Side AI Insights**: Removed the client-side `utils/analyzeJournal.js` utility, transitioning fully to server-side AI generation for enhanced security and performance.
-- **⚖️ Legal Pages**: Added dedicated `Privacy Policy` and `Terms of Service` pages.
-- **🔥 Streak Indicator**: Dynamic streak display with celebratory animations, grayscale inactive state, and tooltip hints.
-- **🎨 Theme Reveal Animation**: Beautiful flower-shaped mask animation on theme toggle, with reduced motion support.
-- **🎤 Voice Input (Beta)**: Dictate your journal entries using the Web Speech API. Features smart punctuation, auto-capitalization, and a 5-minute listening limit to conserve resources.
-- **📝 Journal Modal with Edit & Delete**: Click any calendar day to view, edit, or delete journal entries and mood in a sleek modal with unsaved changes detection.
-- **🎯 Radial Mood Menu**: GTA-style radial mood selector for intuitive mood selection when editing past entries.
 
 ## 🛠️ Tech Stack
 

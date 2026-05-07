@@ -4,9 +4,6 @@ const skipNextValidation = process.env.SKIP_NEXT_VALIDATION === "1";
 const nextConfig = {
   output: "standalone",
 
-  experimental: {
-  },
-
   productionBrowserSourceMaps: false,
 
   typescript: {
@@ -33,8 +30,8 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://api.upstash.io https://*.cloudinary.com https://*.posthog.com https://accounts.google.com",
-      "frame-src 'self' https://*.cloudinary.com https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://api.upstash.io https://*.cloudinary.com https://*.posthog.com https://accounts.google.com https://*.loom.com",
+      "frame-src 'self' https://*.cloudinary.com https://*.firebaseapp.com https://accounts.google.com https://apis.google.com https://*.loom.com",
       "form-action 'self'",
       "upgrade-insecure-requests",
     ].join("; ");

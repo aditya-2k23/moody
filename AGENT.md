@@ -37,12 +37,6 @@ Users log:
 - **AI**: Google Gemini (@google/generative-ai SDK)
 - **Language**: JavaScript
 
-Do NOT:
-
-- Introduce Redux, Zustand, or new state libraries
-- Introduce new backend frameworks
-- Add experimental dependencies without strong reason
-
 ---
 
 ## 📁 Project Structure (Mental Model)
@@ -133,7 +127,6 @@ When fixing bugs:
 
 Agents must NOT:
 
-- Rewrite large files without request
 - Change formatting or lint rules arbitrarily
 - Rename variables for “style”
 - Add features unless explicitly asked

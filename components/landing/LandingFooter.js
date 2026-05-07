@@ -60,7 +60,7 @@ export default function LandingFooter() {
             <Link href="/?ref=internal" className="fugaz text-lg text-gray-300">
               <span className="text-indigo-400">✦</span> Moody
             </Link>
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-400/30 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-400/30 px-1 rounded-lg">
               {APP_VERSION_LABEL}
             </span>
           </div>

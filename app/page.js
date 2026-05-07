@@ -15,7 +15,7 @@ import { Suspense } from "react";
 export default function Home() {
   return (
     <main className="flex-1 flex flex-col relative">
-      <div className="absolute inset-0 opacity-10 pointer-events-none -z-20" style={{
+      <div className="absolute inset-0 opacity-[0.15] dark:opacity-10 pointer-events-none -z-20" style={{
         maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
         WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
       }}>

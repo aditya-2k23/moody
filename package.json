@@ -1,6 +1,6 @@
 {
   "name": "moody",
-  "version": "3.0.3",
+  "version": "3.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,12 @@
   "dependencies": {
     "@google/genai": "^1.46.0",
     "@gsap/react": "^2.1.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tiptap/extension-placeholder": "^3.22.5",
+    "@tiptap/extension-typography": "^3.22.5",
+    "@tiptap/pm": "^3.22.5",
+    "@tiptap/react": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
     "@upstash/redis": "^1.36.2",
     "cloudinary": "^2.8.0",
     "firebase": "^11.9.1",
@@ -22,7 +28,9 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hot-toast": "^2.5.2",
-    "react-type-animation": "^3.2.0"
+    "react-markdown": "^10.1.0",
+    "react-type-animation": "^3.2.0",
+    "tiptap-markdown": "^0.9.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
