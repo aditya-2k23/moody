@@ -124,9 +124,6 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
     if (tipUsed || chatHasMessages) return;
     setReflectionQuestion(question);
     setTipUsed(true);
-    if (typeof window !== "undefined" && chatId) {
-      localStorage.setItem(`tip_used_${chatId}`, "true");
-    }
   };
 
   return (

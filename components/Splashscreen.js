@@ -85,7 +85,7 @@ export default function Splashscreen({
     // Animate the progress object
     const tween = gsap.to(progressObj, {
       value: 100,
-      duration: 4.2,
+      duration: 3.8,
       ease: "power3.out", // A smoother ease that slows down nicely at the end
       onUpdate: () => {
         setAnimatedProgress(progressObj.value);
@@ -169,15 +169,15 @@ export default function Splashscreen({
     // 2. Progress Section - scale in from center
     tl.fromTo(
       progressRef.current,
-      { opacity: 0.4, scaleX: 0, transformOrigin: "center" },
+      { opacity: 0.5, scaleX: 0, transformOrigin: "center" },
       { opacity: 1, scaleX: 1, duration: 0.2, ease: "expo.out" },
-      "-=0.5"
+      "-=0.4"
     );
 
     // 3. Message & Tip Card - staggered pop with bounce
     tl.fromTo(
       [messageRef.current, tipRef.current],
-      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 0, y: 30, scale: 0.75 },
       {
         opacity: 1,
         y: 0,
