@@ -3,6 +3,16 @@ import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
+/**
+ * stripWrappingQuotes — Removes exactly one matched pair of wrapping 
+ * single or double quotes after trim.
+ */
+function stripWrappingQuotes(text) {
+  if (typeof text !== "string") return text;
+  const trimmed = text.trim();
+  return trimmed.replace(/^(['"])(.*)\1$/, "$2");
+}
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -65,14 +75,11 @@ export async function GET(req) {
       const sId = data.sessionId || "default";
 
       if (!groupedSessions[sId]) {
-        let cleanContent = data.content || "";
-        if (typeof cleanContent === "string") {
-            cleanContent = cleanContent.trim().replace(/^["']+|["']+$/g, "");
-        }
+        const cleanContent = stripWrappingQuotes(data.content || "");
         groupedSessions[sId] = {
           sessionId: sId,
-          preview: cleanContent.substring(0, 40) + (cleanContent.length > 40 ? '...' : ''),
-          messages: []
+          preview: cleanContent.substring(0, 40) + (cleanContent.length > 40 ? "..." : ""),
+          messages: [],
         };
       }
 
@@ -83,15 +90,12 @@ export async function GET(req) {
             groupedSessions[sId].messages.push({
               id: `${doc.id}_${index}`,
               role: "assistant",
-              content: bubble.trim().replace(/^["']|["']$/g, ""),
+              content: stripWrappingQuotes(bubble),
               timestamp,
             });
           });
       } else {
-        let cleanContent = data.content;
-        if (typeof cleanContent === "string") {
-            cleanContent = cleanContent.trim().replace(/^["']+|["']+$/g, "");
-        }
+        const cleanContent = stripWrappingQuotes(data.content);
         groupedSessions[sId].messages.push({
           id: doc.id,
           role: data.role,

@@ -7,6 +7,16 @@ import { GoogleGenAI } from "@google/genai";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+/**
+ * stripWrappingQuotes — Removes exactly one matched pair of wrapping 
+ * single or double quotes after trim.
+ */
+function stripWrappingQuotes(text) {
+  if (typeof text !== "string") return text;
+  const trimmed = text.trim();
+  return trimmed.replace(/^(['"])(.*)\1$/, "$2");
+}
+
 const HISTORY_LIMIT = 20;
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const CHAT_MODEL_CHAIN = [
@@ -278,7 +288,11 @@ export async function POST(req) {
     if (!apiKey) {
       console.error("[Chat API] GEMINI_API_KEY is missing");
       if (demoReserved && demoQuotaKey) {
-        try { await redis.decr(demoQuotaKey); } catch (e) { }
+        try {
+          await redis.decr(demoQuotaKey);
+        } catch (e) {
+          console.error("[Chat API] Failed to rollback demo quota", e);
+        }
       }
       return respond({ error: "AI service is not configured" }, { status: 500 });
     }
@@ -513,7 +527,11 @@ export async function POST(req) {
       console.error("[Chat API] All chat models unavailable:", lastModelError?.message || lastModelError);
 
       if (demoReserved && demoQuotaKey) {
-        try { await redis.decr(demoQuotaKey); } catch (e) { }
+        try {
+          await redis.decr(demoQuotaKey);
+        } catch (e) {
+          console.error(`[Chat API] Failed to rollback demo quota for ${demoQuotaKey}:`, e);
+        }
       }
 
       if (sawQuotaError) {
@@ -573,7 +591,7 @@ export async function POST(req) {
       }
 
       replyBubbles = parsed
-        .map((item) => (typeof item === "string" ? item.trim().replace(/^["']+|["']+$/g, "") : ""))
+        .map((item) => (typeof item === "string" ? stripWrappingQuotes(item) : ""))
         .filter(Boolean);
 
       if (replyBubbles.length === 0) {
@@ -651,7 +669,11 @@ export async function POST(req) {
   } catch (error) {
     console.error("[Chat API] Error:", error);
     if (demoReserved && demoQuotaKey) {
-      try { await redis.decr(demoQuotaKey); } catch (e) { }
+      try {
+        await redis.decr(demoQuotaKey);
+      } catch (e) {
+        console.error(`[Chat API] Failed to rollback demo quota for ${demoQuotaKey}:`, e);
+      }
     }
     return respond({ error: "Internal server error" }, { status: 500 });
 
