@@ -29,12 +29,8 @@ export async function POST(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
-        decodedToken = { uid: "demo-user", isDemo: true };
-      } else {
-        console.error("[Clear Chat API] Token verification failed:", error);
-        return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
-      }
+      console.error("[Clear Chat API] Token verification failed:", error);
+      return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
     }
 
     const uid = decodedToken.uid;

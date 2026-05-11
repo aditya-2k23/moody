@@ -18,11 +18,7 @@ export async function POST(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
-        decodedToken = { uid: "demo-user", isDemo: true };
-      } else {
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-      }
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const uid = decodedToken.uid;
