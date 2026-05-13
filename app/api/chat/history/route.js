@@ -13,6 +13,11 @@ function stripWrappingQuotes(text) {
   return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
+/**
+ * Retrieve chat history sessions for a user.
+ * @param {Request} req The incoming request object.
+ * @returns {Promise<Response>} The JSON response with chat history sessions.
+ */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
