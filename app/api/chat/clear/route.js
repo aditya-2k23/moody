@@ -5,9 +5,10 @@ import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId } from "@/lib/validation";
 
 /**
- * Handles POST requests to clear the user's chat history.
- * @param {Request} req - The incoming request object.
- * @returns {Promise<Response>} The API response.
+ * Handles POST requests to clear the user's chat history from Redis and Firestore.
+ *
+ * @param {Request} req - The incoming request object containing chatId, userId, and sessionId.
+ * @returns {Promise<Response>} The API response indicating success or failure.
  */
 export async function POST(req) {
   try {

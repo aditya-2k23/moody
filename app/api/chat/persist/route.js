@@ -6,6 +6,12 @@ import { NextResponse } from "next/server";
 const REDIS_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const HISTORY_LIMIT = 20;
 
+/**
+ * Handles POST requests to persist user chat messages to Redis and Firestore.
+ *
+ * @param {Request} req - The incoming request object.
+ * @returns {Promise<Response>} The API response indicating success or failure.
+ */
 export async function POST(req) {
   try {
     const authHeader = req.headers.get("authorization");
