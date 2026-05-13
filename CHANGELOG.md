@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🧹 Chores
+
+- **Dependencies**: Bumped `@protobufjs/utf8` from 1.1.0 to 1.1.1.
+
 ### 🔒 Security
 
 - Removed insecure `DEMO_AUTH_TOKEN` fallback from chat API routes (`clear`, `history`, `persist`) to ensure all sensitive data operations require a properly verified user identity.
