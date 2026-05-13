@@ -4,8 +4,10 @@ import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 /**
- * stripWrappingQuotes — Removes exactly one matched pair of wrapping
- * single or double quotes after trim.
+ * Removes exactly one matched pair of wrapping single or double quotes after trim.
+ *
+ * @param {string} text - The input string.
+ * @returns {string} The formatted string without wrapping quotes.
  */
 function stripWrappingQuotes(text) {
   if (typeof text !== "string") return text;
@@ -13,6 +15,12 @@ function stripWrappingQuotes(text) {
   return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
+/**
+ * Handles GET requests to retrieve user's chat history sessions.
+ *
+ * @param {Request} req - The incoming request object containing searchParams for chatId and userId.
+ * @returns {Promise<Response>} A JSON response containing grouped chat history sessions.
+ */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
