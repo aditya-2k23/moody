@@ -28,6 +28,11 @@ import { moods } from "@/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Journal from "./Journal";
 
+/**
+ * Renders the main MoodJournal view, typically wrapping a calendar or entry list.
+ * @param {Object} props - The component props.
+ * @returns {JSX.Element} The rendered MoodJournal component.
+ */
 export default function MoodJournal({
   mode = "guest",
   initialMood = null,

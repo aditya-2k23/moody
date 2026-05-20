@@ -1,13 +1,19 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState, forwardRef, useImperativeHandle } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { useEffect, useCallback, useState, forwardRef, useImperativeHandle, useRef } from "react";
+import { Send, Loader2, Type } from "lucide-react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Markdown } from "tiptap-markdown";
+import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
 import VoiceButton from "./VoiceButton";
+import StyleTools from "@/components/StyleTools";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 /**
- * ChatInput — Chat textarea with voice button, auto-resize,
- * Enter to send, Shift+Enter for newline
+ * ChatInput — Tiptap-based chat input with markdown support, voice button,
+ * Enter to send, Shift+Enter for newline, and conditional StyleTools
  */
 const ChatInput = forwardRef(function ChatInput({
   input,
@@ -16,14 +22,112 @@ const ChatInput = forwardRef(function ChatInput({
   isTyping,
   isFullscreen,
 }, ref) {
-  const textareaRef = useRef(null);
   const [isComposing, setIsComposing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showStyleTools, setShowStyleTools] = useState(false);
+  const styleToolsRef = useRef(null);
+
+  const isComposingRef = useRef(isComposing);
+  const isTypingRef = useRef(isTyping);
+  const isListeningRef = useRef(false);
+  const stopVoiceInputRef = useRef(null);
+  const handleSubmitRef = useRef(null);
+
+  isComposingRef.current = isComposing;
+  isTypingRef.current = isTyping;
+
+  const toggleStyleTools = useCallback(() => {
+    import("gsap").then(({ default: gsap }) => {
+      if (showStyleTools) {
+        gsap.to(styleToolsRef.current, {
+          opacity: 0,
+          y: 10,
+          scale: 0.95,
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            setShowStyleTools(false);
+          }
+        });
+      } else {
+        setShowStyleTools(true);
+        // Animate in next frame after mount
+        requestAnimationFrame(() => {
+          if (styleToolsRef.current) {
+            gsap.fromTo(styleToolsRef.current,
+              { opacity: 0, y: 10, scale: 0.95 },
+              { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.5)" }
+            );
+          }
+        });
+      }
+    });
+  }, [showStyleTools]);
+
+  // Initialize Tiptap editor
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      StarterKit.configure({
+        hardBreak: false,
+      }),
+      Markdown.configure({
+        html: false,
+        transformPastedText: true,
+      }),
+      Placeholder.configure({
+        placeholder: "Message Lumi...",
+      }),
+      Underline,
+    ],
+    content: input,
+    editorProps: {
+      handleKeyDown(view, event) {
+        // Enter sends message
+        if (event.key === "Enter" && !event.shiftKey && !isComposingRef.current) {
+          event.preventDefault();
+          handleSubmitRef.current?.();
+          return true;
+        }
+        // Shift+Enter creates newline
+        if (event.key === "Enter" && event.shiftKey) {
+          return false;
+        }
+        return false;
+      },
+    },
+    onUpdate: ({ editor: e }) => {
+      const markdown = e.storage.markdown.getMarkdown();
+      setInput(markdown);
+    },
+  });
+
+  // Sync external input changes (like clearing) to the editor
+  useEffect(() => {
+    if (editor) {
+      const currentContent = editor.storage.markdown.getMarkdown();
+      if (input !== currentContent) {
+        editor.commands.setContent(input || "", false);
+      }
+    }
+  }, [input, editor]);
+
+  // Track mobile state
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useImperativeHandle(ref, () => ({
     focus: () => {
-      textareaRef.current?.focus({ preventScroll: true });
+      editor?.commands.focus();
     },
-  }), []);
+  }), [editor]);
 
   // Voice input integration
   const { isListening, toggleVoiceInput, stopVoiceInput, syncBaseEntry, getDisplayValue } =
@@ -31,104 +135,132 @@ const ChatInput = forwardRef(function ChatInput({
       initialValue: input,
       onTranscriptChange: (newText) => {
         setInput(newText);
+        if (editor) {
+          editor.commands.setContent(newText);
+        }
       },
     });
 
-  // Display value shows interim transcript while listening
+  isListeningRef.current = isListening;
+  stopVoiceInputRef.current = stopVoiceInput;
+
   const displayValue = getDisplayValue(input);
 
-  // Auto-resize textarea
-  const adjustHeight = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 120) + "px";
-  }, []);
-
   useEffect(() => {
-    adjustHeight();
-  }, [displayValue, adjustHeight]);
+    if (editor && isListening) {
+      if (displayValue !== editor.storage.markdown.getMarkdown()) {
+        editor.commands.setContent(displayValue, false);
+      }
+    }
+  }, [displayValue, editor, isListening]);
 
-  // Focus input when fullscreen toggles
   useEffect(() => {
     if (isFullscreen) {
-      setTimeout(() => textareaRef.current?.focus(), 300);
+      setTimeout(() => editor?.commands.focus(), 300);
     }
-  }, [isFullscreen]);
+  }, [isFullscreen, editor]);
 
-  const handleSubmit = (e) => {
-    e?.preventDefault();
-    if (isTyping) return;
+  const handleSubmit = () => {
+    if (isTypingRef.current || !editor) return;
 
-    let finalInput = input;
-    if (isListening) {
-      finalInput = stopVoiceInput();
+    let finalInput = editor.storage.markdown.getMarkdown();
+    if (isListeningRef.current) {
+      stopVoiceInputRef.current?.();
+      // grab latest after stop
+      finalInput = editor.storage.markdown.getMarkdown();
     }
 
     const trimmed = finalInput.trim();
     if (!trimmed) return;
 
     onSend(trimmed);
+
     setInput("");
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
+    editor.commands.clearContent();
   };
 
-  const handleKeyDown = (e) => {
-    const nativeComposing = e.nativeEvent && e.nativeEvent.isComposing;
-    if (e.key === "Enter" && !e.shiftKey && !(nativeComposing || e.nativeEvent.keyCode === 229 || isComposing)) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+  handleSubmitRef.current = handleSubmit;
 
   return (
     <div className="p-4 bg-transparent backdrop-blur-md border-t border-gray-100/50 dark:border-white/5">
-      <form onSubmit={handleSubmit} className="flex">
-        <div className="flex-1 flex items-center bg-slate-50 dark:bg-[#1f233b] rounded-[2rem] border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative">
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={displayValue}
-            onChange={(e) => {
-              setInput(e.target.value);
-              syncBaseEntry(e.target.value);
-            }}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => setIsComposing(false)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message Lumi..."
-            className="flex-1 bg-transparent pl-5 pr-2 py-3.5 text-[15px] focus:outline-none dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-[120px] overflow-y-auto chat-scrollbar"
-            disabled={isTyping}
-            aria-label="Chat message input"
-          />
+      {/* StyleTools in document flow when fullscreen */}
+      {!isMobile && isFullscreen && editor && showStyleTools && (
+        <div
+          ref={styleToolsRef}
+          className="mb-3 flex justify-start pl-2 style-tools-container"
+        >
+          <StyleTools editor={editor} />
+        </div>
+      )}
 
-          <div className="flex items-center gap-2 pr-3 py-2 shrink-0">
-            <VoiceButton
-              isListening={isListening}
-              onToggle={() => toggleVoiceInput(input)}
-              disabled={isTyping}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isTyping}
-              className="h-10 w-10 text-indigo-500 dark:text-gray-400 disabled:text-gray-400 dark:disabled:text-[#4b5175] flex items-center justify-center transition-all bg-[#eef2ff] dark:bg-[#2f3555] hover:bg-indigo-100 dark:hover:bg-[#3b4267] disabled:bg-gray-100 dark:disabled:bg-[#262b45] disabled:cursor-not-allowed group rounded-[14px]"
-              aria-label={isTyping ? "Waiting for response" : "Send message"}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        className="flex"
+      >
+        <div className="flex-1 relative">
+          {/* StyleTools floating when not fullscreen */}
+          {!isMobile && !isFullscreen && editor && showStyleTools && (
+            <div
+              ref={styleToolsRef}
+              className="absolute -top-[3.25rem] left-2 z-20 style-tools-container"
             >
-              {isTyping ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <Send size={18} className="ml-0.5" />
-              )}
-            </button>
-          </div>
-
-          {/* Listening indicator bar */}
-          {isListening && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-400 via-red-500 to-red-400 animate-pulse rounded-full" />
+              <StyleTools editor={editor} />
+            </div>
           )}
+
+          <div className="flex-1 flex items-start bg-slate-50 dark:bg-[#1f233b] rounded-[2rem] border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative shadow-sm">
+            <div
+              className={`flex-1 flex max-h-[160px] overflow-y-auto chat-scrollbar tiptap-chat-editor`}
+              onClick={() => editor?.commands.focus()}
+            >
+              <EditorContent
+                editor={editor}
+                aria-label="Message input"
+                className="flex-1 w-full pl-5 pr-2 py-3 min-h-[48px] text-[15px] focus:outline-none dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:!my-0"
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+              />
+            </div>
+
+            <div className="flex items-center gap-2 pr-3 py-1.5 shrink-0 self-end mb-0.5">
+              {!isMobile && (
+                <button
+                  type="button"
+                  onClick={toggleStyleTools}
+                  className={`h-9 w-9 flex items-center justify-center rounded-full transition-colors ${showStyleTools ? "text-indigo-500 bg-[#eef2ff] dark:bg-[#2f3555] hover:bg-indigo-100 dark:hover:bg-[#3b4267]" : "text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:text-slate-400/80 dark:hover:bg-slate-800"}`}
+                  aria-label="Toggle styling tools"
+                  title="Formatting tools"
+                >
+                  <Type size={16} strokeWidth={2.5} />
+                </button>
+              )}
+              <VoiceButton
+                isListening={isListening}
+                onToggle={() => toggleVoiceInput(input)}
+                disabled={isTyping}
+              />
+              <button
+                type="submit"
+                disabled={!input?.trim() || isTyping}
+                className="h-9 w-9 text-indigo-500 dark:text-gray-400 disabled:text-gray-400 dark:disabled:text-[#4b5175] flex items-center justify-center transition-all bg-[#eef2ff] dark:bg-[#2f3555] hover:bg-indigo-100 dark:hover:bg-[#3b4267] disabled:bg-gray-100 dark:disabled:bg-[#262b45] disabled:cursor-not-allowed group rounded-full"
+                aria-label={isTyping ? "Waiting for response" : "Send message"}
+              >
+                {isTyping ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} className="ml-0.5" />
+                )}
+              </button>
+            </div>
+
+            {/* Listening indicator bar */}
+            {isListening && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-red-400 via-red-500 to-red-400 animate-pulse" />
+            )}
+          </div>
         </div>
       </form>
     </div>

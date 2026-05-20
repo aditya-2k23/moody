@@ -17,7 +17,13 @@ import { RotateCcw } from "lucide-react";
 import StreakIndicator from "./StreakIndicator";
 import MemoriesToggle from "./MemoriesToggle";
 import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
+import GlowBackground from "./GlowBackground";
 
+/**
+ * Calculates the user's current logging streak based on their historical data.
+ * @param {Object} dataObj - The structured mood and journal data.
+ * @returns {number} The current streak count.
+ */
 function calculateStreakFromData(dataObj) {
   // Keep this pure so we can recompute streak after optimistic edits/deletes.
   // Streak is based only on mood entries (numeric day fields).
@@ -49,6 +55,10 @@ function calculateStreakFromData(dataObj) {
   return streak;
 }
 
+/**
+ * Renders the main dashboard content, including the calendar, streak, and recent memories.
+ * @returns {JSX.Element} The rendered DashboardContent component.
+ */
 function DashboardContent() {
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const searchParams = useSearchParams();
@@ -72,11 +82,20 @@ function DashboardContent() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("✨ Fetching your insights...");
+  const [minTimeMet, setMinTimeMet] = useState(false);
 
   // Debounced mood save state
   const pendingMoodRef = useRef(null); // { year, month, day, mood, streak } or null
   const moodDebounceTimerRef = useRef(null);
   const MOOD_DEBOUNCE_MS = 2000; // 2 seconds
+
+  // Hardcoded 2.5s minimum splash screen time
+  useEffect(() => {
+    const splashTimer = setTimeout(() => {
+      setMinTimeMet(true);
+    }, 2500);
+    return () => clearTimeout(splashTimer);
+  }, []);
 
   // Cached ID token for synchronous beacon requests
   const cachedIdTokenRef = useRef(null);
@@ -157,46 +176,45 @@ function DashboardContent() {
     const timer = setInterval(() => {
       setTimeRemaining(getTimeRemaining());
     }, 1000);
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
 
   // Real loading state: track auth + data loading stages
   useEffect(() => {
     if (!currentUser) {
-      // If not logged in, skip splash
-      setInitialLoading(false);
+      if (minTimeMet) setInitialLoading(false);
       return;
     }
 
     // Stage 1: Authenticated (30%)
     setLoadingProgress(30);
-    setLoadingMessage("🔐 Authenticated! Loading your data...");
-  }, [currentUser]);
+    setLoadingMessage("Authenticated! Loading your data...");
+  }, [currentUser, minTimeMet]);
 
-  // Stage 2: User data loaded (70%) → Complete (100%)
+  // Stage 2: User data loaded (70%) → Complete (100%) after min time
   useEffect(() => {
     if (!currentUser || loading) return;
 
     if (userDataObj !== null) {
+      // Data is ready, but we wait for minTimeMet (2.5s)
       setLoadingProgress(70);
       setLoadingMessage("Preparing your dashboard...");
 
-      // Brief delay for the user to see 100% before dismissing
-      const finishTimer = setTimeout(() => {
+      if (minTimeMet) {
         setLoadingProgress(100);
-        setLoadingMessage("✅ Ready!");
-      }, 400);
+        setLoadingMessage("Ready!");
 
-      const dismissTimer = setTimeout(() => {
-        setInitialLoading(false);
-      }, 800);
+        const dismissTimer = setTimeout(() => {
+          setInitialLoading(false);
+        }, 500);
 
-      return () => {
-        clearTimeout(finishTimer);
-        clearTimeout(dismissTimer);
-      };
+        return () => clearTimeout(dismissTimer);
+      }
     }
-  }, [currentUser, loading, userDataObj]);
+  }, [currentUser, loading, userDataObj, minTimeMet]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -272,21 +290,6 @@ function DashboardContent() {
 
   useEffect(() => {
     if (!wasAuthenticated && currentUser) {
-      toast.success("Successfully logged in!");
-      toast(
-        "Tip: Click any date in the calendar to view your previous journal logs!",
-        {
-          position: "bottom-center",
-          icon: "📝",
-          duration: 8000,
-          style: {
-            background: "#f5f3ff",
-            color: "#3730a3",
-            fontWeight: "bold"
-          },
-          removeDelay: 1000
-        }
-      );
       setWasAuthenticated(true);
     }
   }, [currentUser, wasAuthenticated]);
@@ -651,6 +654,7 @@ function DashboardContent() {
   return (
     <>
       <div className='flex flex-col flex-1 gap-6 sm:gap-10 md:gap-12'>
+        <GlowBackground />
         <div className="grid grid-cols-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl text-indigo-500 dark:font-medium dark:text-indigo-300 p-4 gap-4 shadow-lg dark:shadow-none relative overflow-visible">
           <div className="absolute top-0 right-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-br from-purple-400/40 to-indigo-400/30  dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 dark:w-0 dark:h-0 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full blur-3xl" />
@@ -763,6 +767,11 @@ function DashboardContent() {
   );
 }
 
+/**
+ * A wrapper component that provides context and handles the main dashboard layout.
+ * @param {Object} props - The component props.
+ * @returns {JSX.Element} The rendered Dashboard component.
+ */
 export default function Dashboard(props) {
   return (
     <Suspense fallback={<Splashscreen />}>

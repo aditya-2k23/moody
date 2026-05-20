@@ -43,3 +43,5 @@ yarn-error.log*
 next-env.d.ts
 
 .vscode
+# Ignore Git Commit Genie data
+.gitgenie/**

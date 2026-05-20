@@ -13,10 +13,17 @@ import { saveMemory } from "@/utils/saveMemory";
 import { invalidateMemoriesCache } from "@/hooks/useMemories";
 import AIInsightsSection from "./AIInsightsSection";
 import ImageUpload, { MAX_IMAGES_PER_DAY } from "./ImageUpload";
+import StyleTools from "./StyleTools";
+import RichTextEditor from "./RichTextEditor";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { CloudUpload, Check, Mic, Square, NotebookPen, Sparkles } from "lucide-react";
+import { CloudUpload, Mic, Square, NotebookPen, Sparkles, CloudCheck } from "lucide-react";
 import { TypeAnimation } from 'react-type-animation';
 
+/**
+ * Generates a unique key based on the provided date (YYYY-MM-DD).
+ * @param {Date} [date=new Date()] - The date to generate the key for.
+ * @returns {string} The formatted date key.
+ */
 function getDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -24,6 +31,15 @@ function getDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Renders a journal entry interface, allowing users to write text, select moods, and upload images.
+ * @param {Object} props - The component props.
+ * @param {Date} props.selectedDate - The date the journal entry is for.
+ * @param {Object} props.existingEntry - The existing journal data, if any.
+ * @param {Function} props.onClose - Callback to close the journal.
+ * @param {Function} props.onSave - Callback when the journal is saved.
+ * @returns {JSX.Element} The rendered Journal component.
+ */
 export default function Journal({
   mode = "auth",
   currentUser,
@@ -44,7 +60,7 @@ export default function Journal({
   const [insightsError, setInsightsError] = useState("");
 
   const insightsRef = useRef(null);
-  const textareaRef = useRef(null);
+  const [editor, setEditor] = useState(null);
 
   // Auto-load previously generated insights for today from Firestore
   const insightsLoadedKeyRef = useRef("");
@@ -165,15 +181,6 @@ export default function Journal({
   // Compute display value with interim transcript
   const displayEntry = getDisplayValue(entry);
 
-  // Auto-resize journal textarea whenever its content changes programmatically or on load
-  useEffect(() => {
-    if (textareaRef.current) {
-      const target = textareaRef.current;
-      target.style.height = 'auto'; // Reset to get correct scrollHeight
-      target.style.height = Math.max(target.scrollHeight, 96) + 'px';
-    }
-  }, [displayEntry]);
-
   // Store onJournalSaved in a ref to keep dependency array stable
   const onJournalSavedRef = useRef(onJournalSaved);
   useEffect(() => {
@@ -191,7 +198,7 @@ export default function Journal({
   // ========== Auto-Save Logic (Text Only) ==========
   const saveJournalText = useCallback(async () => {
     if (isGuest) return false; // Never write to Firebase in guest mode
-    if (!entry.trim() || !currentUser?.uid) return false;
+    if (!currentUser?.uid) return false;
 
     // Prevent duplicate Firebase writes
     if (entry === lastSavedEntryRef.current) {
@@ -224,7 +231,7 @@ export default function Journal({
   }, [entry, currentUser, isGuest]);
 
   // Debounce constants
-  const TYPING_DEBOUNCE_MS = 1700;
+  const TYPING_DEBOUNCE_MS = 3000;
   const VOICE_DEBOUNCE_MS = 2000;
 
   // Trigger auto-save with source-aware debounce
@@ -233,7 +240,7 @@ export default function Journal({
       clearTimeout(debounceTimerRef.current);
     }
 
-    if (!entry.trim()) {
+    if (!entry && !lastSavedEntryRef.current) {
       setCloudStatus("idle");
       return;
     }
@@ -298,14 +305,13 @@ export default function Journal({
       onGuestTextChange?.(entry);
       return;
     }
-    if (entry.trim()) {
-      if (isListening) {
-        // During voice input, just mark as having unsaved changes
-        // The save will happen when voice stops
-        hasUnsavedChangesRef.current = true;
-      } else {
-        triggerAutoSave();
-      }
+
+    if (isListening) {
+      // During voice input, just mark as having unsaved changes
+      // The save will happen when voice stops
+      hasUnsavedChangesRef.current = true;
+    } else {
+      triggerAutoSave();
     }
     // Reset input source to typing after processing
     if (inputSourceRef.current === "voice" && !isListening) {
@@ -588,44 +594,48 @@ export default function Journal({
   };
 
   return (
-    <div id="journal-section" className="py-4 flex flex-col gap-6">
+    <div id="journal-section" className="py-4 flex flex-col gap-6" style={{ overflowAnchor: "none" }}>
       {/* Journal Entry Section */}
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
         <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header with Cloud Status Indicator */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-y-3">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold fugaz flex items-center gap-2">
             <NotebookPen size={24} /> Quick Journal
           </h2>
 
-          {/* Cloud Save Status */}
-          <div
-            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-500 ease-out ${cloudStatus === "idle"
-              ? "opacity-0 scale-95 pointer-events-none"
-              : "opacity-100 scale-100"
-              }`}
-          >
-            {cloudStatus === "saving" ? (
-              <CloudUpload className="text-indigo-400 dark:text-indigo-300 animate-pulse" size={14} />
-            ) : (
-              <Check className="text-green-500 dark:text-green-400" size={14} />
-            )}
-            <span
-              className={`text-xs font-medium ${cloudStatus === "saving"
-                ? "text-indigo-500 dark:text-indigo-300"
-                : "text-green-600 dark:text-green-400"
+          <div className="flex items-center gap-4">
+            {/* Cloud Save Status */}
+            <div
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-500 ease-out ${cloudStatus === "idle"
+                ? "opacity-0 scale-95 pointer-events-none"
+                : "opacity-100 scale-100"
                 }`}
             >
-              {cloudStatus === "saving" ? "Saving..." : "Saved"}
-            </span>
+              {cloudStatus === "saving" ? (
+                <CloudUpload className="text-indigo-400 dark:text-indigo-300 animate-pulse" size={14} />
+              ) : (
+                <CloudCheck className="text-green-500 dark:text-green-400" size={14} />
+              )}
+              <span
+                className={`text-xs font-medium ${cloudStatus === "saving"
+                  ? "text-indigo-500 dark:text-indigo-300"
+                  : "text-green-600 dark:text-green-400"
+                  }`}
+              >
+                {cloudStatus === "saving" ? "Saving..." : "Saved"}
+              </span>
+            </div>
+
+            <StyleTools editor={editor} className="hidden lg:flex" />
           </div>
         </div>
 
         <div className="relative">
           {!displayEntry && (
-            <div className="absolute top-4 left-4 right-12 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
+            <div className="absolute top-4 left-4 right-20 pointer-events-none text-gray-400 dark:text-gray-500 text-sm md:text-base select-none pr-4 z-10">
               <TypeAnimation
                 sequence={typingSequence}
                 wrapper="span"
@@ -635,42 +645,26 @@ export default function Journal({
               />
             </div>
           )}
-          <textarea
-            ref={textareaRef}
-            name="journal"
-            id="journal"
-            aria-label={placeholder}
-            className="journal-textarea bg-white dark:bg-slate-700/80 w-full min-h-24 md:min-h-28 p-3 sm:p-4 pb-12 sm:pb-12 md:pb-14 pr-20 text-gray-700 text-sm md:text-base rounded-lg shadow-sm border border-indigo-100 dark:border-none outline-none focus:ring-2 focus:ring-indigo-500/90 transition-all duration-200 dark:focus:ring-indigo-300/90 dark:text-gray-200 placeholder:text-xs resize-none"
-            value={displayEntry}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setEntry(newValue);
-              syncBaseEntry(newValue);
-              // Auto-expand textarea to fit content (also handled by useEffect for programmatic updates)
-              const target = e.target;
-              target.style.height = 'auto';
-              target.style.height = Math.max(target.scrollHeight, 96) + 'px';
-            }}
-          />
-
-          {/* Listening indicator */}
-          {isListening && (
-            <div className="absolute top-2 right-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-50/90 dark:bg-red-500/20 backdrop-blur-sm transition-all duration-300 animate-fade-in">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-              <span className="text-[8px] sm:text-xs text-red-500 dark:text-red-300 font-medium">
-                Listening...
-              </span>
-            </div>
-          )}
+          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/50 dark:focus-within:ring-indigo-500/60 focus-within:border-transparent transition-all duration-300 break-words whitespace-pre-wrap text-sm leading-relaxed outline-none shadow-sm focus-within:shadow-[0_0_20px_rgba(99,102,241,0.4)] dark:focus-within:shadow-[0_0_23px_rgba(99,102,241,0.2)]">
+            <RichTextEditor
+              value={displayEntry}
+              isVoiceInput={isListening}
+              onChange={(newValue) => {
+                setEntry(newValue);
+                syncBaseEntry(newValue);
+              }}
+              onEditorCreated={setEditor}
+              placeholder=""
+              disabled={saving || uploading}
+              className="flex-1 min-h-full"
+            />
+          </div>
 
           {/* Voice Input Button */}
           <button
             type="button"
             onClick={() => toggleVoiceInput(entry)}
-            className={`absolute bottom-4 ${isGuest ? "right-4" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+            className={`absolute bottom-[11px] ${isGuest ? "right-4" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
               ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
               : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
               }`}
@@ -690,7 +684,7 @@ export default function Journal({
               imagePreviews={imagePreviews}
               onImagesChange={handleImagesChange}
               disabled={saving || uploading}
-              className="bottom-4 right-3.5"
+              className="bottom-[11px] right-3"
               inputId={imageInputId}
             />
           )}

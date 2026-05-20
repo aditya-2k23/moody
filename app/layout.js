@@ -6,7 +6,7 @@ import { BlobSvgFilter } from "@/components/Button";
 import { HandDrawnSvgFilters } from "@/components/HandDrawnButton";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import Header from "@/components/Header";
-import { Toaster } from "react-hot-toast";
+import CustomToaster from "@/components/CustomToaster";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       <body className={`w-full max-w-[1200px] mx-auto text-sm sm:text-base min-h-screen flex flex-col text-slate-800 dark:text-slate-100 selection:bg-indigo-600 selection:text-white ${openSans.className}`}>
         <AuthProvider>
           <ThemeProvider>
-            <Toaster position="top-center" toastOptions={{ style: { zIndex: 999999 } }} containerStyle={{ zIndex: 999999 }} />
+            <CustomToaster />
             <BlobSvgFilter />
             <HandDrawnSvgFilters />
             <Header />

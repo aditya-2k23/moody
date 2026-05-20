@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { moods } from "@/utils";
 import { Check, Sparkles, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
@@ -14,6 +15,8 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
   const [showContent, setShowContent] = useState(false);
   const [reflectionQuestion, setReflectionQuestion] = useState(null);
   const [wasJustGenerated, setWasJustGenerated] = useState(false);
+  const [tipUsed, setTipUsed] = useState(false);
+  const [chatHasMessages, setChatHasMessages] = useState(false);
   const [currentDay, setCurrentDay] = useState(() => {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Kolkata',
@@ -65,6 +68,13 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
     return `chat_${userId}_${currentDay}`;
   }, [userId, currentDay]);
 
+  // Reset tip visibility when a new chat starts (chatHasMessages becomes false)
+  useEffect(() => {
+    if (!chatHasMessages) {
+      setTipUsed(false);
+    }
+  }, [chatHasMessages]);
+
   // Track if insights were actively generated in this session (vs loaded from cache)
   useEffect(() => {
     if (isLoading) {
@@ -111,7 +121,9 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
 
   // Handle reflection question click → send to chat
   const handleReflectionClick = (question) => {
+    if (tipUsed || chatHasMessages) return;
     setReflectionQuestion(question);
+    setTipUsed(true);
   };
 
   return (
@@ -123,8 +135,8 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
     >
       {/* Section Header */}
       <h2 className="text-xl md:text-2xl flex items-center gap-2 mt-2 md:mt-4 mb-6 font-bold text-gray-800 dark:text-gray-200 fugaz">
-        <Sparkles size={24} className="text-indigo-500" />
-        Lumi&apos;s Thoughts
+        <Sparkles size={25} />
+        {insights || isLoading ? "Lumi's Thoughts" : "Let's talk about your day"}
         {showContent && insights && (
           <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 animate-insights-badge shadow-sm">
             <Check className="mr-1" size={12} />
@@ -208,11 +220,13 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                     {insights.headline || "Your Personalized Insight"}
                   </h4>
 
-                  <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">
-                    {Array.isArray(insights.response)
-                      ? insights.response.join(" ")
-                      : (insights.response || insights.insight)}
-                  </p>
+                  <div className="prose prose-sm md:prose-base dark:prose-invert text-gray-700 dark:text-gray-300 leading-relaxed max-w-none">
+                    <ReactMarkdown>
+                      {Array.isArray(insights.response)
+                        ? insights.response.join("\n\n")
+                        : (insights.response || insights.insight)}
+                    </ReactMarkdown>
+                  </div>
                 </div>
 
                 {Array.isArray(insights.triggers) && insights.triggers.length > 0 && (
@@ -246,15 +260,22 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                         <h5 className="text-xs font-bold text-emerald-800 dark:text-emerald-400 mb-1">
                           {insights.followUpQuestion ? 'For Your Reflection' : 'Pro Tip'}
                         </h5>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-                          {insights.followUpQuestion || insights.pro_tip}
-                        </p>
+                        <div className="text-sm text-emerald-700 dark:text-emerald-300 font-medium [&>p]:inline">
+                          <ReactMarkdown
+                            allowedElements={["p", "em", "strong", "del", "code", "a", "br"]}
+                            unwrapDisallowed={true}
+                          >
+                            {insights.followUpQuestion || insights.pro_tip}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                       <MessageCircle size={16} className="text-emerald-400 dark:text-emerald-500 mt-1 opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                     </div>
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                      Click to chat with Lumi about this →
-                    </p>
+                    {!tipUsed && !chatHasMessages && (
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        Click to chat with Lumi about this →
+                      </p>
+                    )}
                   </button>
                 )}
               </div>
@@ -269,6 +290,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                   journalText={journalText}
                   reflectionQuestion={reflectionQuestion}
                   onReflectionConsumed={() => setReflectionQuestion(null)}
+                  onChatHasMessages={setChatHasMessages}
                 />
               </div>
             )}

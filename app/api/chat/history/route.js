@@ -3,6 +3,24 @@ import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
+/**
+ * Removes exactly one matched pair of wrapping single or double quotes after trim.
+ *
+ * @param {string} text - The input string.
+ * @returns {string} The formatted string without wrapping quotes.
+ */
+function stripWrappingQuotes(text) {
+  if (typeof text !== "string") return text;
+  const trimmed = text.trim();
+  return trimmed.replace(/^(['"])([\s\S]*)\1$/, "$2");
+}
+
+/**
+ * Handles GET requests to retrieve user's chat history sessions.
+ *
+ * @param {Request} req - The incoming request object containing searchParams for chatId and userId.
+ * @returns {Promise<Response>} A JSON response containing grouped chat history sessions.
+ */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -29,12 +47,8 @@ export async function GET(req) {
     try {
       decodedToken = await getAdminAuth().verifyIdToken(idToken);
     } catch (error) {
-      if (process.env.DEMO_AUTH_TOKEN && idToken === process.env.DEMO_AUTH_TOKEN) {
-        decodedToken = { uid: "demo-user", isDemo: true };
-      } else {
-        console.error("[Chat History API] Token verification failed:", error);
-        return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
-      }
+      console.error("[Chat History API] Token verification failed:", error);
+      return apiError({ status: 401, code: "INVALID_TOKEN", message: "Invalid token" });
     }
 
     if (decodedToken.uid !== userId) {
@@ -65,10 +79,11 @@ export async function GET(req) {
       const sId = data.sessionId || "default";
 
       if (!groupedSessions[sId]) {
+        const cleanContent = stripWrappingQuotes(data.content || "");
         groupedSessions[sId] = {
           sessionId: sId,
-          preview: (data.content || "").substring(0, 40) + ((data.content || "").length > 40 ? '...' : ''),
-          messages: []
+          preview: cleanContent.substring(0, 40) + (cleanContent.length > 40 ? "..." : ""),
+          messages: [],
         };
       }
 
@@ -79,15 +94,16 @@ export async function GET(req) {
             groupedSessions[sId].messages.push({
               id: `${doc.id}_${index}`,
               role: "assistant",
-              content: bubble,
+              content: stripWrappingQuotes(bubble),
               timestamp,
             });
           });
       } else {
+        const cleanContent = stripWrappingQuotes(data.content);
         groupedSessions[sId].messages.push({
           id: doc.id,
           role: data.role,
-          content: data.content,
+          content: cleanContent,
           timestamp,
         });
       }

@@ -25,7 +25,7 @@ export default function ThemeToggle() {
   // Return placeholder with same dimensions to avoid layout shift
   if (!mounted) {
     return (
-      <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700" />
+      <div className="w-10 h-10 rounded-full bg-[var(--color-surface-1)] border border-[var(--color-border)] shadow-[var(--shadow-sm)]" />
     );
   }
 
@@ -82,20 +82,20 @@ export default function ThemeToggle() {
         : null}
       <button
         onClick={toggleTheme}
-        className="relative flex items-center justify-center p-2.5 rounded-full transition-all duration-300 ease-in-out bg-indigo-50 hover:bg-indigo-100/70 dark:bg-slate-800 dark:hover:bg-slate-700 border border-indigo-100 dark:border-slate-700 shadow-md hover:shadow-lg"
+        className="relative flex items-center justify-center p-2.5 rounded-full transition-all duration-300 ease-in-out bg-indigo-100/80 hover:bg-indigo-200/60 dark:bg-slate-800/80 dark:hover:bg-slate-800/45 border border-[var(--color-border)] dark:border-[var(--color-primary-500)]/30 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)]"
         aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
         title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       >
         <Sun
           size={20}
           strokeWidth={2.5}
-          className={`absolute transition-all duration-300 ease-in-out text-amber-500 ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}
+          className={`absolute transition-all duration-300 ease-in-out text-[var(--color-accent)] ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}
         />
 
         <Moon
           size={20}
           strokeWidth={2.5}
-          className={`transition-all duration-300 ease-in-out text-indigo-400 ${isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}
+          className={`transition-all duration-300 ease-in-out text-[var(--color-primary-500)] ${isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}
         />
       </button>
     </>

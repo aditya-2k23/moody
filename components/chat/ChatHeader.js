@@ -56,11 +56,14 @@ export default function ChatHeader({
               Lumi
             </h3>
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                {APP_RELEASE_TAG}
-              </span>
-              <p className="hidden sm:block text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                Online
+              {APP_RELEASE_TAG && (
+                <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                  {APP_RELEASE_TAG}
+                </span>
+              )}
+
+              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium flex items-center">
+                <span className="inline-block w-1 h-1 bg-emerald-500 rounded-full mr-1" />Online
               </p>
             </div>
           </div>
