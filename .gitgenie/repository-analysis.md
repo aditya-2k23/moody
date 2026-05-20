@@ -1,0 +1,2 @@
+# Repository Analysis Summary
+Moody is a sophisticated AI-integrated mood tracking platform built with Next.js 16 and React 19. It features AI-powered mood insights and a conversational companion (Lumi) driven by Google Gemini, utilizing Upstash Redis for semantic caching. The application supports rich-text journaling via Tiptap, visual memory management through Cloudinary, and secure authentication via Firebase. Recent updates focus on design system formalization through CSS tokens, performance optimizations for data deletion, and UI polish with GSAP animations.
