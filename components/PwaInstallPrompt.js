@@ -5,6 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 const DISMISS_KEY = "moody_pwa_install_dismissed_at";
 const DISMISS_DAYS = 7;
 
+/**
+ * Checks local storage to determine if the user has recently dismissed the PWA install prompt.
+ * @returns {boolean} True if the prompt was dismissed within the cooldown period (7 days)
+ */
 const getDismissed = () => {
   if (typeof window === "undefined") return false;
   try {
@@ -20,6 +24,9 @@ const getDismissed = () => {
   }
 };
 
+/**
+ * Records the current timestamp in local storage to track when the PWA install prompt was dismissed.
+ */
 const setDismissedNow = () => {
   if (typeof window === "undefined") return;
   try {
@@ -32,6 +39,10 @@ const setDismissedNow = () => {
   }
 };
 
+/**
+ * Detects if the current device is running iOS or iPadOS (including desktop mode on iPad).
+ * @returns {boolean} True if the device is an iPhone, iPad, or iPod
+ */
 const detectIos = () => {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent.toLowerCase();
@@ -40,6 +51,10 @@ const detectIos = () => {
   return isIosDevice || isIpadDesktop;
 };
 
+/**
+ * Checks if the application is currently running in standalone PWA mode.
+ * @returns {boolean} True if running as an installed PWA
+ */
 const detectStandalone = () => {
   if (typeof window === "undefined") return false;
   return (
@@ -48,11 +63,22 @@ const detectStandalone = () => {
   );
 };
 
+/**
+ * Determines if the primary input mechanism is a coarse pointer (e.g., touch screen).
+ * @returns {boolean} True if a coarse pointer is detected
+ */
 const detectCoarsePointer = () => {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(pointer: coarse)").matches;
 };
 
+/**
+ * Displays an intelligent PWA installation prompt to eligible users.
+ * Supports standard web app manifests and provides fallback manual instructions for iOS devices.
+ * Respects user dismissals with a built-in cooldown period.
+ *
+ * @returns {JSX.Element|null} The install prompt component or null if it shouldn't be shown
+ */
 export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isIos, setIsIos] = useState(false);

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ Features
+
+- Added PWA (Progressive Web App) support, including a web manifest, intelligent install prompts, and offline capabilities via a service worker.
+
 ### 🔒 Security
 
 - Removed insecure `DEMO_AUTH_TOKEN` fallback from chat API routes (`clear`, `history`, `persist`) to ensure all sensitive data operations require a properly verified user identity.

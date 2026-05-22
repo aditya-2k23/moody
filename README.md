@@ -33,6 +33,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary) and a robust, sequential account deletion process that cleans up all Redis, Cloudinary, and Firebase records.
+- **PWA (Progressive Web App) Support**: Enjoy an app-like experience with offline support, an install prompt, and quick access.
 
 ### 🆕 Editor & Accessibility Overhaul (v3.1.0)
 

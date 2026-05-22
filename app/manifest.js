@@ -1,3 +1,8 @@
+/**
+ * Generates the progressive web app manifest configuration.
+ * Provides metadata for installation, offline usage, and app-like behavior.
+ * @returns {import('next').MetadataRoute.Manifest} The manifest configuration object
+ */
 export default function manifest() {
   return {
     name: "Moody",
