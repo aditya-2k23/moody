@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ Features
+
+- **PWA (Progressive Web App) Support**: Added an offline cache-first strategy via service workers and a custom installation prompt to allow users to add Moody to their home screens seamlessly.
+
 ### 🔒 Security
 
 - Removed insecure `DEMO_AUTH_TOKEN` fallback from chat API routes (`clear`, `history`, `persist`) to ensure all sensitive data operations require a properly verified user identity.

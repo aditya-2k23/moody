@@ -39,7 +39,7 @@ This document outlines the development plan and future vision for **Moody**. Our
   - Option to play calming music while journaling.
 - [x] **📱 Mobile Responsiveness Polish**
   - Better touch targets and gestures for mobile users.
-  - PWA (Progressive Web App) installation support.
+  - [x] PWA (Progressive Web App) installation support.
 - [ ] **🔔 Reminders**
   - Optional browser notifications to log your mood.
 

@@ -1,3 +1,8 @@
+/**
+ * Generates the web application manifest for PWA support.
+ *
+ * @returns {Object} The web app manifest configuration object.
+ */
 export default function manifest() {
   return {
     name: "Moody",

@@ -2,6 +2,11 @@
 
 import { useEffect } from "react";
 
+/**
+ * Initializes the Progressive Web App (PWA) by registering the service worker.
+ *
+ * @returns {null} This component does not render any UI.
+ */
 export default function PwaInit() {
   useEffect(() => {
     if (typeof window === "undefined") return;

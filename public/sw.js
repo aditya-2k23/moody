@@ -1,3 +1,8 @@
+/**
+ * Service Worker script for Moody PWA.
+ * Implements a cache-first strategy for static assets and app shell.
+ */
+
 const CACHE_NAME = "moody-static-v1";
 const APP_SHELL = [
   "/",

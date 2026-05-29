@@ -34,6 +34,11 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary) and a robust, sequential account deletion process that cleans up all Redis, Cloudinary, and Firebase records.
 
+### 🆕 Progressive Web App (PWA) Support (v3.2.0)
+
+- **Installable App**: Moody is now fully installable as a PWA, providing an app-like experience with an offline cache-first strategy.
+- **Smart Install Prompt**: A custom, non-intrusive UI prompt guides users (including iOS Safari fallbacks) on how to install Moody on their home screens.
+
 ### 🆕 Editor & Accessibility Overhaul (v3.1.0)
 
 - **📝 Enhanced Markdown Support**: Global integration of `react-markdown` and `@tiptap/react` ensuring that formatting (bolds, italics, lists) is natively rendered across the AI Insights panel, Chat History, and Journal Modals without breaking HTML layouts or swallowing text.

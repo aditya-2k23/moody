@@ -53,6 +53,12 @@ const detectCoarsePointer = () => {
   return window.matchMedia("(pointer: coarse)").matches;
 };
 
+/**
+ * A UI component that prompts users to install the app as a Progressive Web App (PWA).
+ * It handles the native `beforeinstallprompt` event and provides a fallback for iOS devices.
+ *
+ * @returns {JSX.Element|null} The install prompt UI, or null if it shouldn't be shown.
+ */
 export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isIos, setIsIos] = useState(false);
