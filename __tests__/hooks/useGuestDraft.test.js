@@ -29,9 +29,9 @@
 
 import { renderHook, act } from "@testing-library/react";
 import { useGuestDraft } from "@/hooks/useGuestDraft";
-import { saveGuestDraft } from "@/lib/guestStorage";
+import { saveGuestDraft, GUEST_DRAFT_KEY } from "@/lib/guestStorage";
 
-const STORAGE_KEY = "moody_guest_draft";
+const STORAGE_KEY = GUEST_DRAFT_KEY;
 
 beforeEach(() => {
   localStorage.clear();
@@ -54,9 +54,6 @@ describe("useGuestDraft()", () => {
     saveGuestDraft({ mood: 4, moodLabel: "Good", journalText: "pre-existing" });
 
     const { result } = renderHook(() => useGuestDraft());
-
-    // The useEffect runs synchronously in jsdom
-    act(() => {});
 
     expect(result.current.draft).not.toBeNull();
     expect(result.current.draft.mood).toBe(4);
