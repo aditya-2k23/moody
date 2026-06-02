@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+### [3.1.3] - 2026-06-03
+
+#### 🧪 Testing Infrastructure
+
+- Introduced a production-quality Jest + React Testing Library setup for Next.js 16 and React 19.
+- Configured `jest.config.js` using `next/jest` (SWC compiler) — the same transformer used by `next build`, eliminating the need for a separate Babel config.
+- Fixed `jest.setup.js` (`import` → `require`) to resolve the root `SyntaxError: Cannot use import statement outside a module` that blocked all tests from running.
+- Installed `identity-obj-proxy` for CSS Modules support in tests.
+- Added 103 unit tests across 11 suites covering: utilities (`convertMood`, mood dictionary), security-critical validators (`isChatIdScopedToUser`, `isValidSessionId`, `isValidString`), guest storage (save/retrieve/clear + 24 h expiry), version constants, the `useGuestDraft` hook (debounce, hydration, `setPendingAction`), and React components (`Button`, `Input`, `StreakIndicator`, `NewFeatureDot`, `RadialMoodMenu`).
+- Added `test:ci` script (`jest --ci --forceExit`) for Jenkins and automated pipeline use.
+- Added `test:coverage` script for local coverage reporting (outputs `coverage/lcov.info` + HTML report).
+
+#### 🔧 CI Pipeline
+
+- Added `Jenkinsfile` with a 6-stage declarative pipeline: Checkout → Install Dependencies → Security Audit → Lint → Unit Tests → Next.js Production Build.
+- Fixed `Install Dependencies` stage by overriding the global `NODE_ENV=production` to `NODE_ENV=development`, ensuring that `npm ci` installs all devDependencies (such as Jest, Testing Library, and ESLint) needed for testing and linting.
+- Security Audit stage uses `--audit-level=high`, marking builds `UNSTABLE` (not `FAILURE`) on high/critical vulnerabilities so all subsequent stages still run.
+- Unit Tests stage overrides `NODE_ENV=test` for correct React `act()` boundary detection and uses `test:ci` with `--forceExit` to prevent Jest from hanging on open async handles.
+- Post-build actions archive `.next/BUILD_ID` and `build-manifest.json` as build artifacts, and surgically remove `node_modules` and `.next` to recover disk space without forcing a full re-clone.
+
+#### 🐛 Bug Fixes
+
+- Fixed `npm run lint` failing with `Invalid project directory provided, no such directory: …\lint` — caused by `next lint` being removed from the Next.js 16 CLI entirely.
+- Replaced `"lint": "next lint"` with `"lint": "eslint . --max-warnings 0"` (direct ESLint call). The existing `eslint.config.mjs` extending `next/core-web-vitals` is unchanged, so all linting rules are preserved.
+
 ### [3.1.2] - 2026-06-02
 
 - Fixed Rich Text Formatted ChatInput behaviour with proper word/screen wrapping.

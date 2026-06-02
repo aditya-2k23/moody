@@ -42,6 +42,12 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **🛡️ Robust Formatting RegEx**: Replaced brittle string manipulation with `([\s\S]*)` Regex to accurately strip wrapper quotes containing multi-line code blocks and lists returned by AI models.
 - **💅 UX/UI Refinement**: Centralized component sizing (`Loader.js`), optimized GSAP transitions (`Splashscreen.js`, `Memories.js`), updated tailwind background opacities (`GlowBackground.js`), and removed unneeded dependencies.
 
+### 🆕 CI, Testing & Quality Pass (v3.1.3)
+
+- **🧪 103 Unit Tests**: Full Jest + React Testing Library suite covering utilities, security validators, hooks, and components — runs in ~25 seconds with SWC.
+- **🔧 Jenkins CI Pipeline**: 6-stage declarative pipeline (Checkout → Install → Audit → Lint → Test → Build) with post-build artifact archiving and workspace cleanup.
+- **🐛 Lint Fixed for Next.js 16**: `next lint` was removed from the Next.js 16 CLI; replaced with a direct `eslint` call — same `next/core-web-vitals` rules, no config changes needed.
+
 ### 🆕 Performance & Security Pass (v3.0.3)
 
 - **🚀 Highly Parallel Deletions**: Account removal is now much faster, utilizing parallelized Cloudinary asset destruction and batched Redis key scanning.
@@ -214,6 +220,19 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
    npm run dev
    ```
 
+5. **Run the test suite (optional):**
+
+   ```sh
+   npm test              # run all tests
+   npm run test:coverage # run tests with HTML coverage report
+   ```
+
+6. **Lint the codebase (optional):**
+
+   ```sh
+   npm run lint
+   ```
+
 ## 📝 How to Use
 
 1. **Log Your Day**: Enter how you're feeling and write a short journal entry.
@@ -225,11 +244,27 @@ If you prefer Docker, see the [Docker Support](#-docker-support) section above.
 
 ## 🤖 CI/CD & Docker Automation
 
-Moody uses GitHub Actions to automate the build and push process for Docker images.
+Moody uses a two-track CI/CD system:
 
-- **Automatic Versioning**: The workflow triggers on every push to `main`.
-- **Image Tags**: Images are tagged with the version from `package.json` and the git commit SHA.
-- **Latest Tag**: The `latest` tag always points to the most recent successful build from the `main` branch.
+### GitHub Actions — Docker Build & Push
+
+- Triggers on every push to `main` (documentation-only changes excluded).
+- Builds and pushes images to **Docker Hub** (`temaroon/moody`) and **GHCR** (`ghcr.io/aditya-2k23/moody`).
+- Images are tagged with the version from `package.json`, the git commit SHA, and `latest`.
+
+### Jenkins — Quality Verification
+
+A `Jenkinsfile` is included for self-hosted Jenkins CI. The pipeline runs these stages in order:
+
+| Stage                | Command                        | Purpose                                  |
+| -------------------- | ------------------------------ | ---------------------------------------- |
+| Install Dependencies | `npm ci`                       | Reproducible, lock-file-exact installs   |
+| Security Audit       | `npm audit --audit-level=high` | Fails on high/critical CVEs              |
+| Lint                 | `npm run lint`                 | ESLint with `next/core-web-vitals` rules |
+| Unit Tests           | `npm run test:ci`              | 103 tests via Jest + RTL                 |
+| Production Build     | `npm run build`                | Full `next build` compilation check      |
+
+The pipeline requires the NodeJS tool configured in Jenkins and the `NEXT_PUBLIC_*` environment variables added as Secret Text credentials (placeholder values are sufficient for CI).
 
 ## 📄 License
 
