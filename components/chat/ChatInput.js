@@ -67,6 +67,7 @@ const ChatInput = forwardRef(function ChatInput({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
+      StarterKit,
       Markdown.configure({
         html: false,
         transformPastedText: true,
