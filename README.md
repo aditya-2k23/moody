@@ -17,7 +17,6 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - [Getting Started](#-getting-started)
 - [How to Use](#-how-to-use)
 - [CI/CD & Docker Automation](#-cicd--docker-automation)
-- [Testing](#-testing)
 - [License](#-license)
 - [Community](#-community)
 - [Credits](#-credits)
@@ -257,13 +256,13 @@ Moody uses a two-track CI/CD system:
 
 A `Jenkinsfile` is included for self-hosted Jenkins CI. The pipeline runs these stages in order:
 
-| Stage | Command | Purpose |
-|---|---|---|
-| Install Dependencies | `npm ci` | Reproducible, lock-file-exact installs |
-| Security Audit | `npm audit --audit-level=high` | Fails on high/critical CVEs |
-| Lint | `npm run lint` | ESLint with `next/core-web-vitals` rules |
-| Unit Tests | `npm run test:ci` | 103 tests via Jest + RTL |
-| Production Build | `npm run build` | Full `next build` compilation check |
+| Stage                | Command                        | Purpose                                  |
+| -------------------- | ------------------------------ | ---------------------------------------- |
+| Install Dependencies | `npm ci`                       | Reproducible, lock-file-exact installs   |
+| Security Audit       | `npm audit --audit-level=high` | Fails on high/critical CVEs              |
+| Lint                 | `npm run lint`                 | ESLint with `next/core-web-vitals` rules |
+| Unit Tests           | `npm run test:ci`              | 103 tests via Jest + RTL                 |
+| Production Build     | `npm run build`                | Full `next build` compilation check      |
 
 The pipeline requires the NodeJS tool configured in Jenkins and the `NEXT_PUBLIC_*` environment variables added as Secret Text credentials (placeholder values are sufficient for CI).
 
