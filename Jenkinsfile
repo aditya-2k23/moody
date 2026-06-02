@@ -176,22 +176,18 @@ pipeline {
         }
 
         // 4. Lint
-        // Runs `npm run lint` which invokes `next lint`.
-        // next lint uses the flat ESLint config (eslint.config.mjs) extending
-        // "next/core-web-vitals" — this catches:
-        //   - React hooks rule violations
-        //   - Next.js-specific anti-patterns (e.g. using <img> instead of <Image>)
-        //   - Core Web Vitals recommendations
+        // Runs `npm run lint` which invokes `eslint . --max-warnings 0` directly.
+        // --max-warnings 0 treats warnings as errors (same strictness as next lint).
         // WHY lint before tests?
-        //   Lint is ~2-3 seconds. If a developer pushed broken syntax, we want
-        //   to surface that immediately before spending 30s on tests.
+        //   Lint runs fast (~5-15s). Surface broken syntax before spending 30s
+        //   on Jest's SWC compilation.
         stage('Lint') {
             steps {
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "  Stage: Lint  (npm run lint)"
+                echo "  Stage: Lint  (eslint . --max-warnings 0)"
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 sh 'npm run lint'
-                echo "  ✓ ESLint passed (next/core-web-vitals)"
+                echo "  ✓ ESLint passed (next/core-web-vitals via eslint.config.mjs)"
             }
         }
 
