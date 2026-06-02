@@ -89,9 +89,6 @@ pipeline {
 
         // Timestamps make it easy to see how long each log line / stage took.
         timestamps()
-
-        // Surface the cause of a failed build immediately in the stage view.
-        skipStagesAfterUnstable()
     }
 
     stages {
@@ -125,6 +122,10 @@ pipeline {
         //   - Faster than npm install on CI (skips dependency resolution)
         //   - Deletes node_modules before installing (no stale package risk)
         stage('Install Dependencies') {
+            environment {
+                // Override top-level NODE_ENV=production to ensure npm ci installs devDependencies
+                NODE_ENV = 'development'
+            }
             steps {
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 echo "  Stage: Install Dependencies  (npm ci)"

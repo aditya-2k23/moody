@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### 🔧 CI Pipeline
 
 - Added `Jenkinsfile` with a 6-stage declarative pipeline: Checkout → Install Dependencies → Security Audit → Lint → Unit Tests → Next.js Production Build.
+- Fixed `Install Dependencies` stage by overriding the global `NODE_ENV=production` to `NODE_ENV=development`, ensuring that `npm ci` installs all devDependencies (such as Jest, Testing Library, and ESLint) needed for testing and linting.
 - Security Audit stage uses `--audit-level=high`, marking builds `UNSTABLE` (not `FAILURE`) on high/critical vulnerabilities so all subsequent stages still run.
 - Unit Tests stage overrides `NODE_ENV=test` for correct React `act()` boundary detection and uses `test:ci` with `--forceExit` to prevent Jest from hanging on open async handles.
 - Post-build actions archive `.next/BUILD_ID` and `build-manifest.json` as build artifacts, and surgically remove `node_modules` and `.next` to recover disk space without forcing a full re-clone.
