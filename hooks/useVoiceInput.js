@@ -12,6 +12,9 @@ import toast from "react-hot-toast";
  * @param {string} options.lang - Speech recognition language (default: "en-US")
  * @returns {Object} Voice input state and controls
  */
+// 5-minute voice timeout to limit mic usage
+const VOICE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
 export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "en-US" }) {
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
@@ -20,8 +23,6 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   const baseEntryRef = useRef(initialValue);
   const lastProcessedIndexRef = useRef(-1);
 
-  // 5-minute voice timeout to limit mic usage
-  const VOICE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
   const voiceTimeoutRef = useRef(null);
 
   // Error flag to prevent restart loops - this is checked in onend
@@ -234,7 +235,7 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
         }
       }
     };
-  }, []);
+  }, [lang]);
 
   // Toggle voice input
   const toggleVoiceInput = useCallback((currentEntry = "") => {
