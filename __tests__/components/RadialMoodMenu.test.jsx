@@ -40,7 +40,7 @@ const sampleMoods = [
 describe("RadialMoodMenu component", () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
