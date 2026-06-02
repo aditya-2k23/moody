@@ -6,7 +6,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
 import VoiceButton from "./VoiceButton";
 import StyleTools from "@/components/StyleTools";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -68,9 +67,6 @@ const ChatInput = forwardRef(function ChatInput({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({
-        hardBreak: false,
-      }),
       Markdown.configure({
         html: false,
         transformPastedText: true,
@@ -78,7 +74,6 @@ const ChatInput = forwardRef(function ChatInput({
       Placeholder.configure({
         placeholder: "Message Lumi...",
       }),
-      Underline,
     ],
     content: input,
     editorProps: {
@@ -211,15 +206,15 @@ const ChatInput = forwardRef(function ChatInput({
             </div>
           )}
 
-          <div className="flex-1 flex items-start bg-slate-50 dark:bg-[#1f233b] rounded-[2rem] border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative shadow-sm">
+          <div className="flex-1 flex items-start bg-slate-50 dark:bg-[#1f233b] rounded-[2rem] border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative shadow-sm min-w-0">
             <div
-              className={`flex-1 flex max-h-[160px] overflow-y-auto chat-scrollbar tiptap-chat-editor`}
+              className={`flex-1 flex max-h-[160px] overflow-y-auto chat-scrollbar tiptap-chat-editor min-w-0`}
               onClick={() => editor?.commands.focus()}
             >
               <EditorContent
                 editor={editor}
                 aria-label="Message input"
-                className="flex-1 w-full pl-5 pr-2 py-3 min-h-[48px] text-[15px] focus:outline-none dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:!my-0"
+                className="flex-1 w-full min-w-0 pl-5 pr-2 py-3 min-h-[48px] text-[15px] focus:outline-none dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:!my-0"
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
               />
