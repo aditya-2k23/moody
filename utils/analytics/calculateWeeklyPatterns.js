@@ -30,7 +30,8 @@ export function calculateWeeklyPatterns(dataObj, days = 90) {
     return {
       day: dayList[index],
       shortDay: dayList[index].substring(0, 3),
-      score: stat.count > 0 ? Number((stat.totalScore / stat.count).toFixed(1)) : null
+      score: stat.count > 0 ? Number((stat.totalScore / stat.count).toFixed(1)) : null,
+      count: stat.count
     };
   });
 

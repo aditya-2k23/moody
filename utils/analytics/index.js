@@ -1,4 +1,10 @@
-export { calculateMoodTrends, MOOD_SCORES } from './calculateMoodTrends';
+export {
+  calculateMoodTrends,
+  calculateMoodHeatmap,
+  calculateBestWorstPeriods,
+  calculateMicroInsight,
+  MOOD_SCORES
+} from './calculateMoodTrends';
 export { calculateDistribution } from './calculateDistribution';
 export { calculateWeeklyPatterns } from './calculateWeeklyPatterns';
 export { calculateConsistency } from './calculateConsistency';

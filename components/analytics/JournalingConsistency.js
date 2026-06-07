@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { calculateConsistency } from "@/utils/analytics";
+import { calculateConsistency, calculateMoodHeatmap } from "@/utils/analytics";
 import { Flame } from "lucide-react";
 
 export default function JournalingConsistency({ data, days = 30 }) {
@@ -9,8 +9,12 @@ export default function JournalingConsistency({ data, days = 30 }) {
     return calculateConsistency(data, days);
   }, [data, days]);
 
+  const heatmap = useMemo(() => {
+    return calculateMoodHeatmap(data, 28);
+  }, [data]);
+
   return (
-    <div className="bg-slate-50 dark:bg-[#1a1b26] rounded-[24px] p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
       <div className="mb-8">
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Consistency</h3>
       </div>
@@ -33,6 +37,29 @@ export default function JournalingConsistency({ data, days = 30 }) {
       </div>
 
       <div className="h-px w-full bg-slate-200 dark:bg-white/[0.05] mb-6"></div>
+
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-semibold">
+            Last 28 Days
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500">Mood color</span>
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {heatmap.map((day) => (
+            <span
+              key={day.timestamp}
+              className="h-3 w-3 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+              style={{
+                backgroundColor: day.hasEntry ? day.color : "rgba(148, 163, 184, 0.22)",
+                opacity: day.hasEntry ? 1 : 0.7
+              }}
+              title={day.hasEntry ? `${day.date}: ${day.emoji} ${day.moodName}` : `${day.date}: no mood logged`}
+              aria-label={day.hasEntry ? `${day.date}: ${day.moodName}` : `${day.date}: no mood logged`}
+            />
+          ))}
+        </div>
+      </div>
 
       <div className="flex justify-between items-center">
         <div className="flex flex-col">

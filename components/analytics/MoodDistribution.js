@@ -12,7 +12,7 @@ export default function MoodDistribution({ data, days = 30 }) {
 
   if (distribution.length === 0) {
     return (
-      <div className="bg-slate-50 dark:bg-[#1a1b26] rounded-[24px] p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full justify-center items-center text-center">
+      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full justify-center items-center text-center">
         <p className="text-slate-500 dark:text-slate-400">No mood data available yet.</p>
       </div>
     );
@@ -26,7 +26,7 @@ export default function MoodDistribution({ data, days = 30 }) {
 
 
   return (
-    <div className="bg-slate-50 dark:bg-[#1a1b26] rounded-[24px] p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm items-center relative overflow-hidden">
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm items-center relative overflow-hidden">
       <div className="w-full text-left mb-4">
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Distribution</h3>
       </div>

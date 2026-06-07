@@ -42,7 +42,7 @@ export default function MonthlyComparison({ data }) {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#1a1b26] rounded-[24px] p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col w-full shadow-sm">
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col w-full shadow-sm">
       <div className="flex items-center gap-2 mb-6">
         <Sparkles size={18} className="text-indigo-500 dark:text-indigo-400" />
         <h3 className="font-medium text-slate-800 dark:text-slate-100">Monthly Reflection</h3>
