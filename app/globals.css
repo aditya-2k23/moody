@@ -1078,3 +1078,10 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
     animation: none;
   }
 }
+
+/* Fix Recharts Outline */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-wrapper * {
+  outline: none !important;
+}
