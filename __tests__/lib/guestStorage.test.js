@@ -38,6 +38,9 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
+/**
+ * Test suite
+ */
 describe("saveGuestDraft()", () => {
   it("persists the draft to localStorage", () => {
     saveGuestDraft({ mood: 3, moodLabel: "Good", journalText: "feeling great" });
@@ -75,6 +78,9 @@ describe("saveGuestDraft()", () => {
   });
 });
 
+/**
+ * Test suite
+ */
 describe("getGuestDraft()", () => {
   it("returns null when localStorage is empty", () => {
     expect(getGuestDraft()).toBeNull();
@@ -116,6 +122,9 @@ describe("getGuestDraft()", () => {
   });
 });
 
+/**
+ * Test suite
+ */
 describe("clearGuestDraft()", () => {
   it("removes the draft from localStorage", () => {
     saveGuestDraft({ mood: 3, moodLabel: "Good", journalText: "hi" });

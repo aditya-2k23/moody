@@ -23,6 +23,9 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import StreakIndicator from "@/components/StreakIndicator";
 
+/**
+ * Test suite
+ */
 describe("StreakIndicator component", () => {
   beforeEach(() => {
     jest.useFakeTimers();

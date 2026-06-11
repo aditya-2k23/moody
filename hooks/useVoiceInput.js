@@ -238,6 +238,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   }, [lang]);
 
   // Toggle voice input
+  /**
+   * Toggles voice input
+   * @param {string} currentEntry
+   */
   const toggleVoiceInput = useCallback((currentEntry = "") => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -350,6 +354,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   }, [isListening]);
 
   // Sync base entry ref when entry changes externally (e.g., user typing)
+  /**
+   * Syncs base entry
+   * @param {string} value
+   */
   const syncBaseEntry = useCallback((value) => {
     if (!interimTranscript) {
       baseEntryRef.current = value;
@@ -357,6 +365,11 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   }, [interimTranscript]);
 
   // Compute display value with interim transcript
+  /**
+   * Gets display value
+   * @param {string} currentEntry
+   * @returns {string}
+   */
   const getDisplayValue = useCallback((currentEntry) => {
     if (interimTranscript) {
       const base = baseEntryRef.current;
@@ -367,6 +380,10 @@ export function useVoiceInput({ initialValue = "", onTranscriptChange, lang = "e
   }, [interimTranscript]);
 
   // Explicitly stop voice input
+  /**
+   * Stops voice input
+   * @returns {string}
+   */
   const stopVoiceInput = useCallback(() => {
     if (!isListening) return baseEntryRef.current;
 

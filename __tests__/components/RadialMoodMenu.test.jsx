@@ -37,6 +37,9 @@ const sampleMoods = [
   { emoji: "😃", label: "Elated" },
 ];
 
+/**
+ * Test suite
+ */
 describe("RadialMoodMenu component", () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => {

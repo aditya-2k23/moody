@@ -22,8 +22,14 @@ import convertMood, { moods } from "@/utils/index";
 
 const moodKeys = Object.keys(moods); // ['Awful','Sad','Existing','Good','Elated','Grateful',...]
 
+/**
+ * Test suite
+ */
 describe("convertMood()", () => {
-  describe("numeric input → mood label", () => {
+  /**
+ * Test suite
+ */
+describe("numeric input → mood label", () => {
     it("maps 1 to the first mood (index 0)", () => {
       expect(convertMood(1)).toBe(moodKeys[0]);
     });
@@ -49,7 +55,10 @@ describe("convertMood()", () => {
     });
   });
 
-  describe("string input → mood label", () => {
+  /**
+ * Test suite
+ */
+describe("string input → mood label", () => {
     it("returns a known mood string unchanged", () => {
       expect(convertMood("Grateful")).toBe("Grateful");
       expect(convertMood("Awful")).toBe("Awful");
@@ -62,7 +71,10 @@ describe("convertMood()", () => {
     });
   });
 
-  describe("invalid input → fallback", () => {
+  /**
+ * Test suite
+ */
+describe("invalid input → fallback", () => {
     it("returns 'Neutral' for null", () => {
       expect(convertMood(null)).toBe("Neutral");
     });
@@ -81,6 +93,9 @@ describe("convertMood()", () => {
   });
 });
 
+/**
+ * Test suite
+ */
 describe("moods dictionary", () => {
   it("contains all expected mood keys", () => {
     const expected = [

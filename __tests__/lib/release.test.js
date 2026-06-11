@@ -22,6 +22,9 @@ import {
   APP_VERSION_LABEL,
 } from "@/lib/release";
 
+/**
+ * Test suite
+ */
 describe("release version constants", () => {
   it("APP_FULL_VERSION is a non-empty semver string", () => {
     expect(typeof APP_FULL_VERSION).toBe("string");

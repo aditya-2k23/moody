@@ -17,6 +17,9 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import NewFeatureDot from "@/components/NewFeatureDot";
 
+/**
+ * Test suite
+ */
 describe("NewFeatureDot component", () => {
   it("renders a span element", () => {
     const { container } = render(<NewFeatureDot />);

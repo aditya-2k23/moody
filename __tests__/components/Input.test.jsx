@@ -15,6 +15,9 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Input from "@/components/Input";
 
+/**
+ * Test suite
+ */
 describe("Input component", () => {
   it("renders an <input> element", () => {
     render(<Input />);

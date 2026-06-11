@@ -27,6 +27,9 @@ import {
 
 // ─── isChatIdScopedToUser ────────────────────────────────────────────────────
 
+/**
+ * Test suite
+ */
 describe("isChatIdScopedToUser()", () => {
   const uid = "user123";
 
@@ -65,6 +68,9 @@ describe("isChatIdScopedToUser()", () => {
 
 // ─── isValidSessionId ────────────────────────────────────────────────────────
 
+/**
+ * Test suite
+ */
 describe("isValidSessionId()", () => {
   it("returns true for a typical session ID", () => {
     expect(isValidSessionId("sess_abc-123_XYZ")).toBe(true);
@@ -107,6 +113,9 @@ describe("isValidSessionId()", () => {
 
 // ─── isValidString ───────────────────────────────────────────────────────────
 
+/**
+ * Test suite
+ */
 describe("isValidString()", () => {
   it("returns true for a normal non-empty string with default options", () => {
     expect(isValidString("hello")).toBe(true);

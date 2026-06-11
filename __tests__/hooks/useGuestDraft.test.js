@@ -43,6 +43,9 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/**
+ * Test suite
+ */
 describe("useGuestDraft()", () => {
   it("starts with draft === null when localStorage is empty", () => {
     const { result } = renderHook(() => useGuestDraft());

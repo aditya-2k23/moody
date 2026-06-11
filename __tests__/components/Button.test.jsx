@@ -22,6 +22,9 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Button, { BlobSvgFilter } from "@/components/Button";
 
+/**
+ * Test suite
+ */
 describe("Button component", () => {
   // ── Default (blob) variant ─────────────────────────────────────────────
 
@@ -80,6 +83,9 @@ describe("Button component", () => {
   });
 });
 
+/**
+ * Test suite
+ */
 describe("BlobSvgFilter component", () => {
   it("renders an SVG element", () => {
     const { container } = render(<BlobSvgFilter />);
