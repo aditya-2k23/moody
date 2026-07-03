@@ -71,8 +71,8 @@ export function useCursor() {
       if (elem) {
         const isText = elem.matches('textarea, input[type="text"], input[type="email"], input[type="password"], [role="textbox"], [contenteditable="true"]') ||
           elem.closest('textarea, input[type="text"], [contenteditable="true"]');
-        const isInteractive = elem.matches('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger') ||
-          elem.closest('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger');
+        const isInteractive = elem.matches('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot') ||
+          elem.closest('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot');
 
         if (isText) {
           setCursorType('text');
