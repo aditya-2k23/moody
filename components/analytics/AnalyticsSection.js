@@ -6,7 +6,6 @@ import gsap from "gsap";
 import MoodTrendChart from "./MoodTrendChart";
 import InsightPanel from "./InsightPanel";
 import MoodDistribution from "./MoodDistribution";
-import WeeklyPatterns from "./WeeklyPatterns";
 import JournalingConsistency from "./JournalingConsistency";
 import MonthlyComparison from "./MonthlyComparison";
 
@@ -48,7 +47,7 @@ export default function AnalyticsSection({ data }) {
     }
   }, [isExpanded]);
 
-  if (!hasAnyData) return null;
+  // if (!hasAnyData) return null; // Removed so new users can see the feature
 
   return (
     <div className="w-full flex flex-col mt-2 mb-4">
@@ -102,22 +101,19 @@ export default function AnalyticsSection({ data }) {
               <MoodTrendChart data={data} days={days} />
             </div>
             <div className="md:col-span-12 lg:col-span-4 order-2">
-              <InsightPanel data={data} days={days} />
+              <InsightPanel data={data} days={days} isExpanded={isExpanded} />
             </div>
 
             {/* Middle Row */}
-            <div className="md:col-span-12 lg:col-span-4 order-3">
+            <div className="md:col-span-12 lg:col-span-6 order-3 flex flex-col">
               <MoodDistribution data={data} days={days} />
             </div>
-            <div className="md:col-span-12 lg:col-span-4 order-4">
-              <WeeklyPatterns data={data} days={days} />
-            </div>
-            <div className="md:col-span-12 lg:col-span-4 order-5">
+            <div className="md:col-span-12 lg:col-span-6 order-4 flex flex-col">
               <JournalingConsistency data={data} days={days} />
             </div>
 
             {/* Bottom Row */}
-            <div className="md:col-span-12 order-6">
+            <div className="md:col-span-12 order-5">
               <MonthlyComparison data={data} />
             </div>
           </div>

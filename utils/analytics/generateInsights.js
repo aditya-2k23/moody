@@ -23,15 +23,24 @@ export function generateInsights(analyticsData) {
     // Let's check calculateMoodTrends.js: "for (let i = days - 1; i >= 0; i--)" so oldest is index 0, newest is index length-1
     const olderHalf = trends.slice(0, half);
     
-    const avgRecent = recentHalf.reduce((sum, t) => sum + (t.score || 5), 0) / recentHalf.length;
-    const avgOlder = olderHalf.reduce((sum, t) => sum + (t.score || 5), 0) / olderHalf.length;
+    const validRecent = recentHalf.filter(t => t.score != null);
+    const validOlder = olderHalf.filter(t => t.score != null);
     
-    if (avgRecent > avgOlder + 1) {
-      insights.push("Your mood has been noticeably improving lately compared to earlier in the period.");
-    } else if (avgRecent < avgOlder - 1) {
-      insights.push("Your mood seems a bit lower recently. Remember to take time for yourself.");
-    } else {
-      insights.push("Your overall mood has been relatively stable recently.");
+    const avgRecent = validRecent.length > 0
+      ? validRecent.reduce((sum, t) => sum + t.score, 0) / validRecent.length
+      : null;
+    const avgOlder = validOlder.length > 0
+      ? validOlder.reduce((sum, t) => sum + t.score, 0) / validOlder.length
+      : null;
+    
+    if (avgRecent !== null && avgOlder !== null) {
+      if (avgRecent > avgOlder + 1) {
+        insights.push("Your mood has been noticeably improving lately compared to earlier in the period.");
+      } else if (avgRecent < avgOlder - 1) {
+        insights.push("Your mood seems a bit lower recently. Remember to take time for yourself.");
+      } else {
+        insights.push("Your overall mood has been relatively stable recently.");
+      }
     }
   }
 
