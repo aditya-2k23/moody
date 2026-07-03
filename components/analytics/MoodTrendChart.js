@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { calculateMoodTrends } from "@/utils/analytics";
+import { TrendingUp } from "lucide-react";
 
 function formatShortDate(timestamp) {
   return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -105,12 +106,18 @@ export default function MoodTrendChart({ data, days = 30 }) {
     return "Your mood has been relatively steady.";
   }, [chartData]);
 
+  const loggedCount = useMemo(() => {
+    return chartData.filter(item => typeof item.score === 'number').length;
+  }, [chartData]);
+
+  const displaySubtitle = loggedCount < 3 ? "Not enough data to calculate trends." : subtitle;
+
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-8 gap-4">
         <div>
           <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Trends</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subtitle}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{displaySubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 mr-4">
@@ -121,59 +128,76 @@ export default function MoodTrendChart({ data, days = 30 }) {
       </div>
 
       <div className="flex-1 w-full min-h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" className="focus:outline-none" style={{ outline: 'none' }}>
-          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} style={{ outline: 'none' }} className="focus:outline-none">
-            <defs>
-              <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis 
-              dataKey="timestamp"
-              type="number"
-              scale="time"
-              domain={['dataMin', 'dataMax']}
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
-              tickFormatter={formatShortDate}
-              dy={10}
-            />
-            <YAxis
-              type="number"
-              domain={[1, 13]}
-              ticks={[1, 7, 13]}
-              width={48}
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
-              tickFormatter={(value) => {
-                if (value === 1) return "Low";
-                if (value === 7) return "Neutral";
-                return "High";
-              }}
-            />
-            <Tooltip 
-              cursor={{ stroke: '#818cf8', strokeWidth: 1, strokeDasharray: '4 4' }} 
-              content={<CustomTooltip />}
-              isAnimationActive={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="chartValue"
-              name="Mood"
-              stroke="#818cf8"
-              strokeWidth={3}
-              fill="url(#colorScorePremium)"
-              connectNulls={true}
-              dot={<MoodDot />}
-              animationDuration={500}
-              isAnimationActive={true}
-              activeDot={<ActiveMoodDot />}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {loggedCount < 3 ? (
+          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/[0.08] min-h-[220px] backdrop-blur-sm h-full">
+            <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
+              <TrendingUp size={24} className="text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
+              Begin Your Trend Tracking
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-3">
+              To visualize your mood trend line, we need at least 3 logged moods. Add your feelings daily to build your emotional patterns!
+            </p>
+            <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+              💡 Tip: Did you miss some days? Log past moods using the calendar below!
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%" className="focus:outline-none analytics-chart" style={{ outline: 'none' }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} style={{ outline: 'none' }} className="focus:outline-none">
+              <defs>
+                <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="timestamp"
+                type="number"
+                scale="time"
+                domain={['dataMin', 'dataMax']}
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
+                tickFormatter={formatShortDate}
+                dy={10}
+              />
+              <YAxis
+                type="number"
+                domain={[1, 13]}
+                ticks={[1, 7, 13]}
+                width={48}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
+                tickFormatter={(value) => {
+                  if (value === 1) return "Low";
+                  if (value === 7) return "Neutral";
+                  return "High";
+                }}
+              />
+              <Tooltip 
+                cursor={{ stroke: '#818cf8', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                content={<CustomTooltip />}
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="chartValue"
+                name="Mood"
+                stroke="#818cf8"
+                strokeWidth={3}
+                fill="url(#colorScorePremium)"
+                connectNulls={true}
+                dot={<MoodDot />}
+                animationDuration={500}
+                isAnimationActive={true}
+                activeDot={<ActiveMoodDot />}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
