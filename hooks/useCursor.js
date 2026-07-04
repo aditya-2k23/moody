@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 
 const INTERACTIVE_SELECTOR = 'button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot';
 
+/**
+ * Custom hook to manage custom cursor state and animations.
+ * @returns {Object} Cursor state including position, target, hover/click states, visibility, type, and rotation.
+ */
 export function useCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [target, setTarget] = useState({ x: 0, y: 0 });
