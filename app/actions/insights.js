@@ -669,6 +669,10 @@ export async function generateTrendsInsight(idToken, analyticsData) {
         let insight = result.text || "";
         insight = insight.trim();
 
+        if (!insight) {
+          throw new Error("Model returned empty insight");
+        }
+
         try {
           await redis.set(cacheKey, insight, { ex: 86400 });
         } catch (err) {

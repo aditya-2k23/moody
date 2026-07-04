@@ -80,6 +80,8 @@ export default function AnalyticsSection({ data }) {
       {/* Toggle Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-controls="analytics-section-content"
         className="flex items-center justify-between w-full p-4 sm:p-5 bg-slate-50 dark:bg-[#1a1b26] rounded-[24px] shadow-sm border border-slate-200 dark:border-white/[0.05] transition-all duration-200 hover:shadow-md group mb-2"
       >
         <div className="flex items-center gap-3">
@@ -124,18 +126,18 @@ export default function AnalyticsSection({ data }) {
           <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
             {/* Top Row */}
             <div className={`md:col-span-12 ${expandedPanel === 'chart' ? 'lg:col-span-12' : expandedPanel === 'insights' ? 'lg:col-span-6' : 'lg:col-span-8'} order-1`}>
-              <MoodTrendChart 
-                data={data} 
-                days={days} 
+              <MoodTrendChart
+                data={data}
+                days={days}
                 isMaximized={expandedPanel === 'chart'}
                 onToggleMaximize={() => handleToggleMaximize('chart')}
               />
             </div>
             <div className={`md:col-span-12 ${expandedPanel === 'insights' ? 'lg:col-span-6' : expandedPanel === 'chart' ? 'hidden' : 'lg:col-span-4'} order-2`}>
-              <InsightPanel 
-                data={data} 
-                days={days} 
-                isExpanded={isExpanded} 
+              <InsightPanel
+                data={data}
+                days={days}
+                isExpanded={isExpanded}
                 isMaximized={expandedPanel === 'insights'}
                 onToggleMaximize={() => handleToggleMaximize('insights')}
               />

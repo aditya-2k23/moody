@@ -40,13 +40,20 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
   }, [trends]);
 
   useEffect(() => {
+    const currentHash = `${days}-${consistency.totalEntries}`;
+    if (aiInsight && lastInsightHash !== currentHash) {
+      setAiInsight(null);
+      setAiError(null);
+      return;
+    }
+
     if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
       const cacheKey = `moody_insight_${days}_${consistency.totalEntries}`;
       const cached = localStorage.getItem(cacheKey);
       
       if (cached) {
         setAiInsight(cached);
-        setLastInsightHash(`${days}-${consistency.totalEntries}`);
+        setLastInsightHash(currentHash);
         return;
       }
 
@@ -114,7 +121,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           const res = await generateTrendsInsight(idToken, stats);
           if (res.success) {
             setAiInsight(res.data);
-            setLastInsightHash(`${days}-${consistency.totalEntries}`);
+            setLastInsightHash(currentHash);
             localStorage.setItem(`moody_insight_${days}_${consistency.totalEntries}`, res.data);
           } else {
             setAiError(res.error);
@@ -127,7 +134,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       };
       fetchAiInsight();
     }
-  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days]);
+  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends]);
 
   // Handle switching timeframes to check cache immediately
   useEffect(() => {
@@ -186,7 +193,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             <div>
               <p className="font-semibold mb-1">AI-Powered Pattern Analysis</p>
               <p className="text-slate-500 dark:text-indigo-200/60 leading-relaxed font-normal">
-                Once you log 3 or more days, we'll scan your moods to uncover your emotional cycles, best days, and weekly trends.
+                Once you log 3 or more days, we&apos;ll scan your moods to uncover your emotional cycles, best days, and weekly trends.
               </p>
             </div>
           </div>
