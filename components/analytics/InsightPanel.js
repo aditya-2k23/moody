@@ -12,12 +12,14 @@ import {
 import { moods as emojiMap } from "@/utils/index";
 import { useAuth } from "@/context/authContext";
 import { generateTrendsInsight } from "@/app/actions/insights";
+import { Maximize2, Minimize2 } from "lucide-react";
 
-export default function InsightPanel({ data, days = 30, isExpanded = false }) {
+export default function InsightPanel({ data, days = 30, isExpanded = false, isMaximized, onToggleMaximize }) {
   const { currentUser } = useAuth();
   const [aiInsight, setAiInsight] = useState(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState(null);
+  const [lastInsightHash, setLastInsightHash] = useState(null);
 
   const { trends, distribution, weekly, periods, microInsight, consistency } = useMemo(() => {
     const nextTrends = calculateMoodTrends(data, days);
@@ -39,6 +41,15 @@ export default function InsightPanel({ data, days = 30, isExpanded = false }) {
 
   useEffect(() => {
     if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
+      const cacheKey = `moody_insight_${days}_${consistency.totalEntries}`;
+      const cached = localStorage.getItem(cacheKey);
+      
+      if (cached) {
+        setAiInsight(cached);
+        setLastInsightHash(`${days}-${consistency.totalEntries}`);
+        return;
+      }
+
       const fetchAiInsight = async () => {
         if (consistency.totalEntries < 5) {
           setAiInsight("Not enough data yet — keep logging to unlock your trends.");
@@ -84,6 +95,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false }) {
           }
 
           const stats = {
+            days,
             totalEntries: consistency.totalEntries,
             topMood: distribution[0]?.moodName || "N/A",
             longestStreak: consistency.longestStreak,
@@ -102,6 +114,8 @@ export default function InsightPanel({ data, days = 30, isExpanded = false }) {
           const res = await generateTrendsInsight(idToken, stats);
           if (res.success) {
             setAiInsight(res.data);
+            setLastInsightHash(`${days}-${consistency.totalEntries}`);
+            localStorage.setItem(`moody_insight_${days}_${consistency.totalEntries}`, res.data);
           } else {
             setAiError(res.error);
           }
@@ -113,7 +127,18 @@ export default function InsightPanel({ data, days = 30, isExpanded = false }) {
       };
       fetchAiInsight();
     }
-  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly]);
+  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days]);
+
+  // Handle switching timeframes to check cache immediately
+  useEffect(() => {
+    if (!currentUser) return;
+    const cacheKey = `moody_insight_${days}_${consistency.totalEntries}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setAiInsight(cached);
+      setLastInsightHash(`${days}-${consistency.totalEntries}`);
+    }
+  }, [days, consistency.totalEntries, currentUser]);
 
   const { title, summary } = useMemo(() => {
     let mainTitle = `Feeling steady this ${days === 7 ? 'week' : 'period'}`;
@@ -193,15 +218,44 @@ export default function InsightPanel({ data, days = 30, isExpanded = false }) {
 
   return (
     <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
-      <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight mb-8 pr-4">
-        {title}
-      </h3>
+      <div className="flex items-start justify-between mb-8 gap-4">
+        <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight">
+          {title}
+        </h3>
+        {onToggleMaximize && (
+          <button 
+            onClick={onToggleMaximize}
+            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors mt-1"
+            title={isMaximized ? "Restore view" : "Maximize insights"}
+          >
+            {isMaximized ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          </button>
+        )}
+      </div>
 
       <div className="flex-1 flex flex-col gap-5 text-sm sm:text-base">
         {aiInsight ? (
-          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">
-            {aiInsight}
-          </div>
+          lastInsightHash === `${days}-${consistency.totalEntries}` ? (
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">
+              {aiInsight}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col gap-2 transition-all">
+              <span className="opacity-60 italic leading-relaxed">{aiInsight}</span>
+              <div className="flex items-center justify-between border-t border-indigo-200/50 dark:border-indigo-500/20 pt-2.5 mt-1">
+                <span className="text-xs opacity-80">Timeframe or data changed</span>
+                <button 
+                  onClick={() => {
+                    setAiInsight(null);
+                    setAiError(null);
+                  }}
+                  className="text-xs bg-indigo-100 dark:bg-indigo-500/20 hover:bg-indigo-200 dark:hover:bg-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors font-semibold"
+                >
+                  Regenerate Insight
+                </button>
+              </div>
+            </div>
+          )
         ) : loadingAi ? (
           <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] animate-pulse h-16">
             <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
