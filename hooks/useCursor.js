@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+/**
+ * Custom hook to manage custom cursor state and animations.
+ * @returns {Object} Cursor state including position, target, hover/click states, visibility, type, and rotation.
+ */
 export function useCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [target, setTarget] = useState({ x: 0, y: 0 });

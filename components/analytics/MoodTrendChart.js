@@ -5,10 +5,20 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { calculateMoodTrends } from "@/utils/analytics";
 import { TrendingUp } from "lucide-react";
 
+/**
+ * Formats a timestamp into a short date string (e.g., "Jan 1").
+ * @param {number|string} timestamp - The timestamp or date string to format.
+ * @returns {string} The formatted short date.
+ */
 function formatShortDate(timestamp) {
   return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+/**
+ * Formats a timestamp into a full date string (e.g., "Monday, January 1").
+ * @param {number|string} timestamp - The timestamp or date string to format.
+ * @returns {string} The formatted full date.
+ */
 function formatFullDate(timestamp) {
   return new Date(timestamp).toLocaleDateString("en-US", {
     weekday: "long",
@@ -17,6 +27,14 @@ function formatFullDate(timestamp) {
   });
 }
 
+/**
+ * Custom tooltip component for the Recharts area chart.
+ * @param {Object} props - Tooltip props provided by Recharts.
+ * @param {boolean} props.active - Whether the tooltip is active.
+ * @param {Array} props.payload - The data payload for the hovered point.
+ * @param {string|number} props.label - The label (timestamp) for the hovered point.
+ * @returns {JSX.Element|null} The tooltip component.
+ */
 function CustomTooltip({ active, payload, label }) {
   if (!active) return null;
 
@@ -58,6 +76,14 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+/**
+ * Custom dot component for the Recharts area chart.
+ * @param {Object} props - Dot props provided by Recharts.
+ * @param {number} props.cx - The x-coordinate of the dot.
+ * @param {number} props.cy - The y-coordinate of the dot.
+ * @param {Object} props.payload - The data payload for the dot.
+ * @returns {JSX.Element|null} The dot component.
+ */
 function MoodDot({ cx, cy, payload }) {
   if (!payload?.moodName) return null;
 
@@ -73,6 +99,14 @@ function MoodDot({ cx, cy, payload }) {
   );
 }
 
+/**
+ * Custom active dot component for the Recharts area chart.
+ * @param {Object} props - Active dot props provided by Recharts.
+ * @param {number} props.cx - The x-coordinate of the dot.
+ * @param {number} props.cy - The y-coordinate of the dot.
+ * @param {Object} props.payload - The data payload for the dot.
+ * @returns {JSX.Element|null} The active dot component.
+ */
 function ActiveMoodDot({ cx, cy, payload }) {
   if (!payload?.moodName) return null;
 
@@ -88,6 +122,13 @@ function ActiveMoodDot({ cx, cy, payload }) {
   );
 }
 
+/**
+ * MoodTrendChart component that displays a line/area chart of mood scores over time.
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The structured mood and journal data.
+ * @param {number} [props.days=30] - The number of days to analyze.
+ * @returns {JSX.Element} The rendered component.
+ */
 export default function MoodTrendChart({ data, days = 30 }) {
   const chartData = useMemo(() => {
     return calculateMoodTrends(data, days);

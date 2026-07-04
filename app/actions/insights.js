@@ -336,6 +336,14 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
 
 // ===== CORE GENERATOR =====
 
+/**
+ * Generates an AI insight for a specific daily journal entry using Gemini.
+ * Utilizes Redis for caching to minimize redundant API calls.
+ * @param {string} idToken - The user's Firebase ID token for authentication.
+ * @param {string} journalText - The text content of the journal entry.
+ * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
+ * @returns {Promise<Object>} An object containing the generation success status, the insight data, and the model used.
+ */
 export async function generateInsight(idToken, journalText, forceRegenerate = false) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
@@ -589,6 +597,13 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
 }
 
 // ===== TRENDS GENERATOR =====
+
+/**
+ * Generates comprehensive AI insights based on the user's aggregated analytics data over time.
+ * @param {string} idToken - The user's Firebase ID token for authentication.
+ * @param {Object} analyticsData - The structured analytics data including trends, distribution, weekly patterns, etc.
+ * @returns {Promise<Object>} An object containing the generation success status, the trends insight data, and the model used.
+ */
 export async function generateTrendsInsight(idToken, analyticsData) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };

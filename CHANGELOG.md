@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-07-03
+
+### 🚀 New Features
+
+- **Advanced Analytics**: Introduced a comprehensive suite of analytics features to help users better understand their emotional well-being over time.
+  - **Monthly Comparison**: Compare your current month's mood averages, momentum, recovery time, emotional range, and journal lift with the previous month.
+  - **Mood Trend Chart**: Interactive line and bar charts using `recharts` to visualize daily mood fluctuations and journaling habits over 7, 30, 90, or 365-day periods.
+  - **Journaling Consistency**: Visual heatmap tracking your journaling frequency and calculating your current and longest streaks.
+  - **Mood Distribution**: A breakdown of the most frequently logged moods within a selected period, categorized by emotional zones.
+  - **Weekly Patterns**: Analyze which days of the week are typically your best or worst, helping identify weekly emotional triggers.
+- **Enhanced AI Insights**: Integrated trend, distribution, consistency, and weekly pattern data into the AI Insights prompt, providing more accurate and deeply personalized generative reflections.
+
 ## [Released]
 
 ### [3.1.3] - 2026-06-03
