@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { ChevronDown, ChevronUp, BarChart2 } from "lucide-react";
 import gsap from "gsap";
+import { Flip } from "gsap/Flip";
 import MoodTrendChart from "./MoodTrendChart";
 import InsightPanel from "./InsightPanel";
 import MoodDistribution from "./MoodDistribution";
@@ -12,9 +13,34 @@ import MonthlyComparison from "./MonthlyComparison";
 export default function AnalyticsSection({ data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [days, setDays] = useState(30);
+  const [expandedPanel, setExpandedPanel] = useState("none");
 
   const contentRef = useRef(null);
   const gridRef = useRef(null);
+  const flipState = useRef(null);
+
+  if (typeof window !== "undefined") {
+    gsap.registerPlugin(Flip);
+  }
+
+  const handleToggleMaximize = (panel) => {
+    if (gridRef.current) {
+      // Capture the parent grid AND its children to prevent height collapse when absolute: true is applied
+      flipState.current = Flip.getState([gridRef.current, ...gridRef.current.children]);
+    }
+    setExpandedPanel((prev) => (prev === panel ? "none" : panel));
+  };
+
+  useLayoutEffect(() => {
+    if (flipState.current && gridRef.current) {
+      Flip.from(flipState.current, {
+        duration: 0.6,
+        ease: "power3.inOut",
+        absolute: true,
+      });
+      flipState.current = null;
+    }
+  }, [expandedPanel]);
 
   const hasAnyData = data && Object.keys(data).length > 0;
 
@@ -97,11 +123,22 @@ export default function AnalyticsSection({ data }) {
 
           <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
             {/* Top Row */}
-            <div className="md:col-span-12 lg:col-span-8 order-1">
-              <MoodTrendChart data={data} days={days} />
+            <div className={`md:col-span-12 ${expandedPanel === 'chart' ? 'lg:col-span-12' : expandedPanel === 'insights' ? 'lg:col-span-6' : 'lg:col-span-8'} order-1`}>
+              <MoodTrendChart 
+                data={data} 
+                days={days} 
+                isMaximized={expandedPanel === 'chart'}
+                onToggleMaximize={() => handleToggleMaximize('chart')}
+              />
             </div>
-            <div className="md:col-span-12 lg:col-span-4 order-2">
-              <InsightPanel data={data} days={days} isExpanded={isExpanded} />
+            <div className={`md:col-span-12 ${expandedPanel === 'insights' ? 'lg:col-span-6' : expandedPanel === 'chart' ? 'hidden' : 'lg:col-span-4'} order-2`}>
+              <InsightPanel 
+                data={data} 
+                days={days} 
+                isExpanded={isExpanded} 
+                isMaximized={expandedPanel === 'insights'}
+                onToggleMaximize={() => handleToggleMaximize('insights')}
+              />
             </div>
 
             {/* Middle Row */}

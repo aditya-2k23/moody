@@ -13,12 +13,13 @@ function getMonthStats(dataObj, targetYear, targetMonth) {
     monthData = dataObj[targetYear][targetMonth];
     for (let day = 1; day <= daysInMonth; day++) {
       if (typeof monthData[day] === 'number') {
-        const moodName = convertMood(monthData[day]);
+        const moodValue = monthData[day];
+        const moodName = convertMood(moodValue);
         const score = MOOD_SCORES[moodName] || 5;
         totalScore += score;
         count++;
         scores.push(score);
-        entries.push({ day, score });
+        entries.push({ day, score, moodValue, moodName });
       }
     }
   }
@@ -50,6 +51,20 @@ export function calculateMonthlyComparison(dataObj) {
   return { currentStats, prevStats };
 }
 
+export function getMoodFromScore(targetScore) {
+  if (targetScore === null || targetScore === undefined) return 'Neutral';
+  let closestMood = 'Neutral';
+  let minDiff = Infinity;
+  for (const [mood, score] of Object.entries(MOOD_SCORES)) {
+    const diff = Math.abs(score - targetScore);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestMood = mood;
+    }
+  }
+  return closestMood;
+}
+
 // A. Mood Momentum Score
 export function calculateMoodMomentum(entries) {
   if (!entries || entries.length === 0) return { score: 5, label: convertMood(5), direction: 'flat' };
@@ -74,7 +89,7 @@ export function calculateMoodMomentum(entries) {
   else if (weightedAvg < flatAvg - 0.5) direction = 'falling';
   
   const score = weightedAvg;
-  const label = convertMood(Math.round(score));
+  const label = getMoodFromScore(score);
   
   return { score, label, direction };
 }
@@ -162,10 +177,8 @@ export function calculateEmotionalRange(entries) {
   const peakScore = peakEntry.score;
   const troughScore = troughEntry.score;
   
-  const allMoods = Object.keys(moods);
-  // scores are 1 to 13
-  const peakMood = allMoods[peakScore - 1] || 'Neutral';
-  const troughMood = allMoods[troughScore - 1] || 'Neutral';
+  const peakMood = peakEntry.moodName || 'Neutral';
+  const troughMood = troughEntry.moodName || 'Neutral';
   
   return {
     peak: { score: peakScore, label: peakMood, emoji: moods[peakMood] || '😐', day: peakEntry.day },
@@ -182,8 +195,8 @@ export function calculateMonthOverMonth(prevAvg, currAvg) {
   const moodDiff = currAvg - prevAvg;
   const pctChange = prevAvg > 0 ? (Math.abs(moodDiff) / prevAvg) * 100 : 0;
   
-  const fromLabel = convertMood(Math.round(prevAvg));
-  const toLabel = convertMood(Math.round(currAvg));
+  const fromLabel = getMoodFromScore(prevAvg);
+  const toLabel = getMoodFromScore(currAvg);
   
   return {
     pctChange: Math.round(pctChange),

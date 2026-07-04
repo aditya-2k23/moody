@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { calculateMoodTrends } from "@/utils/analytics";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Maximize2, Minimize2 } from "lucide-react";
 
 function formatShortDate(timestamp) {
   return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -88,7 +88,7 @@ function ActiveMoodDot({ cx, cy, payload }) {
   );
 }
 
-export default function MoodTrendChart({ data, days = 30 }) {
+export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleMaximize }) {
   const chartData = useMemo(() => {
     return calculateMoodTrends(data, days);
   }, [data, days]);
@@ -120,10 +120,19 @@ export default function MoodTrendChart({ data, days = 30 }) {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{displaySubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 mr-4">
+          <div className="flex items-center gap-1.5 mr-2 sm:mr-4">
             <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
             <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-medium">Average</span>
           </div>
+          {onToggleMaximize && (
+            <button 
+              onClick={onToggleMaximize}
+              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+              title={isMaximized ? "Restore view" : "Maximize chart"}
+            >
+              {isMaximized ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -165,15 +174,15 @@ export default function MoodTrendChart({ data, days = 30 }) {
               />
               <YAxis
                 type="number"
-                domain={[1, 13]}
-                ticks={[1, 7, 13]}
+                domain={[1, 10]}
+                ticks={[1, 5, 10]}
                 width={48}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
                 tickFormatter={(value) => {
                   if (value === 1) return "Low";
-                  if (value === 7) return "Neutral";
+                  if (value === 5) return "Neutral";
                   return "High";
                 }}
               />

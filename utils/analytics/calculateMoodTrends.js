@@ -65,7 +65,7 @@ export function calculateMoodTrends(dataObj, days = 7) {
       moodValue = dataObj[year][month][day];
       moodName = convertMood(moodValue);
       score = MOOD_SCORES[moodName] || 5;
-      chartValue = moodValue;
+      chartValue = score;
       emoji = emojiMap[moodName] || "";
       color = getMoodColor(moodValue);
     }
