@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+const INTERACTIVE_SELECTOR = 'button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot';
+
 export function useCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [target, setTarget] = useState({ x: 0, y: 0 });
@@ -71,8 +73,8 @@ export function useCursor() {
       if (elem) {
         const isText = elem.matches('textarea, input[type="text"], input[type="email"], input[type="password"], [role="textbox"], [contenteditable="true"]') ||
           elem.closest('textarea, input[type="text"], [contenteditable="true"]');
-        const isInteractive = elem.matches('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot') ||
-          elem.closest('button, a, input, select, [role="button"], .cursor-pointer, .blob-btn, .hand-drawn-btn, .radial-trigger, .recharts-sector, .recharts-dot, .recharts-bar-rectangle, .recharts-active-dot');
+        const isInteractive = elem.matches(INTERACTIVE_SELECTOR) ||
+          elem.closest(INTERACTIVE_SELECTOR);
 
         if (isText) {
           setCursorType('text');

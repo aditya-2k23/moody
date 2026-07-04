@@ -1,5 +1,5 @@
-import convertMood, { dayList } from "../index";
-import { MOOD_SCORES } from "./calculateMoodTrends";
+import { dayList } from "../index";
+import { iterateDays } from "./calculateMoodTrends";
 
 /**
  * Calculates average mood score per day of the week over the given timeframe.
@@ -9,22 +9,14 @@ import { MOOD_SCORES } from "./calculateMoodTrends";
  */
 export function calculateWeeklyPatterns(dataObj, days = 90) {
   const dayStats = Array(7).fill(null).map(() => ({ totalScore: 0, count: 0 }));
-  const now = new Date();
 
-  for (let i = 0; i < days; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
-
-    if (dataObj?.[year]?.[month] && typeof dataObj[year][month][day] === 'number') {
-      const moodName = convertMood(dataObj[year][month][day]);
-      const score = MOOD_SCORES[moodName] || 5;
+  iterateDays(dataObj, days, (d, details) => {
+    if (details.hasEntry) {
       const dayOfWeek = d.getDay();
-      dayStats[dayOfWeek].totalScore += score;
+      dayStats[dayOfWeek].totalScore += details.score;
       dayStats[dayOfWeek].count += 1;
     }
-  }
+  });
 
   const averages = dayStats.map((stat, index) => {
     return {

@@ -19,7 +19,7 @@ export function generateInsights(analyticsData) {
   // 2. Trend Insight (Comparing averages of two halves)
   if (trends && trends.length >= 14) {
     const half = Math.floor(trends.length / 2);
-    const recentHalf = trends.slice(half); // older to newer, wait, trends is newest at the end?
+    const recentHalf = trends.slice(half); // older to newer
     // Let's check calculateMoodTrends.js: "for (let i = days - 1; i >= 0; i--)" so oldest is index 0, newest is index length-1
     const olderHalf = trends.slice(0, half);
     

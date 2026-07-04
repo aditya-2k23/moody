@@ -48,7 +48,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
     }
 
     if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
-      const cacheKey = `moody_insight_${days}_${consistency.totalEntries}`;
+      const cacheKey = `moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`;
       const cached = localStorage.getItem(cacheKey);
       
       if (cached) {
@@ -60,6 +60,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       const fetchAiInsight = async () => {
         if (consistency.totalEntries < 5) {
           setAiInsight("Not enough data yet — keep logging to unlock your trends.");
+          setLastInsightHash(currentHash);
           return;
         }
 
@@ -122,7 +123,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           if (res.success) {
             setAiInsight(res.data);
             setLastInsightHash(currentHash);
-            localStorage.setItem(`moody_insight_${days}_${consistency.totalEntries}`, res.data);
+            localStorage.setItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`, res.data);
           } else {
             setAiError(res.error);
           }
@@ -139,7 +140,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
   // Handle switching timeframes to check cache immediately
   useEffect(() => {
     if (!currentUser) return;
-    const cacheKey = `moody_insight_${days}_${consistency.totalEntries}`;
+    const cacheKey = `moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       setAiInsight(cached);

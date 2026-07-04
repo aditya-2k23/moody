@@ -95,11 +95,16 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
 
   const subtitle = useMemo(() => {
     if (chartData.length < 5) return "Not enough data yet.";
-    const firstHalf = chartData.slice(0, Math.floor(chartData.length / 2));
-    const secondHalf = chartData.slice(Math.floor(chartData.length / 2));
+    const half = Math.floor(chartData.length / 2);
+    const firstHalf = chartData.slice(0, half).filter(item => typeof item.score === 'number');
+    const secondHalf = chartData.slice(half).filter(item => typeof item.score === 'number');
     
-    const avgFirst = firstHalf.reduce((sum, item) => sum + (item.score || 5), 0) / firstHalf.length;
-    const avgSecond = secondHalf.reduce((sum, item) => sum + (item.score || 5), 0) / secondHalf.length;
+    if (firstHalf.length === 0 || secondHalf.length === 0) {
+      return "Your mood has been relatively steady.";
+    }
+
+    const avgFirst = firstHalf.reduce((sum, item) => sum + item.score, 0) / firstHalf.length;
+    const avgSecond = secondHalf.reduce((sum, item) => sum + item.score, 0) / secondHalf.length;
     
     if (avgSecond > avgFirst + 1) return "A gentle rise in overall wellbeing.";
     if (avgSecond < avgFirst - 1) return "A slight dip in your recent mood.";
@@ -153,8 +158,8 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
             </p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%" className="focus:outline-none analytics-chart" style={{ outline: 'none' }}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} style={{ outline: 'none' }} className="focus:outline-none">
+          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
               <defs>
                 <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />

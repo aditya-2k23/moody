@@ -45,35 +45,45 @@ export default function AnalyticsSection({ data }) {
   const hasAnyData = data && Object.keys(data).length > 0;
 
   useEffect(() => {
-    if (!contentRef.current) return;
+    const contentEl = contentRef.current;
+    const gridEl = gridRef.current;
+    
+    if (!contentEl) return;
 
     if (isExpanded) {
       // Animate height expansion
       gsap.fromTo(
-        contentRef.current,
+        contentEl,
         { height: 0, opacity: 0 },
         { height: "auto", opacity: 1, duration: 0.5, ease: "power3.out" }
       );
 
       // Stagger animate the grid items
-      if (gridRef.current) {
+      if (gridEl) {
         gsap.fromTo(
-          gridRef.current.children,
+          gridEl.children,
           { y: 20, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out", delay: 0.1 }
         );
       }
     } else {
-      gsap.to(contentRef.current, {
+      gsap.to(contentEl, {
         height: 0,
         opacity: 0,
         duration: 0.3,
         ease: "power2.in"
       });
     }
-  }, [isExpanded]);
 
-  // if (!hasAnyData) return null; // Removed so new users can see the feature
+    return () => {
+      if (contentEl) {
+        gsap.killTweensOf(contentEl);
+      }
+      if (gridEl && gridEl.children) {
+        gsap.killTweensOf(gridEl.children);
+      }
+    };
+  }, [isExpanded]);
 
   return (
     <div className="w-full flex flex-col mt-2 mb-4">
@@ -101,6 +111,7 @@ export default function AnalyticsSection({ data }) {
       {/* Expanded Content with overflow hidden for height animation */}
       <div
         ref={contentRef}
+        id="analytics-section-content"
         className="overflow-hidden"
         style={{ height: 0, opacity: 0 }}
       >
@@ -112,6 +123,7 @@ export default function AnalyticsSection({ data }) {
                 <button
                   key={d}
                   onClick={() => setDays(d)}
+                  aria-pressed={days === d}
                   className={`px-4 py-1.5 text-xs sm:text-sm rounded-lg transition-all duration-200 ${days === d
                     ? "bg-white dark:bg-[#242636] text-indigo-600 dark:text-indigo-400 shadow-sm font-medium"
                     : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"

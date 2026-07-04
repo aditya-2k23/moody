@@ -41,48 +41,78 @@ function getAverageScore(items) {
  * @param {number} days - Number of days to look back (7, 30, 90).
  * @returns {Array} Array of objects with date, timestamp, chart value, score, mood, and journal metadata.
  */
+export function getMoodDetailsForDate(dataObj, date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  
+  let score = null;
+  let moodValue = null;
+  let moodName = null;
+  let hasEntry = false;
+  
+  if (dataObj?.[year]?.[month] && typeof dataObj[year][month][day] === 'number') {
+    moodValue = dataObj[year][month][day];
+    moodName = convertMood(moodValue);
+    score = MOOD_SCORES[moodName] || 5;
+    hasEntry = true;
+  }
+  
+  const journal = dataObj?.[year]?.[month]?.[`journal_${day}`] || "";
+  const hasJournal = Boolean(journal && String(journal).trim().length > 0);
+  
+  return {
+    year,
+    month,
+    day,
+    score,
+    moodValue,
+    moodName,
+    hasEntry,
+    hasJournal
+  };
+}
+
+export function iterateDays(dataObj, days, callback, reverse = false) {
+  const now = new Date();
+  const loop = (i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const details = getMoodDetailsForDate(dataObj, d);
+    callback(d, details);
+  };
+  
+  if (reverse) {
+    for (let i = days - 1; i >= 0; i--) {
+      loop(i);
+    }
+  } else {
+    for (let i = 0; i < days; i++) {
+      loop(i);
+    }
+  }
+}
+
 export function calculateMoodTrends(dataObj, days = 7) {
   const result = [];
-  const now = new Date();
   
-  // Create an array of the past `days` dates in chronological order
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
-    
-    let score = null;
-    let chartValue = null;
-    let moodValue = null;
-    let moodName = null;
-    let emoji = null;
-    let color = null;
-    const journal = dataObj?.[year]?.[month]?.[`journal_${day}`] || "";
-    const hasJournal = Boolean(journal && String(journal).trim().length > 0);
-    
-    if (dataObj?.[year]?.[month] && typeof dataObj[year][month][day] === 'number') {
-      moodValue = dataObj[year][month][day];
-      moodName = convertMood(moodValue);
-      score = MOOD_SCORES[moodName] || 5;
-      chartValue = score;
-      emoji = emojiMap[moodName] || "";
-      color = getMoodColor(moodValue);
-    }
+  iterateDays(dataObj, days, (d, details) => {
+    let chartValue = details.hasEntry ? details.score : null;
+    let emoji = details.hasEntry ? emojiMap[details.moodName] : null;
+    let color = details.hasEntry ? getMoodColor(details.moodValue) : null;
     
     result.push({
       date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       fullDate: d,
       timestamp: d.getTime(),
-      score,
+      score: details.score,
       chartValue,
-      moodValue,
-      moodName,
+      moodValue: details.moodValue,
+      moodName: details.moodName,
       emoji,
       color,
-      hasJournal
+      hasJournal: details.hasJournal
     });
-  }
+  }, true);
   
   return result;
 }
