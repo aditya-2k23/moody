@@ -1,3 +1,5 @@
+import { iterateDays } from "./calculateMoodTrends";
+
 /**
  * Calculates consistency metrics: total entries, streak, longest streak, and completion percentage.
  * @param {Object} dataObj - The structured mood data (year -> month -> day).
@@ -36,13 +38,8 @@ export function calculateConsistency(dataObj, days = 30) {
   }
 
   // Calculate stats over the specific period (e.g., last 30 days)
-  for (let i = 0; i < days; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
-
-    if (dataObj?.[year]?.[month] && typeof dataObj[year][month][day] === 'number') {
+  iterateDays(dataObj, days, (d, details) => {
+    if (details.hasEntry) {
       totalEntries++;
       tempStreak++;
       if (tempStreak > longestStreak) {
@@ -51,7 +48,7 @@ export function calculateConsistency(dataObj, days = 30) {
     } else {
       tempStreak = 0;
     }
-  }
+  });
 
   return {
     totalEntries,

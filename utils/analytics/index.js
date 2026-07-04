@@ -8,5 +8,12 @@ export {
 export { calculateDistribution } from './calculateDistribution';
 export { calculateWeeklyPatterns } from './calculateWeeklyPatterns';
 export { calculateConsistency } from './calculateConsistency';
-export { calculateMonthlyComparison } from './calculateMonthlyComparison';
+export {
+  calculateMonthlyComparison,
+  calculateMoodMomentum,
+  calculateMoodRecoveryTime,
+  calculateJournalLift,
+  calculateEmotionalRange,
+  calculateMonthOverMonth
+} from './calculateMonthlyComparison';
 export { generateInsights } from './generateInsights';

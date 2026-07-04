@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { calculateDistribution } from "@/utils/analytics";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
 import { gradients, moods as emojiMap } from "@/utils/index";
+import gsap from "gsap";
 
 const moodNames = Object.keys(emojiMap);
 
@@ -14,12 +15,28 @@ function getMoodColor(moodName) {
 }
 
 function CustomTooltip({ active, payload }) {
-  if (!active || !payload || !payload.length) return null;
+  const containerRef = useRef(null);
 
-  const data = payload[0].payload;
+  const data = active && payload && payload.length ? payload[0].payload : null;
+  const moodName = data ? data.moodName : null;
+
+  useEffect(() => {
+    if (active && data && containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 0.15, ease: "power2.out" }
+      );
+    }
+  }, [active, moodName]);
+
+  if (!active || !data) return null;
 
   return (
-    <div className="min-w-[150px] rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl pointer-events-none">
+    <div
+      ref={containerRef}
+      className="opacity-0 min-w-[150px] rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl pointer-events-none"
+    >
       <div className="flex items-center justify-between gap-3">
         <span className="text-base font-semibold text-white">
           {data.emoji} {data.moodName}
@@ -37,35 +54,6 @@ function CustomTooltip({ active, payload }) {
     </div>
   );
 }
-
-const getTooltipPosition = (point) => {
-  if (!point) return null;
-  // Since PieChart has width 200, height 200, center is (100, 100)
-  const cx = 100;
-  const cy = 100;
-
-  const dx = point.x - cx;
-  const dy = point.y - cy;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-
-  if (distance === 0) return { x: point.x, y: point.y };
-
-  const nx = dx / distance;
-  const ny = dy / distance;
-
-  // Push tooltip to a radius of 130px to keep it completely outside the donut ring
-  const targetRadius = 130;
-  const tooltipWidth = 150;
-  const tooltipHeight = 60;
-
-  const posX = cx + nx * targetRadius - tooltipWidth / 2;
-  const posY = cy + ny * targetRadius - tooltipHeight / 2;
-
-  return {
-    x: Math.max(5, posX),
-    y: posY
-  };
-};
 
 export default function MoodDistribution({ data, days = 30 }) {
   const distribution = useMemo(() => {
@@ -107,6 +95,11 @@ export default function MoodDistribution({ data, days = 30 }) {
   const visibleChartData = chartData.slice(0, 5);
   const variety = chartData.length;
 
+  const accessibleBreakdown = useMemo(() => {
+    const topThree = chartData.slice(0, 3).map(item => `${item.moodName} at ${item.percentage}%`).join(", ");
+    return `Mood distribution chart showing: ${topThree}.`;
+  }, [chartData]);
+
   return (
     <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[400px] shadow-sm relative overflow-hidden">
       <div className="w-full text-left mb-4 shrink-0">
@@ -118,7 +111,11 @@ export default function MoodDistribution({ data, days = 30 }) {
 
       <div className="flex-1 w-full flex flex-col sm:flex-row items-center justify-between gap-6 min-h-0">
         {/* Left side: Chart */}
-        <div className="relative w-full sm:w-[50%] h-[200px] sm:h-full flex items-center justify-center shrink-0">
+        <div
+          className="relative w-full sm:w-[50%] h-[200px] sm:h-full flex items-center justify-center shrink-0"
+          role="img"
+          aria-label={accessibleBreakdown}
+        >
           <PieChart style={{ outline: 'none' }} className="focus:outline-none" width={200} height={200}>
             <Pie
               data={visibleChartData}
@@ -142,7 +139,13 @@ export default function MoodDistribution({ data, days = 30 }) {
                 />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} position={getTooltipPosition} allowEscapeViewBox={{ x: true, y: true }} />
+            <Tooltip
+              content={<CustomTooltip />}
+              isAnimationActive={false}
+              animationDuration={0}
+              wrapperStyle={{ zIndex: 100, transition: 'none' }}
+              allowEscapeViewBox={{ x: true, y: true }}
+            />
           </PieChart>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

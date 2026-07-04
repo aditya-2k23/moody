@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { calculateMoodTrends } from "@/utils/analytics";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Maximize2, Minimize2 } from "lucide-react";
 
 /**
  * Formats a timestamp into a short date string (e.g., "Jan 1").
@@ -129,18 +129,23 @@ function ActiveMoodDot({ cx, cy, payload }) {
  * @param {number} [props.days=30] - The number of days to analyze.
  * @returns {JSX.Element} The rendered component.
  */
-export default function MoodTrendChart({ data, days = 30 }) {
+export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleMaximize }) {
   const chartData = useMemo(() => {
     return calculateMoodTrends(data, days);
   }, [data, days]);
 
   const subtitle = useMemo(() => {
     if (chartData.length < 5) return "Not enough data yet.";
-    const firstHalf = chartData.slice(0, Math.floor(chartData.length / 2));
-    const secondHalf = chartData.slice(Math.floor(chartData.length / 2));
+    const half = Math.floor(chartData.length / 2);
+    const firstHalf = chartData.slice(0, half).filter(item => typeof item.score === 'number');
+    const secondHalf = chartData.slice(half).filter(item => typeof item.score === 'number');
     
-    const avgFirst = firstHalf.reduce((sum, item) => sum + (item.score || 5), 0) / firstHalf.length;
-    const avgSecond = secondHalf.reduce((sum, item) => sum + (item.score || 5), 0) / secondHalf.length;
+    if (firstHalf.length === 0 || secondHalf.length === 0) {
+      return "Your mood has been relatively steady.";
+    }
+
+    const avgFirst = firstHalf.reduce((sum, item) => sum + item.score, 0) / firstHalf.length;
+    const avgSecond = secondHalf.reduce((sum, item) => sum + item.score, 0) / secondHalf.length;
     
     if (avgSecond > avgFirst + 1) return "A gentle rise in overall wellbeing.";
     if (avgSecond < avgFirst - 1) return "A slight dip in your recent mood.";
@@ -161,10 +166,19 @@ export default function MoodTrendChart({ data, days = 30 }) {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{displaySubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 mr-4">
+          <div className="flex items-center gap-1.5 mr-2 sm:mr-4">
             <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
             <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-medium">Average</span>
           </div>
+          {onToggleMaximize && (
+            <button 
+              onClick={onToggleMaximize}
+              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+              title={isMaximized ? "Restore view" : "Maximize chart"}
+            >
+              {isMaximized ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -185,8 +199,8 @@ export default function MoodTrendChart({ data, days = 30 }) {
             </p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%" className="focus:outline-none analytics-chart" style={{ outline: 'none' }}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} style={{ outline: 'none' }} className="focus:outline-none">
+          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
               <defs>
                 <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />
@@ -206,15 +220,15 @@ export default function MoodTrendChart({ data, days = 30 }) {
               />
               <YAxis
                 type="number"
-                domain={[1, 13]}
-                ticks={[1, 7, 13]}
+                domain={[1, 10]}
+                ticks={[1, 5, 10]}
                 width={48}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
                 tickFormatter={(value) => {
                   if (value === 1) return "Low";
-                  if (value === 7) return "Neutral";
+                  if (value === 5) return "Neutral";
                   return "High";
                 }}
               />

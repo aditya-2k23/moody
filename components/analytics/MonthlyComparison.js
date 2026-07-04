@@ -8,7 +8,7 @@ import {
   calculateJournalLift,
   calculateEmotionalRange,
   calculateMonthOverMonth
-} from "@/utils/analytics/calculateMonthlyComparison";
+} from "@/utils/analytics";
 import { Sparkles } from "lucide-react";
 
 export default function MonthlyComparison({ data }) {
