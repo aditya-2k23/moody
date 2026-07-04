@@ -111,6 +111,15 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
 }
 
 /* Custom Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(165, 180, 252, 0.4) transparent;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: rgba(71, 85, 105, 0.4) transparent;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -1077,4 +1086,31 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
   .rainbow-border::before {
     animation: none;
   }
+}
+
+/* Fix Recharts Outline */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-wrapper * {
+  outline: none !important;
+}
+
+.analytics-card,
+.analytics-chart,
+.analytics-chart .recharts-wrapper,
+.analytics-chart .recharts-surface,
+.analytics-chart .recharts-wrapper *,
+.analytics-chart .recharts-surface * {
+  cursor:
+    url("/cursor.svg") 14 14,
+    auto !important;
+}
+
+.analytics-chart .recharts-sector,
+.analytics-chart .recharts-dot,
+.analytics-chart .recharts-bar-rectangle,
+.analytics-chart .recharts-active-dot {
+  cursor:
+    url("/cursor-pointer.svg") 8 8,
+    pointer !important;
 }

@@ -1,0 +1,259 @@
+"use client";
+
+import { useMemo } from "react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { calculateMoodTrends } from "@/utils/analytics";
+import { TrendingUp, Maximize2, Minimize2 } from "lucide-react";
+
+/**
+ * Formats a timestamp into a short date string (e.g., "Jan 1").
+ * @param {number|string} timestamp - The timestamp or date string to format.
+ * @returns {string} The formatted short date.
+ */
+function formatShortDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/**
+ * Formats a timestamp into a full date string (e.g., "Monday, January 1").
+ * @param {number|string} timestamp - The timestamp or date string to format.
+ * @returns {string} The formatted full date.
+ */
+function formatFullDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+/**
+ * Custom tooltip component for the Recharts area chart.
+ * @param {Object} props - Tooltip props provided by Recharts.
+ * @param {boolean} props.active - Whether the tooltip is active.
+ * @param {Array} props.payload - The data payload for the hovered point.
+ * @param {string|number} props.label - The label (timestamp) for the hovered point.
+ * @returns {JSX.Element|null} The tooltip component.
+ */
+function CustomTooltip({ active, payload, label }) {
+  if (!active) return null;
+
+  const item = payload?.[0]?.payload;
+
+  return (
+    <div className="min-w-[190px] rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl">
+      <p className="text-sm font-semibold text-slate-50">{formatFullDate(item?.timestamp || label)}</p>
+
+      {item?.moodName ? (
+        <div className="mt-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-base font-semibold text-white">
+              {item.emoji} {item.moodName}
+            </span>
+            <span
+              className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+              style={{ backgroundColor: item.color || "#818cf8" }}
+            >
+              {item.moodValue} / 13
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {item.hasJournal ? (
+              <span className="rounded-full bg-indigo-400/15 px-2 py-1 text-xs font-medium text-indigo-100">
+                📓 Journaled
+              </span>
+            ) : (
+              <span className="rounded-full bg-slate-700 px-2 py-1 text-xs font-medium text-slate-300">
+                No journal
+              </span>
+            )}
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-slate-300">No mood logged</p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Custom dot component for the Recharts area chart.
+ * @param {Object} props - Dot props provided by Recharts.
+ * @param {number} props.cx - The x-coordinate of the dot.
+ * @param {number} props.cy - The y-coordinate of the dot.
+ * @param {Object} props.payload - The data payload for the dot.
+ * @returns {JSX.Element|null} The dot component.
+ */
+function MoodDot({ cx, cy, payload }) {
+  if (!payload?.moodName) return null;
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={4}
+      fill={payload.color || "#818cf8"}
+      stroke="#f8fafc"
+      strokeWidth={1.5}
+    />
+  );
+}
+
+/**
+ * Custom active dot component for the Recharts area chart.
+ * @param {Object} props - Active dot props provided by Recharts.
+ * @param {number} props.cx - The x-coordinate of the dot.
+ * @param {number} props.cy - The y-coordinate of the dot.
+ * @param {Object} props.payload - The data payload for the dot.
+ * @returns {JSX.Element|null} The active dot component.
+ */
+function ActiveMoodDot({ cx, cy, payload }) {
+  if (!payload?.moodName) return null;
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={7}
+      fill={payload.color || "#818cf8"}
+      stroke="#f8fafc"
+      strokeWidth={2}
+    />
+  );
+}
+
+/**
+ * MoodTrendChart component that displays a line/area chart of mood scores over time.
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The structured mood and journal data.
+ * @param {number} [props.days=30] - The number of days to analyze.
+ * @returns {JSX.Element} The rendered component.
+ */
+export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleMaximize }) {
+  const chartData = useMemo(() => {
+    return calculateMoodTrends(data, days);
+  }, [data, days]);
+
+  const subtitle = useMemo(() => {
+    if (chartData.length < 5) return "Not enough data yet.";
+    const half = Math.floor(chartData.length / 2);
+    const firstHalf = chartData.slice(0, half).filter(item => typeof item.score === 'number');
+    const secondHalf = chartData.slice(half).filter(item => typeof item.score === 'number');
+    
+    if (firstHalf.length === 0 || secondHalf.length === 0) {
+      return "Your mood has been relatively steady.";
+    }
+
+    const avgFirst = firstHalf.reduce((sum, item) => sum + item.score, 0) / firstHalf.length;
+    const avgSecond = secondHalf.reduce((sum, item) => sum + item.score, 0) / secondHalf.length;
+    
+    if (avgSecond > avgFirst + 1) return "A gentle rise in overall wellbeing.";
+    if (avgSecond < avgFirst - 1) return "A slight dip in your recent mood.";
+    return "Your mood has been relatively steady.";
+  }, [chartData]);
+
+  const loggedCount = useMemo(() => {
+    return chartData.filter(item => typeof item.score === 'number').length;
+  }, [chartData]);
+
+  const displaySubtitle = loggedCount < 3 ? "Not enough data to calculate trends." : subtitle;
+
+  return (
+    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-8 gap-4">
+        <div>
+          <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Trends</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{displaySubtitle}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 mr-2 sm:mr-4">
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+            <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-medium">Average</span>
+          </div>
+          {onToggleMaximize && (
+            <button 
+              onClick={onToggleMaximize}
+              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+              title={isMaximized ? "Restore view" : "Maximize chart"}
+            >
+              {isMaximized ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 w-full min-h-[220px]">
+        {loggedCount < 3 ? (
+          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/[0.08] min-h-[220px] backdrop-blur-sm h-full">
+            <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
+              <TrendingUp size={24} className="text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
+              Begin Your Trend Tracking
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-3">
+              To visualize your mood trend line, we need at least 3 logged moods. Add your feelings daily to build your emotional patterns!
+            </p>
+            <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+              💡 Tip: Did you miss some days? Log past moods using the calendar below!
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+              <defs>
+                <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="timestamp"
+                type="number"
+                scale="time"
+                domain={['dataMin', 'dataMax']}
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
+                tickFormatter={formatShortDate}
+                dy={10}
+              />
+              <YAxis
+                type="number"
+                domain={[1, 10]}
+                ticks={[1, 5, 10]}
+                width={48}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
+                tickFormatter={(value) => {
+                  if (value === 1) return "Low";
+                  if (value === 5) return "Neutral";
+                  return "High";
+                }}
+              />
+              <Tooltip 
+                cursor={{ stroke: '#818cf8', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                content={<CustomTooltip />}
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="chartValue"
+                name="Mood"
+                stroke="#818cf8"
+                strokeWidth={3}
+                fill="url(#colorScorePremium)"
+                connectNulls={true}
+                dot={<MoodDot />}
+                animationDuration={500}
+                isAnimationActive={true}
+                activeDot={<ActiveMoodDot />}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </div>
+  );
+}

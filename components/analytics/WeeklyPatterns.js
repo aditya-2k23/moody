@@ -1,0 +1,107 @@
+"use client";
+
+import { useMemo } from "react";
+import { calculateWeeklyPatterns } from "@/utils/analytics";
+import { gradients } from "@/utils/index";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from "recharts";
+
+/**
+ * WeeklyPatterns component that visualizes mood averages by day of the week.
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The structured mood and journal data.
+ * @param {number} [props.days=90] - The number of days to analyze.
+ * @returns {JSX.Element} The rendered component.
+ */
+export default function WeeklyPatterns({ data, days = 90 }) {
+  const { averages } = useMemo(() => {
+    return calculateWeeklyPatterns(data, days);
+  }, [data, days]);
+
+  if (!averages || averages.length === 0 || !averages.some(a => a.score !== null)) {
+    return (
+      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full justify-center items-center text-center">
+        <p className="text-slate-500 dark:text-slate-400">No weekly data available yet.</p>
+      </div>
+    );
+  }
+
+  const orderedAverages = [
+    averages[1], // Mon
+    averages[2], // Tue
+    averages[3], // Wed
+    averages[4], // Thu
+    averages[5], // Fri
+    averages[6], // Sat
+    averages[0], // Sun
+  ].filter(Boolean);
+
+  const fullChartData = orderedAverages.map(item => ({
+    name: item.shortDay.toUpperCase(),
+    score: item.score || 0,
+    count: item.count,
+    lowData: item.count < 3
+  }));
+
+  return (
+    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+      <div className="mb-6">
+        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Weekly Rhythm</h3>
+      </div>
+
+      <div className="flex-1 w-full min-h-[260px] grid grid-cols-[minmax(0,1fr)_minmax(112px,132px)] gap-3">
+        <div className="min-w-0">
+          <ResponsiveContainer width="100%" height="100%" className="focus:outline-none analytics-chart" style={{ outline: 'none' }}>
+            <BarChart 
+              data={fullChartData} 
+              layout="vertical" 
+              margin={{ top: 0, right: 6, left: -16, bottom: 0 }}
+              barCategoryGap={10}
+              style={{ outline: 'none' }}
+              className="focus:outline-none"
+            >
+              <XAxis type="number" hide domain={[0, 10]} />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+              />
+              <Bar 
+                dataKey="score" 
+                radius={[4, 4, 4, 4]} 
+                background={{ fill: 'rgba(255, 255, 255, 0.03)', radius: [4, 4, 4, 4] }}
+                barSize={20}
+                isAnimationActive={true}
+                animationDuration={600}
+              >
+                {fullChartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={gradients.indigo[Math.min(gradients.indigo.length - 1, Math.max(0, Math.round(entry.score)))]}
+                    opacity={entry.lowData ? 0.35 : 0.95}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="grid grid-rows-7 gap-[10px] py-[3px]">
+          {fullChartData.map((entry) => (
+            <div key={entry.name} className="flex min-w-0 items-center justify-end gap-2">
+              <span className={`truncate text-[11px] font-medium ${entry.lowData ? "text-slate-400 dark:text-slate-500" : "text-slate-500 dark:text-slate-400"}`}>
+                {entry.count} {entry.count === 1 ? "entry" : "entries"}
+              </span>
+              {entry.lowData && (
+                <span className="rounded-full border border-slate-300/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:border-white/10 dark:text-slate-500">
+                  low
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -18,6 +18,7 @@ import StreakIndicator from "./StreakIndicator";
 import MemoriesToggle from "./MemoriesToggle";
 import { getGuestDraft, clearGuestDraft } from "@/lib/guestStorage";
 import GlowBackground from "./GlowBackground";
+import AnalyticsSection from "./analytics/AnalyticsSection";
 
 /**
  * Calculates the user's current logging streak based on their historical data.
@@ -723,6 +724,8 @@ function DashboardContent() {
             });
           }}
         />
+
+        <AnalyticsSection data={data} />
 
         <Memories
           items={memories}

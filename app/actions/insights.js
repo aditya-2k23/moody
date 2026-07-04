@@ -3,6 +3,7 @@
 import { redis } from "@/lib/redis";
 import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
+import crypto from 'node:crypto';
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -335,6 +336,14 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
 
 // ===== CORE GENERATOR =====
 
+/**
+ * Generates an AI insight for a specific daily journal entry using Gemini.
+ * Utilizes Redis for caching to minimize redundant API calls.
+ * @param {string} idToken - The user's Firebase ID token for authentication.
+ * @param {string} journalText - The text content of the journal entry.
+ * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
+ * @returns {Promise<Object>} An object containing the generation success status, the insight data, and the model used.
+ */
 export async function generateInsight(idToken, journalText, forceRegenerate = false) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
@@ -585,4 +594,117 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   }
 
   return { success: true, data: insight, modelUsed };
+}
+
+// ===== TRENDS GENERATOR =====
+
+/**
+ * Generates comprehensive AI insights based on the user's aggregated analytics data over time.
+ * @param {string} idToken - The user's Firebase ID token for authentication.
+ * @param {Object} analyticsData - The structured analytics data including trends, distribution, weekly patterns, etc.
+ * @returns {Promise<Object>} An object containing the generation success status, the trends insight data, and the model used.
+ */
+export async function generateTrendsInsight(idToken, analyticsData) {
+  if (!idToken) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  let userId;
+  try {
+    const decodedToken = await getAdminAuth().verifyIdToken(idToken);
+    userId = decodedToken.uid;
+  } catch (error) {
+    return { success: false, error: "Invalid authentication." };
+  }
+
+  const {
+    totalEntries,
+    topMood,
+    loggingRate,
+    days = 30
+  } = analyticsData;
+
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD
+  const fingerprintStr = `${totalEntries}|${topMood}|${loggingRate}|${today}`;
+  const cacheFingerprint = crypto.createHash('sha256').update(fingerprintStr).digest('hex').slice(0, 16);
+  const cacheKey = `insights:analytics:${userId}:${days}:${cacheFingerprint}`;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return { success: true, data: cached, modelUsed: "cache" };
+    }
+  } catch (err) {
+    console.error("[Insights] Redis get error:", err);
+  }
+
+  try {
+    const availableModels = await getAvailableModels();
+    if (availableModels.length === 0) {
+      return { success: false, error: "All AI models are currently at capacity. Please try again later." };
+    }
+
+    const genAI = getGenAIClient();
+
+    // Construct the prompt
+    const prompt = `You are an analytical mood intelligence system but a helpful friend of the user. The user has given you their mood tracking data. Your job is to identify the single most meaningful pattern in their data and state one concrete, specific observation they may not have noticed themselves. Make sure you don't sound like a robot or too scientific, make them understand in easy to read language.
+
+    DATA:
+    - Period: ${days} days
+    - Total entries logged: ${analyticsData.totalEntries} out of ${days} possible days (${analyticsData.loggingRate}% consistency)
+    - Mood distribution: ${analyticsData.distributionSummary}
+    - Most frequent mood: ${analyticsData.topMood}
+    - Mood trend direction: ${analyticsData.trendDirection} (improving / declining / stable)
+    - Mood variance: ${analyticsData.variance} (low = consistent, high = volatile)
+    - Best day of week by average mood: ${analyticsData.bestDay || 'insufficient data'}
+    - Worst day of week by average mood: ${analyticsData.worstDay || 'insufficient data'}
+    - Journal correlation: ${analyticsData.journalCorrelation} (do journaled days have higher mood scores?)
+    - Best 7-day window average: ${analyticsData.bestWeekAvg} (week of ${analyticsData.bestWeekDate})
+    - Toughest 7-day window average: ${analyticsData.worstWeekAvg} (week of ${analyticsData.worstWeekDate})
+
+    INSTRUCTIONS:
+    - Write exactly 2 sentences. No more.
+    - Sentence 1: State the most statistically interesting pattern in their data. Be specific — reference actual values, day names, or percentages from the data above. Do not restate obvious facts like "you logged X entries".
+    - Sentence 2: Give one concrete, non-generic observation or implication. This should be something the user could actually act on or find genuinely interesting — not encouragement, not affirmation.
+    - Tone: Direct, warm but analytical. Like a thoughtful friend reading a report, not a life coach.
+    - Do NOT use bullet points, lists, or headings.
+    - Do NOT use phrases like "keep it up", "you're doing great", "it's amazing", "that's wonderful", or any affirmation language.
+    - Use one emoji maximum, only if it adds semantic meaning, placed naturally within a sentence.`;
+
+    for (let i = 0; i < availableModels.length; i++) {
+      const modelId = availableModels[i].id;
+      try {
+        const result = await withTimeout(
+          genAI.models.generateContent({
+            model: modelId,
+            contents: prompt,
+          }),
+          AI_TIMEOUT_MS
+        );
+        let insight = result.text || "";
+        insight = insight.trim();
+
+        if (!insight) {
+          throw new Error("Model returned empty insight");
+        }
+
+        try {
+          await redis.set(cacheKey, insight, { ex: 86400 });
+        } catch (err) {
+          console.error("[Insights] Redis set error:", err);
+        }
+
+        return { success: true, data: insight, modelUsed: modelId };
+      } catch (error) {
+        if (isRetryableError(error) && i < availableModels.length - 1) {
+          if (isQuotaError(error)) await markModelExhausted(modelId);
+          continue;
+        }
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to generate trends insight:", error);
+    return { success: false, error: "Failed to generate trends insight." };
+  }
 }
