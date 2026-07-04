@@ -28,6 +28,12 @@ function CustomTooltip({ active, payload }) {
         { opacity: 1, scale: 1, duration: 0.15, ease: "power2.out" }
       );
     }
+
+    return () => {
+      if (containerRef.current) {
+        gsap.killTweensOf(containerRef.current);
+      }
+    };
   }, [active, moodName]);
 
   if (!active || !data) return null;
@@ -62,6 +68,23 @@ export default function MoodDistribution({ data, days = 30 }) {
 
   const totalEntries = distribution.reduce((sum, item) => sum + item.count, 0);
 
+  const chartData = useMemo(() => {
+    return distribution.map(item => {
+      const moodValue = moodNames.indexOf(item.moodName) + 1;
+      return {
+        ...item,
+        moodValue,
+        emoji: emojiMap[item.moodName],
+        color: getMoodColor(item.moodName)
+      };
+    });
+  }, [distribution]);
+
+  const accessibleBreakdown = useMemo(() => {
+    const topThree = chartData.slice(0, 3).map(item => `${item.moodName} at ${item.percentage}%`).join(", ");
+    return `Mood distribution chart showing: ${topThree}.`;
+  }, [chartData]);
+
   if (distribution.length === 0 || totalEntries < 3) {
     return (
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[400px] shadow-sm relative overflow-hidden justify-center items-center text-center">
@@ -81,24 +104,9 @@ export default function MoodDistribution({ data, days = 30 }) {
     );
   }
 
-  const chartData = distribution.map(item => {
-    const moodValue = moodNames.indexOf(item.moodName) + 1;
-
-    return {
-      ...item,
-      moodValue,
-      emoji: emojiMap[item.moodName],
-      color: getMoodColor(item.moodName)
-    };
-  });
   const topMood = chartData[0];
   const visibleChartData = chartData.slice(0, 5);
   const variety = chartData.length;
-
-  const accessibleBreakdown = useMemo(() => {
-    const topThree = chartData.slice(0, 3).map(item => `${item.moodName} at ${item.percentage}%`).join(", ");
-    return `Mood distribution chart showing: ${topThree}.`;
-  }, [chartData]);
 
   return (
     <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[400px] shadow-sm relative overflow-hidden">

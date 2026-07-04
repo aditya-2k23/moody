@@ -45,22 +45,22 @@ export function getMoodDetailsForDate(dataObj, date) {
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
-  
+
   let score = null;
   let moodValue = null;
   let moodName = null;
   let hasEntry = false;
-  
+
   if (dataObj?.[year]?.[month] && typeof dataObj[year][month][day] === 'number') {
     moodValue = dataObj[year][month][day];
     moodName = convertMood(moodValue);
-    score = MOOD_SCORES[moodName] || 5;
+    score = MOOD_SCORES[moodName] ?? 5;
     hasEntry = true;
   }
-  
+
   const journal = dataObj?.[year]?.[month]?.[`journal_${day}`] || "";
   const hasJournal = Boolean(journal && String(journal).trim().length > 0);
-  
+
   return {
     year,
     month,
@@ -80,7 +80,7 @@ export function iterateDays(dataObj, days, callback, reverse = false) {
     const details = getMoodDetailsForDate(dataObj, d);
     callback(d, details);
   };
-  
+
   if (reverse) {
     for (let i = days - 1; i >= 0; i--) {
       loop(i);
@@ -94,12 +94,12 @@ export function iterateDays(dataObj, days, callback, reverse = false) {
 
 export function calculateMoodTrends(dataObj, days = 7) {
   const result = [];
-  
+
   iterateDays(dataObj, days, (d, details) => {
     let chartValue = details.hasEntry ? details.score : null;
     let emoji = details.hasEntry ? emojiMap[details.moodName] : null;
     let color = details.hasEntry ? getMoodColor(details.moodValue) : null;
-    
+
     result.push({
       date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       fullDate: d,
@@ -113,7 +113,7 @@ export function calculateMoodTrends(dataObj, days = 7) {
       hasJournal: details.hasJournal
     });
   }, true);
-  
+
   return result;
 }
 
