@@ -1,6 +1,13 @@
 import { MOOD_SCORES } from "./calculateMoodTrends";
 import convertMood, { moods } from "../index";
 
+/**
+ * Gets statistics for a specific month from the data object.
+ * @param {Object} dataObj - The structured mood data.
+ * @param {number} targetYear - The year to extract stats for.
+ * @param {number} targetMonth - The month index (0-11) to extract stats for.
+ * @returns {Object} Statistics including average, count, variability, scores, entries, and raw monthData.
+ */
 function getMonthStats(dataObj, targetYear, targetMonth) {
   let totalScore = 0;
   let count = 0;
@@ -36,6 +43,11 @@ function getMonthStats(dataObj, targetYear, targetMonth) {
   return { average, count, variability, scores, entries, monthData };
 }
 
+/**
+ * Calculates a comparison of mood data between the current and previous month.
+ * @param {Object} dataObj - The structured mood and journal data.
+ * @returns {Object} An object containing stats for both current and previous months.
+ */
 export function calculateMonthlyComparison(dataObj) {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -66,6 +78,11 @@ export function getMoodFromScore(targetScore) {
 }
 
 // A. Mood Momentum Score
+/**
+ * Calculates a mood momentum score indicating whether mood is trending up, down, or flat over a period.
+ * @param {Array} entries - Array of daily mood entries with scores.
+ * @returns {Object} Momentum metrics including a score, representative mood label, and direction.
+ */
 export function calculateMoodMomentum(entries) {
   if (!entries || entries.length === 0) return { score: 5, label: getMoodFromScore(5), direction: 'flat' };
 
@@ -95,6 +112,11 @@ export function calculateMoodMomentum(entries) {
 }
 
 // B. Mood Recovery Time
+/**
+ * Calculates the average number of days it takes to recover from a low mood state.
+ * @param {Array} entries - Array of daily mood entries with scores.
+ * @returns {Object} Recovery metrics including average days and total occurrences of low mood states.
+ */
 export function calculateMoodRecoveryTime(entries) {
   if (!entries || entries.length === 0) return { avgDays: null, occurrences: 0 };
 
@@ -123,6 +145,11 @@ export function calculateMoodRecoveryTime(entries) {
 }
 
 // C. Journal-to-Mood Lift
+/**
+ * Calculates the difference in average mood scores between days with a journal entry and days without one.
+ * @param {Object} monthData - The raw mood and journal data for a specific month.
+ * @returns {Object} Journal lift metrics indicating if journaling has a positive correlation with mood.
+ */
 export function calculateJournalLift(monthData) {
   if (!monthData) return { journaledAvg: 0, unjournaledAvg: 0, lift: 0, meaningful: false };
 
@@ -161,6 +188,11 @@ export function calculateJournalLift(monthData) {
 }
 
 // D. Emotional Range
+/**
+ * Determines the peak (highest) and trough (lowest) mood scores within a given set of entries.
+ * @param {Array} entries - Array of daily mood entries with scores.
+ * @returns {Object} Emotional range metrics including the peak and trough entries.
+ */
 export function calculateEmotionalRange(entries) {
   if (!entries || entries.length === 0) return { peak: null, trough: null };
 
@@ -187,6 +219,12 @@ export function calculateEmotionalRange(entries) {
 }
 
 // E. Month-over-Month with Mood Labels
+/**
+ * Calculates month-over-month percentage change and maps averages to mood labels.
+ * @param {number|null} prevAvg - The average mood score of the previous month.
+ * @param {number|null} currAvg - The average mood score of the current month.
+ * @returns {Object} Month-over-month comparison metrics including percentage change and labels.
+ */
 export function calculateMonthOverMonth(prevAvg, currAvg) {
   if (prevAvg === null || currAvg === null || currAvg === 0) {
     return { pctChange: 0, fromLabel: 'N/A', toLabel: 'N/A', fromEmoji: '😐', toEmoji: '😐' };

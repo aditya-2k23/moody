@@ -18,16 +18,31 @@ export const MOOD_SCORES = {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+/**
+ * Gets a color from the indigo gradient based on the mood value.
+ * @param {number} moodValue - The numeric value of the mood.
+ * @returns {string|null} The hex color code, or null if invalid.
+ */
 function getMoodColor(moodValue) {
   if (typeof moodValue !== 'number') return null;
   const colorIndex = Math.max(0, Math.min(gradients.indigo.length - 1, moodValue - 1));
   return gradients.indigo[colorIndex];
 }
 
+/**
+ * Formats a date object into a short date string.
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted short date string.
+ */
 function formatPeriodDate(date) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+/**
+ * Calculates the average score for an array of items.
+ * @param {Array} items - Array containing objects with a score property.
+ * @returns {number|null} The average score, or null if no valid scores exist.
+ */
 function getAverageScore(items) {
   const logged = items.filter(item => typeof item.score === 'number');
   if (logged.length === 0) return null;
@@ -117,6 +132,12 @@ export function calculateMoodTrends(dataObj, days = 7) {
   return result;
 }
 
+/**
+ * Calculates data for a mood heatmap visualization, including journaling status.
+ * @param {Object} dataObj - The structured mood and journal data.
+ * @param {number} [days=28] - The number of days to analyze.
+ * @returns {Array} An array of objects suitable for a heatmap chart.
+ */
 export function calculateMoodHeatmap(dataObj, days = 28) {
   return calculateMoodTrends(dataObj, days).map(item => ({
     date: item.date,
@@ -131,6 +152,12 @@ export function calculateMoodHeatmap(dataObj, days = 28) {
   }));
 }
 
+/**
+ * Determines the best and worst periods of mood based on a sliding window average.
+ * @param {Array} trends - The structured time series data from calculateMoodTrends.
+ * @param {number} [windowSize=7] - The number of days in the sliding window.
+ * @returns {Object} An object containing the best and worst periods, including their labels, average scores, and raw scores.
+ */
 export function calculateBestWorstPeriods(trends, windowSize = 7) {
   if (!Array.isArray(trends) || trends.length < windowSize) {
     return { bestWeek: null, toughestPeriod: null };
@@ -170,6 +197,12 @@ export function calculateBestWorstPeriods(trends, windowSize = 7) {
   };
 }
 
+/**
+ * Generates a short text insight comparing recent mood to older mood or weekly patterns.
+ * @param {Array} trends - The structured time series data.
+ * @param {Object} weekly - The weekly patterns data.
+ * @returns {string} A short, human-readable insight.
+ */
 export function calculateMicroInsight(trends, weekly) {
   const loggedTrends = Array.isArray(trends)
     ? trends.filter(item => typeof item.score === 'number')

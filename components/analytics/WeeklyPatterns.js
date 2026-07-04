@@ -5,6 +5,13 @@ import { calculateWeeklyPatterns } from "@/utils/analytics";
 import { gradients } from "@/utils/index";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from "recharts";
 
+/**
+ * WeeklyPatterns component that visualizes mood averages by day of the week.
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The structured mood and journal data.
+ * @param {number} [props.days=90] - The number of days to analyze.
+ * @returns {JSX.Element} The rendered component.
+ */
 export default function WeeklyPatterns({ data, days = 90 }) {
   const { averages } = useMemo(() => {
     return calculateWeeklyPatterns(data, days);
