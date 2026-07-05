@@ -4,6 +4,7 @@ import { redis } from "@/lib/redis";
 import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
+import convertMood from "@/utils";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -199,10 +200,16 @@ function hasValidPartialCacheSeed(response) {
 }
 
 async function fetchUserEmbeddings(userId) {
+  // [DEBUG-TRACE] Log fetch — remove after diagnosis
+  console.log(`[DEBUG-TRACE] fetchUserEmbeddings CALLED | ts=${Date.now()} | userId=${userId?.slice(0, 8)}...`);
   try {
     const raw = await redis.get(`embeddings:${userId}`);
     const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (Array.isArray(data)) return data;
+    if (Array.isArray(data)) {
+      console.log(`[DEBUG-TRACE] fetchUserEmbeddings RETURNED | ts=${Date.now()} | count=${data.length}`);
+      return data;
+    }
+    console.log(`[DEBUG-TRACE] fetchUserEmbeddings RETURNED | ts=${Date.now()} | count=0 (not array)`);
     return [];
   } catch (error) {
     console.error("[Insights] Redis embedding fetch failed:", error.message);
@@ -212,21 +219,40 @@ async function fetchUserEmbeddings(userId) {
 
 async function storeUserEmbedding(userId, embedding, response, sourceText = "") {
   if (!embedding) return;
+  // [DEBUG-TRACE] Log entry — remove after diagnosis
+  const _traceHash = crypto.createHash('sha256').update(normalizeEntryText(sourceText)).digest('hex').slice(0, 12);
+  console.log(`[DEBUG-TRACE] storeUserEmbedding CALLED | ts=${Date.now()} | hash=${_traceHash}`);
   try {
     const key = `embeddings:${userId}`;
     let data = await fetchUserEmbeddings(userId);
+
+    // Part 4c: Dedup — skip storing if exact normalized text already exists
+    const normalizedSource = normalizeEntryText(sourceText);
+    const isDuplicate = data.some(item => item.sourceText === normalizedSource);
+    if (isDuplicate) {
+      console.log(`[DEBUG-TRACE] storeUserEmbedding SKIPPED (duplicate) | ts=${Date.now()} | hash=${_traceHash}`);
+      return;
+    }
+
     data.push({
       embedding,
       response,
-      sourceText: normalizeEntryText(sourceText),
-      createdAt: Date.now()
+      sourceText: normalizedSource,
+      createdAt: Date.now(),
+      // Part 4a: Additional fields for future RAG retrieval
+      date: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
+      moodLabel: response?.mood ? convertMood(response.mood) : null,
     });
-    // Slice to limit size and maintain performance
+
+    // Part 4b: Evict oldest by createdAt timestamp, not array position
     if (data.length > MAX_EMBEDDINGS) {
-      data = data.slice(data.length - MAX_EMBEDDINGS);
+      data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      data = data.slice(0, MAX_EMBEDDINGS);
     }
-    // Stringify explicitly to ensure Upstash compatibility
+
+    // Stringify explicitly to ensure Upstash compatibility — TTL unchanged (7 days)
     await redis.set(key, JSON.stringify(data), { ex: CACHE_TTL_SECONDS });
+    console.log(`[DEBUG-TRACE] storeUserEmbedding COMPLETED | ts=${Date.now()} | hash=${_traceHash}`);
   } catch (error) {
     console.error("[Insights] Redis embedding store failed:", error.message);
   }
@@ -234,7 +260,7 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
 
 // ===== PROMPT BUILDERS =====
 
-function buildPrompt(journalEntry) {
+function buildPrompt(journalEntry, currentDate = "") {
   return `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
   WHO YOU ARE:
   - You're that one friend everyone loves — the kind who remembers tiny details, gets genuinely hyped for people, and just *gets it* 🤗
@@ -250,6 +276,8 @@ function buildPrompt(journalEntry) {
   """
   ${journalEntry}
   """
+
+  TODAY'S DATE (IST): ${currentDate}
 
   YOUR TASKS:
 
@@ -290,7 +318,7 @@ function buildPrompt(journalEntry) {
 `;
 }
 
-function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline) {
+function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline, currentDate = "") {
   return `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
   The user wrote something that feels emotionally similar to a recent entry. You already know their mood and what's been on their mind. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive.
 
@@ -306,6 +334,8 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   """
   ${journalEntry}
   """
+
+  TODAY'S DATE (IST): ${currentDate}
 
   YOUR TASKS:
   1. RESPONSE — a warm, personal paragraph (3-5 sentences) written like a best friend reacting to today's entry:
@@ -370,28 +400,48 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
 
   let pureMaxSimilarity = -1; // To check deduplication limit
 
+  // Pre-fetch stored embeddings (reused across Phase 0 and Phase 1)
+  let storedEmbeddings = null;
+
+  // ===== PHASE 0: EXACT TEXT MATCH (skips embedding API call entirely) =====
+  if (!forceRegenerate) {
+    storedEmbeddings = await fetchUserEmbeddings(userId);
+    for (const item of storedEmbeddings) {
+      if (
+        item.sourceText &&
+        item.sourceText === normalizedJournalText &&
+        item.response
+      ) {
+        return { success: true, data: item.response, modelUsed: "cache" };
+      }
+    }
+  }
+
   // ===== PHASE 1: SEMANTIC CACHING =====
   if (!forceRegenerate) {
     embedding = await getEmbedding(journalText);
 
     if (embedding) {
-      const stored = await fetchUserEmbeddings(userId);
+      const stored = storedEmbeddings || await fetchUserEmbeddings(userId);
       let bestMatch = null;
-      let highestSimilarityScore = -1;
       let exactMatchData = null;
       let exactMatchSourceText = null;
       let exactSameTextData = null;
       let exactSameTextSimilarity = -1;
 
       const dynamicThreshold = journalText.length < 50 ? 0.88 : SIMILARITY_THRESHOLD;
-      const now = Date.now();
-      const maxAgeMs = CACHE_TTL_SECONDS * 1000;
+
+      // Collect entries whose raw cosine similarity meets the partial-cache threshold.
+      // Among those, the most recent by createdAt wins (recency as tiebreaker, not blended factor).
+      const qualifyingCandidates = [];
 
       // Find highest similarity vector
       for (const item of stored) {
         if (!item.embedding) continue;
         const sim = cosineSimilarity(embedding, item.embedding);
         const sourceText = typeof item.sourceText === "string" ? item.sourceText : null;
+        // [DEBUG-TRACE] Log similarity scores — remove after diagnosis
+        console.log(`[DEBUG-TRACE] similarity | score=${sim.toFixed(6)} | sourceText=${(sourceText || '').slice(0, 40)}...`);
 
         // Strong exact-key path: when normalized text is identical, prefer this cache entry.
         if (
@@ -414,15 +464,18 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
           exactMatchSourceText = sourceText;
         }
 
-        // Apply recency factoring (80% similarity, 20% recency)
-        const itemAgeMs = now - (item.createdAt || now);
-        const recencyWeight = Math.max(0, 1 - (itemAgeMs / maxAgeMs));
-        const finalScore = (sim * 0.8) + (recencyWeight * 0.2);
-
-        if (finalScore > highestSimilarityScore) {
-          highestSimilarityScore = finalScore;
-          bestMatch = item;
+        // Gate on raw similarity — only entries above dynamicThreshold qualify for partial cache
+        if (sim >= dynamicThreshold && item.response) {
+          qualifyingCandidates.push({ item, createdAt: item.createdAt || 0 });
         }
+      }
+
+      // Among qualifying candidates, pick the most recent one by createdAt.
+      // If multiple share the exact same createdAt, the first encountered in the
+      // array wins (stable selection — no secondary tiebreaker needed).
+      if (qualifyingCandidates.length > 0) {
+        qualifyingCandidates.sort((a, b) => b.createdAt - a.createdAt);
+        bestMatch = qualifyingCandidates[0].item;
       }
 
       // Exact-hit precedence:
@@ -454,7 +507,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
-      if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
+      if (bestMatch) {
         if (hasValidPartialCacheSeed(bestMatch.response)) {
           isCacheHit = true;
           cachedData = bestMatch.response;
@@ -477,9 +530,10 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   let modelUsed = null;
   const startTime = Date.now();
 
+  const currentDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const prompt = isCacheHit
-    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline)
-    : buildPrompt(journalText);
+    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, currentDate)
+    : buildPrompt(journalText, currentDate);
 
   // Define dynamic schema based on cache miss/hit
   const fullSchemaProperties = {
