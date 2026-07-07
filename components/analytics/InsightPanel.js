@@ -12,7 +12,7 @@ import {
 import { moods as emojiMap } from "@/utils/index";
 import { useAuth } from "@/context/authContext";
 import { generateTrendsInsight } from "@/app/actions/insights";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, Loader2 } from "lucide-react";
 
 export default function InsightPanel({ data, days = 30, isExpanded = false, isMaximized, onToggleMaximize }) {
   const { currentUser } = useAuth();
@@ -20,6 +20,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState(null);
   const [lastInsightHash, setLastInsightHash] = useState(null);
+  const [isInsightExpanded, setIsInsightExpanded] = useState(false);
 
   const { trends, distribution, weekly, periods, microInsight, consistency } = useMemo(() => {
     const nextTrends = calculateMoodTrends(data, days);
@@ -50,7 +51,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
     if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
       const cacheKey = `moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`;
       const cached = localStorage.getItem(cacheKey);
-      
+
       if (cached) {
         setAiInsight(cached);
         setLastInsightHash(currentHash);
@@ -231,7 +232,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           {title}
         </h3>
         {onToggleMaximize && (
-          <button 
+          <button
             onClick={onToggleMaximize}
             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors mt-1"
             title={isMaximized ? "Restore view" : "Maximize insights"}
@@ -244,15 +245,46 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       <div className="flex-1 flex flex-col gap-5 text-sm sm:text-base">
         {aiInsight ? (
           lastInsightHash === `${days}-${consistency.totalEntries}` ? (
-            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">
-              {aiInsight}
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col">
+              <div className={`transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
+                {aiInsight}
+              </div>
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-500/10">
+                {aiInsight.length > 150 && !isMaximized ? (
+                  <button
+                    onClick={() => setIsInsightExpanded(!isInsightExpanded)}
+                    className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold transition-colors"
+                  >
+                    {isInsightExpanded ? "Read Less" : "Read More"}
+                  </button>
+                ) : <div />}
+                <button
+                  onClick={() => {
+                    setAiInsight(null);
+                    setAiError(null);
+                  }}
+                  className="text-xs text-indigo-500 hover:text-indigo-600 dark:text-indigo-400/80 dark:hover:text-indigo-300 font-medium transition-colors"
+                >
+                  Regenerate Insight
+                </button>
+              </div>
             </div>
           ) : (
             <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col gap-2 transition-all">
-              <span className="opacity-60 italic leading-relaxed">{aiInsight}</span>
+              <div className={`opacity-60 italic leading-relaxed transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
+                {aiInsight}
+              </div>
+              {aiInsight.length > 150 && !isMaximized && (
+                <button
+                  onClick={() => setIsInsightExpanded(!isInsightExpanded)}
+                  className="text-xs text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold mt-1 transition-colors self-start"
+                >
+                  {isInsightExpanded ? "Read Less" : "Read More"}
+                </button>
+              )}
               <div className="flex items-center justify-between border-t border-indigo-200/50 dark:border-indigo-500/20 pt-2.5 mt-1">
                 <span className="text-xs opacity-80">Timeframe or data changed</span>
-                <button 
+                <button
                   onClick={() => {
                     setAiInsight(null);
                     setAiError(null);
@@ -265,9 +297,19 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             </div>
           )
         ) : loadingAi ? (
-          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] animate-pulse h-16">
-            <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
-            <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-1/2"></div>
+          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] overflow-hidden min-h-[68px]">
+            <div className="animate-pulse opacity-50">
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-1/2"></div>
+            </div>
+
+            {/* Centered spinner loader */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-[2px]">
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-indigo-100 dark:border-slate-700/50">
+                <Loader2 size={14} className="animate-spin text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wide">Analyzing Trends...</span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">

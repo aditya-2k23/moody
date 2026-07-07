@@ -36,7 +36,7 @@ export default function ConditionalFooter() {
             alt="X/Twitter"
             width={16}
             height={16}
-            className="inline-block mx-1"
+            className="inline-block mx-1 dark:invert-0 invert"
           />
           Aditya
         </a>

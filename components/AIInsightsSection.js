@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import { moods } from "@/utils";
-import { Check, Sparkles, MessageCircle, LightbulbIcon, BubblesIcon, MessageCircleMoreIcon } from "lucide-react";
+import { Check, Sparkles, MessageCircle, LightbulbIcon, MessageCircleMoreIcon, Loader2 } from "lucide-react";
 import ChatContainer from "./chat/ChatContainer";
 
 /**
@@ -339,6 +339,14 @@ function InsightSkeletonLeft() {
 
       {/* Shimmer overlay */}
       <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20 pointer-events-none" />
+
+      {/* Centered spinner loader */}
+      <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+        <div className="bg-white/90 dark:bg-slate-800/90 p-4 rounded-2xl shadow-xl backdrop-blur-md flex flex-col items-center gap-3 border border-indigo-100 dark:border-slate-700/50">
+          <Loader2 size={32} className="animate-spin text-indigo-600 dark:text-indigo-400" />
+          <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 tracking-wide">Analyzing Day...</span>
+        </div>
+      </div>
 
       <div className="opacity-70">
         <div className="flex items-start justify-between mb-6">

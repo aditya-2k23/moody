@@ -315,6 +315,7 @@ function buildPrompt(journalEntry, currentDate = "") {
   - Creative, specific to THEM, matching the emotional tone
   - Fun and a little poetic — not generic motivational slogans
   - Examples of good headlines: "Survived the Week, Barely But Still 💪", "That One Conversation That Changed Things", "Overthinking at 2am Again 🌙"
+  - Don't use rich markdown text for these tags
 `;
 }
 
@@ -361,11 +362,11 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   4. HEADLINE — 4 to 8 words, like a fresh diary chapter title for TODAY's entry:
   - Must be newly generated from today's content
   - Should not repeat old headline verbatim unless today's entry is truly about the same exact thing
+  - Don't use rich markdown text for the headline
 `;
 }
 
 // ===== CORE GENERATOR =====
-
 /**
  * Generates an AI insight for a specific daily journal entry using Gemini.
  * Utilizes Redis for caching to minimize redundant API calls.
