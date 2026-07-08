@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
 import convertMood from "@/utils";
+import { retrieveRelevantMemories } from "@/lib/rag";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -133,7 +134,7 @@ function isQuotaError(error) {
 
 // ===== SEMANTIC CACHING UTILITIES =====
 
-async function getEmbedding(text) {
+export async function getEmbedding(text) {
   try {
     const ai = getGenAIClient();
     let result;
@@ -199,7 +200,7 @@ function hasValidPartialCacheSeed(response) {
   return hasMood && hasHeadline && hasTriggers;
 }
 
-async function fetchUserEmbeddings(userId) {
+export async function fetchUserEmbeddings(userId) {
   // [DEBUG-TRACE] Log fetch — remove after diagnosis
   console.log(`[DEBUG-TRACE] fetchUserEmbeddings CALLED | ts=${Date.now()} | userId=${userId?.slice(0, 8)}...`);
   try {
@@ -260,8 +261,8 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
 
 // ===== PROMPT BUILDERS =====
 
-function buildPrompt(journalEntry, currentDate = "") {
-  return `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
+function buildPrompt(journalEntry, currentDate = "", memoryBlock = null) {
+  let prompt = `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
   WHO YOU ARE:
   - You're that one friend everyone loves — the kind who remembers tiny details, gets genuinely hyped for people, and just *gets it* 🤗
   - Playful and a little funny, but you always know when someone needs you to just sit with them in a feeling
@@ -278,7 +279,18 @@ function buildPrompt(journalEntry, currentDate = "") {
   """
 
   TODAY'S DATE (IST): ${currentDate}
+`;
 
+  if (memoryBlock) {
+    prompt += `
+  LONG-TERM PATTERNS (from this user's past journal entries):
+  ${memoryBlock}
+
+  Use these past entries to spot long-term patterns. If something recurs — like stress from the same source, the same kind of day, or a repeating feeling — mention it naturally in your RESPONSE, the way a best friend who's been reading their journal for a while would: "hey, this keeps coming up..." Not clinical. Not diagnostic. Just warm and observant.
+`;
+  }
+
+  prompt += `
   YOUR TASKS:
 
   1. MOOD — pick exactly one that best matches the emotional tone of the entry:
@@ -317,10 +329,11 @@ function buildPrompt(journalEntry, currentDate = "") {
   - Examples of good headlines: "Survived the Week, Barely But Still 💪", "That One Conversation That Changed Things", "Overthinking at 2am Again 🌙"
   - Don't use rich markdown text for these tags
 `;
+  return prompt;
 }
 
-function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline, currentDate = "") {
-  return `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
+function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline, currentDate = "", memoryBlock = null) {
+  let prompt = `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
   The user wrote something that feels emotionally similar to a recent entry. You already know their mood and what's been on their mind. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive.
 
   WHAT YOU ALREADY KNOW ABOUT THEM:
@@ -337,7 +350,18 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   """
 
   TODAY'S DATE (IST): ${currentDate}
+`;
 
+  if (memoryBlock) {
+    prompt += `
+  LONG-TERM PATTERNS (from this user's past journal entries):
+  ${memoryBlock}
+
+  Use these past entries to spot long-term patterns. If something recurs — like stress from the same source, the same kind of day, or a repeating feeling — mention it naturally in your RESPONSE, the way a best friend who's been reading their journal for a while would: "hey, this keeps coming up..." Not clinical. Not diagnostic. Just warm and observant.
+`;
+  }
+
+  prompt += `
   YOUR TASKS:
   1. RESPONSE — a warm, personal paragraph (3-5 sentences) written like a best friend reacting to today's entry:
   - Gently acknowledge that this feeling or situation has been coming up — but do it warmly, like a friend who notices and cares, not like a system detecting a pattern
@@ -364,6 +388,7 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   - Should not repeat old headline verbatim unless today's entry is truly about the same exact thing
   - Don't use rich markdown text for the headline
 `;
+  return prompt;
 }
 
 // ===== CORE GENERATOR =====
@@ -527,14 +552,20 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
     return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
   }
 
+  let memoryBlock = null;
+  if (embedding) {
+    const ragResult = await retrieveRelevantMemories(userId, embedding);
+    memoryBlock = ragResult.memoryBlock;
+  }
+
   let insight;
   let modelUsed = null;
   const startTime = Date.now();
 
   const currentDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const prompt = isCacheHit
-    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, currentDate)
-    : buildPrompt(journalText, currentDate);
+    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, currentDate, memoryBlock)
+    : buildPrompt(journalText, currentDate, memoryBlock);
 
   // Define dynamic schema based on cache miss/hit
   const fullSchemaProperties = {

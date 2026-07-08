@@ -6,6 +6,8 @@ import crypto from "node:crypto";
 import { GoogleGenAI } from "@google/genai";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { retrieveRelevantMemories } from "@/lib/rag";
+import { getEmbedding } from "@/app/actions/insights";
 
 /**
  * stripWrappingQuotes — Removes exactly one matched pair of wrapping
@@ -353,17 +355,34 @@ export async function POST(req) {
 
     const redisKey = `chat:${chatId}:${sessionId}`;
     let previousMessages = [];
+    let journalMemoryBlock = null;
 
-    // 1. Fetch short-term history from Redis
-    if (!isDemoUser) {
-      try {
-        const stored = await redis.get(redisKey);
-        if (stored && Array.isArray(stored)) {
-          previousMessages = stored;
+    // 1. Fetch short-term history from Redis and RAG memories concurrently
+    if (!isDemoUser && effectiveUserId) {
+      const fetchHistory = async () => {
+        try {
+          const stored = await redis.get(redisKey);
+          if (stored && Array.isArray(stored)) {
+            previousMessages = stored;
+          }
+        } catch (e) {
+          console.warn("[Chat API] Failed to fetch from Redis", e);
         }
-      } catch (e) {
-        console.warn("[Chat API] Failed to fetch from Redis", e);
-      }
+      };
+
+      const fetchRag = async () => {
+        try {
+          const queryEmbedding = await getEmbedding(message);
+          if (queryEmbedding) {
+            const { memoryBlock } = await retrieveRelevantMemories(effectiveUserId, queryEmbedding);
+            journalMemoryBlock = memoryBlock;
+          }
+        } catch (e) {
+          console.warn("[Chat API] Failed to fetch RAG memories", e);
+        }
+      };
+
+      await Promise.all([fetchHistory(), fetchRag()]);
     }
 
     // 2. Format history for Gemini
@@ -511,6 +530,7 @@ export async function POST(req) {
       CRISIS HANDLING:
       - If someone expresses thoughts of self-harm or complete hopelessness, acknowledge it gently and warmly, suggest they reach out to someone they trust or a crisis line — don't panic or diagnose, just be a caring friend who knows her limits
 
+      ${journalMemoryBlock ? `\nLONG-TERM CONTEXT — from the user's past journal entries (this is what they've written about before, NOT what was said in this chat):\n"""\n${journalMemoryBlock}\n"""\nUse this naturally — like a friend who remembers details from past conversations. Never say "based on your journal". If something from their past entries is relevant to what they're saying right now, weave it in warmly.\n` : ''}
       ${journalText ? `\nCONTEXT — the user's current journal entry (may include rich text formatting). Use this like memory, naturally refer to it, don't phrase it like a robot, Never say "based on your data/journal". If they've bolded or italicized something, that's usually what they care about most:\n"""\n${journalText}\n"""\n` : ''}`;
 
     const demoChatPrompt = `${systemInstruction}
