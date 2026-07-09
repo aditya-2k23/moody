@@ -4,6 +4,8 @@ import { redis } from "@/lib/redis";
 import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
+import convertMood from "@/utils";
+import { retrieveRelevantMemories, fetchUserEmbeddings, getEmbedding } from "@/lib/rag";
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -18,6 +20,11 @@ const MODEL_CHAIN = [
   { id: "gemini-2.0-flash", label: "2.0-Flash" },
 ];
 
+/**
+ * Retrieves and validates the Gemini API key from environment variables.
+ * @returns {string} The verified API key.
+ * @throws {Error} If the API key is missing or empty.
+ */
 function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === "") {
@@ -27,10 +34,20 @@ function getApiKey() {
   return apiKey;
 }
 
+/**
+ * Initializes and returns a new GoogleGenAI client instance.
+ * @returns {GoogleGenAI} The authenticated Gemini client.
+ */
 function getGenAIClient() {
   return new GoogleGenAI({ apiKey: getApiKey() });
 }
 
+/**
+ * Wraps a promise with a timeout mechanism.
+ * @param {Promise} promise - The promise to wrap.
+ * @param {number} timeoutMs - The timeout duration in milliseconds.
+ * @returns {Promise} A promise that rejects if the timeout is reached before resolution.
+ */
 function withTimeout(promise, timeoutMs) {
   let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
@@ -44,6 +61,11 @@ function withTimeout(promise, timeoutMs) {
 
 // ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
 
+/**
+ * Calculates the number of seconds remaining until midnight in the Asia/Kolkata timezone.
+ * Used for setting daily TTLs in Redis cache.
+ * @returns {number} Seconds until midnight.
+ */
 function secondsUntilMidnight() {
   const now = new Date();
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -84,6 +106,11 @@ function secondsUntilMidnight() {
   return Math.max(Math.ceil((istMidnight - istTime) / 1000), 60);
 }
 
+/**
+ * Marks a specific Gemini model as exhausted in the Redis cache until midnight.
+ * @param {string} modelId - The ID of the model (e.g., 'gemini-1.5-flash').
+ * @returns {Promise<void>}
+ */
 async function markModelExhausted(modelId) {
   try {
     const ttl = secondsUntilMidnight();
@@ -94,6 +121,10 @@ async function markModelExhausted(modelId) {
   }
 }
 
+/**
+ * Retrieves the list of available Gemini models that have not been marked as exhausted.
+ * @returns {Promise<Array>} Array of available model configurations.
+ */
 async function getAvailableModels() {
   try {
     const keys = MODEL_CHAIN.map((m) => `model:exhausted:${m.id}`);
@@ -104,6 +135,11 @@ async function getAvailableModels() {
   }
 }
 
+/**
+ * Determines if an error returned by the AI provider is temporary and worth retrying.
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if the error is retryable.
+ */
 function isRetryableError(error) {
   const msg = error.message || "";
   const isQuotaOrAccess =
@@ -120,6 +156,11 @@ function isRetryableError(error) {
   return isQuotaOrAccess || isTimeout || isFormat;
 }
 
+/**
+ * Determines if an error returned by the AI provider is specifically related to quota limits.
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if the error is a quota error.
+ */
 function isQuotaError(error) {
   const msg = error.message || "";
   return (
@@ -131,39 +172,12 @@ function isQuotaError(error) {
 }
 
 // ===== SEMANTIC CACHING UTILITIES =====
-
-async function getEmbedding(text) {
-  try {
-    const ai = getGenAIClient();
-    let result;
-    try {
-      result = await ai.models.embedContent({
-        model: 'gemini-embedding-001',
-        contents: [text],
-        config: { taskType: 'SEMANTIC_SIMILARITY' },
-        AI_TIMEOUT_MS
-      });
-    } catch (err) {
-      if (err.message?.includes("404") || err.message?.includes("not found")) {
-        console.warn("[Insights] gemini-embedding-001 not found, falling back to gemini-embedding-2-preview...");
-        result = await ai.models.embedContent({
-          model: 'gemini-embedding-2-preview',
-          contents: [text],
-          config: { taskType: 'SEMANTIC_SIMILARITY' },
-          AI_TIMEOUT_MS
-        });
-      } else {
-        throw err;
-      }
-    }
-    // Result has `embeddings` array
-    return result.embeddings[0].values;
-  } catch (error) {
-    console.error("[Insights] Embedding generation failed:", error.message);
-    return null; // Silent fail gracefully
-  }
-}
-
+/**
+ * Calculates the cosine similarity between two vector embeddings.
+ * @param {Array<number>} vecA - The first vector.
+ * @param {Array<number>} vecB - The second vector.
+ * @returns {number} A score from -1.0 to 1.0 representing similarity.
+ */
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   let dotProduct = 0;
@@ -178,6 +192,11 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+/**
+ * Normalizes input text for more reliable embedding and string matching.
+ * @param {string} text - The input text.
+ * @returns {string} The normalized text.
+ */
 function normalizeEntryText(text) {
   return (text || "")
     .toLowerCase()
@@ -185,6 +204,11 @@ function normalizeEntryText(text) {
     .trim();
 }
 
+/**
+ * Checks if a cached response has the minimum required fields to serve as a partial cache seed.
+ * @param {Object} response - The cached response object.
+ * @returns {boolean} True if the response is valid as a seed.
+ */
 function hasValidPartialCacheSeed(response) {
   if (!response || typeof response !== "object") return false;
 
@@ -198,34 +222,51 @@ function hasValidPartialCacheSeed(response) {
   return hasMood && hasHeadline && hasTriggers;
 }
 
-async function fetchUserEmbeddings(userId) {
-  try {
-    const raw = await redis.get(`embeddings:${userId}`);
-    const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (Array.isArray(data)) return data;
-    return [];
-  } catch (error) {
-    console.error("[Insights] Redis embedding fetch failed:", error.message);
-    return [];
-  }
-}
-
-async function storeUserEmbedding(userId, embedding, response, sourceText = "") {
+/**
+ * Stores a new embedding with its associated context into the user's Redis cache,
+ * maintaining a rolling list up to MAX_EMBEDDINGS.
+ * @param {string} userId - The unique user ID.
+ * @param {Array<number>} embedding - The vector representation of the journal entry.
+ * @param {Object} response - The parsed insights generated from the entry.
+ * @param {string} [sourceText=""] - The original journal text used to generate the embedding.
+ * @returns {Promise<void>}
+ */
+async function storeUserEmbedding(userId, embedding, response, sourceText = "", entryDate = null, forceRegenerate = false) {
   if (!embedding) return;
   try {
     const key = `embeddings:${userId}`;
     let data = await fetchUserEmbeddings(userId);
+
+    // Part 4c: Dedup — skip storing if exact normalized text already exists (unless forcing regeneration)
+    const normalizedSource = normalizeEntryText(sourceText);
+    const duplicateIndex = data.findIndex(item => item.sourceText === normalizedSource);
+    
+    if (duplicateIndex !== -1) {
+      if (!forceRegenerate) {
+        return;
+      }
+      // If forcing regeneration, remove the stale entry so the new one takes its place
+      data.splice(duplicateIndex, 1);
+    }
+
     data.push({
       embedding,
       response,
-      sourceText: normalizeEntryText(sourceText),
-      createdAt: Date.now()
+      sourceText: normalizedSource,
+      createdAt: Date.now(),
+      // Part 4a: Additional fields for future RAG retrieval
+      // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
+      date: entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
+      moodLabel: response?.mood ? convertMood(response.mood) : null,
     });
-    // Slice to limit size and maintain performance
+
+    // Part 4b: Evict oldest by createdAt timestamp, not array position
     if (data.length > MAX_EMBEDDINGS) {
-      data = data.slice(data.length - MAX_EMBEDDINGS);
+      data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      data = data.slice(0, MAX_EMBEDDINGS);
     }
-    // Stringify explicitly to ensure Upstash compatibility
+
+    // Stringify explicitly to ensure Upstash compatibility — TTL unchanged (7 days)
     await redis.set(key, JSON.stringify(data), { ex: CACHE_TTL_SECONDS });
   } catch (error) {
     console.error("[Insights] Redis embedding store failed:", error.message);
@@ -234,8 +275,15 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
 
 // ===== PROMPT BUILDERS =====
 
-function buildPrompt(journalEntry) {
-  return `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
+/**
+ * Builds the full system prompt for generating a complete insight response from scratch.
+ * @param {string} journalEntry - The user's journal text.
+ * @param {string} [currentDate=""] - The date context for the entry.
+ * @param {string|null} [memoryBlock=null] - Past context retrieved via semantic search.
+ * @returns {string} The constructed prompt string.
+ */
+function buildPrompt(journalEntry, currentDate = "", memoryBlock = null) {
+  let prompt = `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
   WHO YOU ARE:
   - You're that one friend everyone loves — the kind who remembers tiny details, gets genuinely hyped for people, and just *gets it* 🤗
   - Playful and a little funny, but you always know when someone needs you to just sit with them in a feeling
@@ -251,6 +299,19 @@ function buildPrompt(journalEntry) {
   ${journalEntry}
   """
 
+  TODAY'S DATE (IST): ${currentDate}
+`;
+
+  if (memoryBlock) {
+    prompt += `
+  LONG-TERM PATTERNS (from this user's past journal entries):
+  ${memoryBlock}
+
+  Use these past entries to spot long-term patterns. If something recurs — like stress from the same source, the same kind of day, or a repeating feeling — mention it naturally in your RESPONSE, the way a best friend who's been reading their journal for a while would: "hey, this keeps coming up..." Not clinical. Not diagnostic. Just warm and observant.
+`;
+  }
+
+  prompt += `
   YOUR TASKS:
 
   1. MOOD — pick exactly one that best matches the emotional tone of the entry:
@@ -287,11 +348,24 @@ function buildPrompt(journalEntry) {
   - Creative, specific to THEM, matching the emotional tone
   - Fun and a little poetic — not generic motivational slogans
   - Examples of good headlines: "Survived the Week, Barely But Still 💪", "That One Conversation That Changed Things", "Overthinking at 2am Again 🌙"
+  - Don't use rich markdown text for these tags
 `;
+  return prompt;
 }
 
-function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline) {
-  return `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
+/**
+ * Builds a lighter prompt for generating insights when a similar cached entry exists,
+ * reusing the cached mood, triggers, and headline to save processing time.
+ * @param {string} journalEntry - The user's new journal text.
+ * @param {string} cachedMood - The mood extracted from the cached similar entry.
+ * @param {Array<string>} cachedTriggers - The triggers extracted from the cached similar entry.
+ * @param {string} cachedHeadline - The headline extracted from the cached similar entry.
+ * @param {string} [currentDate=""] - The date context for the entry.
+ * @param {string|null} [memoryBlock=null] - Past context retrieved via semantic search.
+ * @returns {string} The constructed prompt string.
+ */
+function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline, currentDate = "", memoryBlock = null) {
+  let prompt = `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
   The user wrote something that feels emotionally similar to a recent entry. You already know their mood and what's been on their mind. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive.
 
   WHAT YOU ALREADY KNOW ABOUT THEM:
@@ -307,6 +381,19 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   ${journalEntry}
   """
 
+  TODAY'S DATE (IST): ${currentDate}
+`;
+
+  if (memoryBlock) {
+    prompt += `
+  LONG-TERM PATTERNS (from this user's past journal entries):
+  ${memoryBlock}
+
+  Use these past entries to spot long-term patterns. If something recurs — like stress from the same source, the same kind of day, or a repeating feeling — mention it naturally in your RESPONSE, the way a best friend who's been reading their journal for a while would: "hey, this keeps coming up..." Not clinical. Not diagnostic. Just warm and observant.
+`;
+  }
+
+  prompt += `
   YOUR TASKS:
   1. RESPONSE — a warm, personal paragraph (3-5 sentences) written like a best friend reacting to today's entry:
   - Gently acknowledge that this feeling or situation has been coming up — but do it warmly, like a friend who notices and cares, not like a system detecting a pattern
@@ -331,11 +418,12 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
   4. HEADLINE — 4 to 8 words, like a fresh diary chapter title for TODAY's entry:
   - Must be newly generated from today's content
   - Should not repeat old headline verbatim unless today's entry is truly about the same exact thing
+  - Don't use rich markdown text for the headline
 `;
+  return prompt;
 }
 
 // ===== CORE GENERATOR =====
-
 /**
  * Generates an AI insight for a specific daily journal entry using Gemini.
  * Utilizes Redis for caching to minimize redundant API calls.
@@ -344,7 +432,7 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
  * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
  * @returns {Promise<Object>} An object containing the generation success status, the insight data, and the model used.
  */
-export async function generateInsight(idToken, journalText, forceRegenerate = false) {
+export async function generateInsight(idToken, journalText, forceRegenerate = false, entryDate = null) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
   }
@@ -370,28 +458,48 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
 
   let pureMaxSimilarity = -1; // To check deduplication limit
 
-  // ===== PHASE 1: SEMANTIC CACHING =====
-  if (!forceRegenerate) {
-    embedding = await getEmbedding(journalText);
+  // Pre-fetch stored embeddings (reused across Phase 0 and Phase 1)
+  let storedEmbeddings = null;
 
+  // ===== PHASE 0: EXACT TEXT MATCH (skips embedding API call entirely) =====
+  if (!forceRegenerate) {
+    storedEmbeddings = await fetchUserEmbeddings(userId);
+    for (const item of storedEmbeddings) {
+      if (
+        item.sourceText &&
+        item.sourceText === normalizedJournalText &&
+        item.response
+      ) {
+        return { success: true, data: item.response, modelUsed: "cache" };
+      }
+    }
+  }
+
+  // ===== PHASE 1: SEMANTIC CACHING =====
+  embedding = await getEmbedding(journalText);
+
+  if (!forceRegenerate) {
     if (embedding) {
-      const stored = await fetchUserEmbeddings(userId);
+      const stored = storedEmbeddings || await fetchUserEmbeddings(userId);
       let bestMatch = null;
-      let highestSimilarityScore = -1;
       let exactMatchData = null;
       let exactMatchSourceText = null;
       let exactSameTextData = null;
       let exactSameTextSimilarity = -1;
 
       const dynamicThreshold = journalText.length < 50 ? 0.88 : SIMILARITY_THRESHOLD;
-      const now = Date.now();
-      const maxAgeMs = CACHE_TTL_SECONDS * 1000;
+
+      // Collect entries whose raw cosine similarity meets the partial-cache threshold.
+      // Among those, the most recent by createdAt wins (recency as tiebreaker, not blended factor).
+      const qualifyingCandidates = [];
 
       // Find highest similarity vector
       for (const item of stored) {
         if (!item.embedding) continue;
         const sim = cosineSimilarity(embedding, item.embedding);
         const sourceText = typeof item.sourceText === "string" ? item.sourceText : null;
+        // [DEBUG-TRACE] Log similarity scores — remove after diagnosis
+        console.log(`[DEBUG-TRACE] similarity | score=${sim.toFixed(6)} | sourceText=${(sourceText || '').slice(0, 40)}...`);
 
         // Strong exact-key path: when normalized text is identical, prefer this cache entry.
         if (
@@ -414,15 +522,18 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
           exactMatchSourceText = sourceText;
         }
 
-        // Apply recency factoring (80% similarity, 20% recency)
-        const itemAgeMs = now - (item.createdAt || now);
-        const recencyWeight = Math.max(0, 1 - (itemAgeMs / maxAgeMs));
-        const finalScore = (sim * 0.8) + (recencyWeight * 0.2);
-
-        if (finalScore > highestSimilarityScore) {
-          highestSimilarityScore = finalScore;
-          bestMatch = item;
+        // Gate on raw similarity — only entries above dynamicThreshold qualify for partial cache
+        if (sim >= dynamicThreshold && item.response) {
+          qualifyingCandidates.push({ item, createdAt: item.createdAt || 0 });
         }
+      }
+
+      // Among qualifying candidates, pick the most recent one by createdAt.
+      // If multiple share the exact same createdAt, the first encountered in the
+      // array wins (stable selection — no secondary tiebreaker needed).
+      if (qualifyingCandidates.length > 0) {
+        qualifyingCandidates.sort((a, b) => b.createdAt - a.createdAt);
+        bestMatch = qualifyingCandidates[0].item;
       }
 
       // Exact-hit precedence:
@@ -454,7 +565,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
-      if (highestSimilarityScore >= dynamicThreshold && bestMatch?.response) {
+      if (bestMatch) {
         if (hasValidPartialCacheSeed(bestMatch.response)) {
           isCacheHit = true;
           cachedData = bestMatch.response;
@@ -473,13 +584,21 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
     return { success: false, error: "All AI models are currently at capacity. Please try again tomorrow." };
   }
 
+  let memoryBlock = null;
+  if (embedding) {
+    const ragResult = await retrieveRelevantMemories(userId, embedding, storedEmbeddings);
+    memoryBlock = ragResult.memoryBlock;
+  }
+
   let insight;
   let modelUsed = null;
   const startTime = Date.now();
 
+  // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
+  const insightDate = entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const prompt = isCacheHit
-    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline)
-    : buildPrompt(journalText);
+    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, insightDate, memoryBlock)
+    : buildPrompt(journalText, insightDate, memoryBlock);
 
   // Define dynamic schema based on cache miss/hit
   const fullSchemaProperties = {
@@ -590,7 +709,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   // We reached here, so Gemini successfully generated a response (meaning we paid the token cost).
   // We must store it so that future repeat entries will hit the `pureMaxSimilarity >= 0.95` check.
   if (insight && embedding) {
-    await storeUserEmbedding(userId, embedding, insight, journalText);
+    await storeUserEmbedding(userId, embedding, insight, journalText, entryDate, forceRegenerate);
   }
 
   return { success: true, data: insight, modelUsed };
@@ -604,7 +723,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
  * @param {Object} analyticsData - The structured analytics data including trends, distribution, weekly patterns, etc.
  * @returns {Promise<Object>} An object containing the generation success status, the trends insight data, and the model used.
  */
-export async function generateTrendsInsight(idToken, analyticsData) {
+export async function generateTrendsInsight(idToken, analyticsData, forceRegenerate = false) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
   }
@@ -621,21 +740,34 @@ export async function generateTrendsInsight(idToken, analyticsData) {
     totalEntries,
     topMood,
     loggingRate,
+    distributionSummary,
+    trendDirection,
+    variance,
+    bestDay,
+    worstDay,
+    journalCorrelation,
+    bestWeekAvg,
+    bestWeekDate,
+    worstWeekAvg,
+    worstWeekDate,
     days = 30
   } = analyticsData;
 
+  // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD
-  const fingerprintStr = `${totalEntries}|${topMood}|${loggingRate}|${today}`;
+  const fingerprintStr = `${totalEntries}|${topMood}|${loggingRate}|${distributionSummary}|${trendDirection}|${variance}|${bestDay}|${worstDay}|${journalCorrelation}|${bestWeekAvg}|${bestWeekDate}|${worstWeekAvg}|${worstWeekDate}|${today}`;
   const cacheFingerprint = crypto.createHash('sha256').update(fingerprintStr).digest('hex').slice(0, 16);
   const cacheKey = `insights:analytics:${userId}:${days}:${cacheFingerprint}`;
 
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return { success: true, data: cached, modelUsed: "cache" };
+  if (!forceRegenerate) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return { success: true, data: cached, modelUsed: "cache" };
+      }
+    } catch (err) {
+      console.error("[Insights] Redis get error:", err);
     }
-  } catch (err) {
-    console.error("[Insights] Redis get error:", err);
   }
 
   try {

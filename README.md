@@ -27,8 +27,9 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **User Authentication**: Sign Up, Log In, and Log Out securely using Firebase Authentication.
 - **Visual Memories**: Upload and keep track of photos for each day using Cloudinary integration, with a beautiful grid layout to view your memories with a full-screen viewer supporting zoom and navigation.
 - **Dashboard**: Personalized dashboard showing mood stats, average mood, current streak, and time remaining in the day.
+- **Advanced Analytics**: Dive deep into your emotional well-being with interactive charts powered by **Recharts**. Explore Mood Trends, Weekly Patterns, Month-over-Month comparisons, Mood Distribution, and Journaling Consistency.
 - **AI-Powered Journal Insights**: Get instant, personalized insights, mood analysis, emotional triggers, and actionable pro tips using **Google Gemini Flash 3 Preview** — powered by server-side Redis caching and **Semantic Similarity Search** (Embeddings) for context-aware repeat lookups.
-- **Lumi AI Chat (Beta)**: Real-time chat with Lumi with chat-bubble pacing, short-term + long-term memory, and daily session history.
+- **Lumi AI Chat (Beta)**: Real-time chat with Lumi featuring chat-bubble pacing, short-term context, and **Retrieval-Augmented Generation (RAG)** for long-term memory, allowing Lumi to contextually recall your past journal entries across daily sessions.
 - **Lumi Demo Chat (Landing Experience)**: First-time visitors get a dedicated onboarding conversation tone with a **5-message demo cap** and a clear limit toast before sign-in.
 - **Guest Mood Selector**: Try out mood logging instantly without signing up, using the new Guest interactive section!
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
@@ -78,6 +79,7 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **lucide-react** (Icons)
 - **Tailwind CSS**
 - **react-hot-toast**
+- **recharts** (Advanced Analytics)
 
 ## 🏗️ Architecture
 

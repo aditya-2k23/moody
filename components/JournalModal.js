@@ -10,8 +10,9 @@ import NewFeatureDot from "./NewFeatureDot";
 import ChatContainer from "./chat/ChatContainer";
 import RichTextEditor from "./RichTextEditor";
 import ReactMarkdown from "react-markdown";
-import { db } from "@/firebase";
-import { deleteDoc, doc, getDoc } from "firebase/firestore";
+import { db, auth } from "@/firebase";
+import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { generateInsight } from "@/app/actions/insights";
 
 function toDateKey(year, month, day) {
   const monthPadded = String(month + 1).padStart(2, "0");
@@ -220,16 +221,19 @@ export default function JournalModal({
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       document.body.style.paddingRight = '';
     }
 
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       document.body.style.paddingRight = '';
     };
   }, [isOpen]);
@@ -307,7 +311,7 @@ export default function JournalModal({
     <>
       {/* Main Modal Overlay / Scroll Container */}
       <div
-        className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm animate-modal-overlay"
+        className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm animate-modal-overlay custom-scrollbar"
         onClick={handleOverlayClick}
       >
         <div
@@ -435,11 +439,40 @@ export default function JournalModal({
                       {isAuthed && userId && !isEditing && (
                         <button
                           type="button"
+                          disabled={loadingInsights}
                           onClick={async () => {
                             if (showInsights) {
-                              setShowInsights(false);
+                              if (!journal || !journal.trim()) {
+                                toast.error("Journal entry cannot be empty.");
+                                return;
+                              }
+                              setLoadingInsights(true);
+                              try {
+                                const idToken = await auth.currentUser?.getIdToken();
+                                if (!idToken) {
+                                  toast.error("Authentication required.");
+                                  return;
+                                }
+                                const forceRegenerate = !!dayInsights;
+                                const dateKey = toDateKey(year, month, day);
+                                const result = await generateInsight(idToken, journal, forceRegenerate, dateKey);
+                                if (!result.success) {
+                                  toast.error(result.error || "Failed to generate insights.");
+                                  return;
+                                }
+                                const docRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
+                                await setDoc(docRef, { ...result.data, sourceText: journal.trim() }, { merge: true });
+                                setDayInsights(result.data);
+                                toast.success("Insights generated successfully!");
+                              } catch (err) {
+                                console.error("Error generating insights:", err);
+                                toast.error("Failed to generate insights. Please try again.");
+                              } finally {
+                                setLoadingInsights(false);
+                              }
                               return;
                             }
+
                             setLoadingInsights(true);
                             setShowInsights(true);
                             try {
@@ -460,17 +493,17 @@ export default function JournalModal({
                               setLoadingInsights(false);
                             }
                           }}
-                          className={`inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold transition ${showInsights
-                            ? "bg-indigo-600 text-white"
+                          className={`inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-50 ${showInsights
+                            ? "bg-indigo-600 text-white hover:bg-indigo-700"
                             : "bg-indigo-50 dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-600"
                             }`}
                         >
-                          <Sparkles size={14} />
+                          {loadingInsights ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                           <span className="md:hidden">
-                            {showInsights ? "Hide" : "Insights"}
+                            {!showInsights ? "Insights" : dayInsights ? "Regenerate" : "Generate"}
                           </span>
                           <span className="hidden md:inline">
-                            {showInsights ? "Hide Insights" : "View Insights"}
+                            {!showInsights ? "View Insights" : dayInsights ? "Regenerate Insight" : "Generate Insights"}
                           </span>
                         </button>
                       )}
@@ -637,7 +670,7 @@ export default function JournalModal({
                         No insights generated for this day.
                       </p>
                       <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">
-                        Write a journal entry and click &ldquo;Ask Lumi&rdquo; to get Lumi&apos;s thoughts.
+                        Click &ldquo;Generate Insights&rdquo; to get Lumi&apos;s thoughts.
                       </p>
                     </div>
                   )}

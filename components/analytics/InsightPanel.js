@@ -12,14 +12,29 @@ import {
 import { moods as emojiMap } from "@/utils/index";
 import { useAuth } from "@/context/authContext";
 import { generateTrendsInsight } from "@/app/actions/insights";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, Loader2 } from "lucide-react";
 
+/**
+ * Renders an AI-generated personalized insight panel based on the user's mood data.
+ * The component calculates local statistics (trends, patterns, consistency) and sends
+ * them to the backend to generate a narrative text response via Gemini API.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.data - The user's mood data object.
+ * @param {number} [props.days=30] - The lookback timeframe for the analysis.
+ * @param {boolean} [props.isExpanded=false] - Used to trigger data fetching only when the analytics section is open.
+ * @param {boolean} [props.isMaximized=false] - Whether the panel is currently maximized in the layout.
+ * @param {Function} [props.onToggleMaximize] - Callback fired when the maximize/minimize button is clicked.
+ * @returns {JSX.Element} The rendered InsightPanel component.
+ */
 export default function InsightPanel({ data, days = 30, isExpanded = false, isMaximized, onToggleMaximize }) {
   const { currentUser } = useAuth();
   const [aiInsight, setAiInsight] = useState(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState(null);
   const [lastInsightHash, setLastInsightHash] = useState(null);
+  const [isInsightExpanded, setIsInsightExpanded] = useState(false);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
 
   const { trends, distribution, weekly, periods, microInsight, consistency } = useMemo(() => {
     const nextTrends = calculateMoodTrends(data, days);
@@ -47,10 +62,10 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       return;
     }
 
-    if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
+    if (isExpanded && loggedCount >= 3 && !aiInsight && !aiError && !loadingAi && currentUser) {
       const cacheKey = `moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`;
       const cached = localStorage.getItem(cacheKey);
-      
+
       if (cached) {
         setAiInsight(cached);
         setLastInsightHash(currentHash);
@@ -119,7 +134,10 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             worstWeekAvg: periods?.toughestPeriod?.average || "N/A",
             worstWeekDate: periods?.toughestPeriod?.label || "N/A",
           };
-          const res = await generateTrendsInsight(idToken, stats);
+          const res = await generateTrendsInsight(idToken, stats, forceRegenerate);
+          if (forceRegenerate) {
+            setForceRegenerate(false);
+          }
           if (res.success) {
             setAiInsight(res.data);
             setLastInsightHash(currentHash);
@@ -135,7 +153,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       };
       fetchAiInsight();
     }
-  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends]);
+  }, [isExpanded, loggedCount, aiInsight, aiError, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends, forceRegenerate]);
 
   // Handle switching timeframes to check cache immediately
   useEffect(() => {
@@ -231,7 +249,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           {title}
         </h3>
         {onToggleMaximize && (
-          <button 
+          <button
             onClick={onToggleMaximize}
             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors mt-1"
             title={isMaximized ? "Restore view" : "Maximize insights"}
@@ -244,18 +262,59 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       <div className="flex-1 flex flex-col gap-5 text-sm sm:text-base">
         {aiInsight ? (
           lastInsightHash === `${days}-${consistency.totalEntries}` ? (
-            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">
-              {aiInsight}
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col">
+              <div className={`transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
+                {aiInsight}
+              </div>
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-500/10">
+                {aiInsight.length > 150 && !isMaximized ? (
+                  <button
+                    onClick={() => setIsInsightExpanded(!isInsightExpanded)}
+                    className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold transition-colors"
+                  >
+                    {isInsightExpanded ? "Read Less" : "Read More"}
+                  </button>
+                ) : <div />}
+                <button
+                  onClick={() => {
+                    if (currentUser) {
+                      localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                    }
+                    setForceRegenerate(true);
+                    setAiInsight(null);
+                    setAiError(null);
+                    setIsInsightExpanded(false);
+                  }}
+                  className="text-xs text-indigo-500 hover:text-indigo-600 dark:text-indigo-400/80 dark:hover:text-indigo-300 font-medium transition-colors"
+                >
+                  Regenerate Insight
+                </button>
+              </div>
             </div>
           ) : (
             <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col gap-2 transition-all">
-              <span className="opacity-60 italic leading-relaxed">{aiInsight}</span>
+              <div className={`opacity-60 italic leading-relaxed transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
+                {aiInsight}
+              </div>
+              {aiInsight.length > 150 && !isMaximized && (
+                <button
+                  onClick={() => setIsInsightExpanded(!isInsightExpanded)}
+                  className="text-xs text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold mt-1 transition-colors self-start"
+                >
+                  {isInsightExpanded ? "Read Less" : "Read More"}
+                </button>
+              )}
               <div className="flex items-center justify-between border-t border-indigo-200/50 dark:border-indigo-500/20 pt-2.5 mt-1">
                 <span className="text-xs opacity-80">Timeframe or data changed</span>
-                <button 
+                <button
                   onClick={() => {
+                    if (currentUser) {
+                      localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                    }
+                    setForceRegenerate(true);
                     setAiInsight(null);
                     setAiError(null);
+                    setIsInsightExpanded(false);
                   }}
                   className="text-xs bg-indigo-100 dark:bg-indigo-500/20 hover:bg-indigo-200 dark:hover:bg-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors font-semibold"
                 >
@@ -265,9 +324,36 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             </div>
           )
         ) : loadingAi ? (
-          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] animate-pulse h-16">
-            <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
-            <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-1/2"></div>
+          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] overflow-hidden min-h-[68px]">
+            <div className="animate-pulse opacity-50">
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-1/2"></div>
+            </div>
+
+            {/* Centered spinner loader */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-[2px]">
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-indigo-100 dark:border-slate-700/50">
+                <Loader2 size={14} className="animate-spin text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wide">Analyzing Trends...</span>
+              </div>
+            </div>
+          </div>
+        ) : aiError ? (
+          <div className="rounded-xl border border-red-200/70 bg-red-50/70 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 flex flex-col gap-2">
+            <span className="opacity-90">We couldn&apos;t generate your trends insight right now. Please try again.</span>
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                }
+                setForceRegenerate(true);
+                setAiInsight(null);
+                setAiError(null);
+              }}
+              className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold self-start"
+            >
+              Try Again
+            </button>
           </div>
         ) : (
           <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">

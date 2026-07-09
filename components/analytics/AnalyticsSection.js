@@ -10,6 +10,15 @@ import MoodDistribution from "./MoodDistribution";
 import JournalingConsistency from "./JournalingConsistency";
 import MonthlyComparison from "./MonthlyComparison";
 
+/**
+ * A container component for the advanced analytics dashboard.
+ * It manages the timeframe state (30 vs 90 days), layout animations via GSAP Flip,
+ * and passes the active dataset to the individual visualization components.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The user's mood data object (e.g. { year: { month: { day: value } } }).
+ * @returns {JSX.Element} The rendered AnalyticsSection component.
+ */
 export default function AnalyticsSection({ data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [days, setDays] = useState(30);
@@ -36,7 +45,7 @@ export default function AnalyticsSection({ data }) {
       Flip.from(flipState.current, {
         duration: 0.6,
         ease: "power3.inOut",
-        absolute: true,
+        absolute: gridRef.current.children, // Only children become absolute, keeping parent in flow
       });
       flipState.current = null;
     }
@@ -45,19 +54,9 @@ export default function AnalyticsSection({ data }) {
   const hasAnyData = data && Object.keys(data).length > 0;
 
   useEffect(() => {
-    const contentEl = contentRef.current;
     const gridEl = gridRef.current;
     
-    if (!contentEl) return;
-
     if (isExpanded) {
-      // Animate height expansion
-      gsap.fromTo(
-        contentEl,
-        { height: 0, opacity: 0 },
-        { height: "auto", opacity: 1, duration: 0.5, ease: "power3.out" }
-      );
-
       // Stagger animate the grid items
       if (gridEl) {
         gsap.fromTo(
@@ -66,19 +65,9 @@ export default function AnalyticsSection({ data }) {
           { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out", delay: 0.1 }
         );
       }
-    } else {
-      gsap.to(contentEl, {
-        height: 0,
-        opacity: 0,
-        duration: 0.3,
-        ease: "power2.in"
-      });
     }
 
     return () => {
-      if (contentEl) {
-        gsap.killTweensOf(contentEl);
-      }
       if (gridEl && gridEl.children) {
         gsap.killTweensOf(gridEl.children);
       }
@@ -108,14 +97,15 @@ export default function AnalyticsSection({ data }) {
         </div>
       </button>
 
-      {/* Expanded Content with overflow hidden for height animation */}
+      {/* Expanded Content with CSS Grid transition for height animation */}
       <div
-        ref={contentRef}
         id="analytics-section-content"
-        className="overflow-hidden"
-        style={{ height: 0, opacity: 0 }}
+        className={`grid transition-[grid-template-rows,opacity] duration-500 ease-in-out ${
+          isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
       >
-        <div className="pt-4 pb-2">
+        <div className="overflow-hidden">
+          <div className="pt-4 pb-2">
           {/* Global Timeframe Selector */}
           <div className="flex justify-end mb-6">
             <div className="flex bg-slate-100 dark:bg-slate-900/50 rounded-xl p-1 border border-slate-200 dark:border-white/[0.02]">
@@ -137,21 +127,20 @@ export default function AnalyticsSection({ data }) {
 
           <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
             {/* Top Row */}
-            <div className={`md:col-span-12 ${expandedPanel === 'chart' ? 'lg:col-span-12' : expandedPanel === 'insights' ? 'lg:col-span-6' : 'lg:col-span-8'} order-1`}>
+            <div className={`md:col-span-12 ${expandedPanel !== 'none' ? 'lg:col-span-12' : 'lg:col-span-8'} order-1 transition-all duration-500`}>
               <MoodTrendChart
                 data={data}
                 days={days}
-                isMaximized={expandedPanel === 'chart'}
+                isMaximized={expandedPanel !== 'none'}
                 onToggleMaximize={() => handleToggleMaximize('chart')}
               />
             </div>
-            <div className={`md:col-span-12 ${expandedPanel === 'insights' ? 'lg:col-span-6' : expandedPanel === 'chart' ? 'hidden' : 'lg:col-span-4'} order-2`}>
+            <div className={`md:col-span-12 ${expandedPanel !== 'none' ? 'lg:col-span-12' : 'lg:col-span-4'} order-2 transition-all duration-500`}>
               <InsightPanel
                 data={data}
                 days={days}
                 isExpanded={isExpanded}
-                isMaximized={expandedPanel === 'insights'}
-                onToggleMaximize={() => handleToggleMaximize('insights')}
+                isMaximized={expandedPanel !== 'none'}
               />
             </div>
 
@@ -167,6 +156,7 @@ export default function AnalyticsSection({ data }) {
             <div className="md:col-span-12 order-5">
               <MonthlyComparison data={data} />
             </div>
+          </div>
           </div>
         </div>
       </div>
