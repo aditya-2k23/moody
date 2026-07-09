@@ -61,8 +61,108 @@ function CustomTooltip({ active, payload }) {
   );
 }
 
+function MoodListItem({ item, variant = "compact" }) {
+  if (variant === "modal") {
+    return (
+      <div className="group flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
+        <span
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
+          style={{ backgroundColor: item.color }}
+        >
+          {item.emoji}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3 mb-1.5">
+            <span className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{item.moodName}</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{item.percentage}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
+            />
+          </div>
+        </div>
+        <span className="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500 ml-2">
+          {item.count} entries
+        </span>
+      </div>
+    );
+  }
+
+  // default to compact
+  return (
+    <div className="group flex items-center gap-3 rounded-xl border border-white/60 bg-white/55 px-3 py-1.5 transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/5 dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
+      <span
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
+        style={{ backgroundColor: item.color }}
+      >
+        {item.emoji}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-3">
+          <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{item.moodName}</span>
+          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{item.percentage}%</span>
+        </div>
+        <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
+          <div
+            className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
+          />
+        </div>
+      </div>
+      <span className="shrink-0 text-[10px] font-medium text-slate-400 dark:text-slate-500">
+        {item.count}x
+      </span>
+    </div>
+  );
+}
+
 export default function MoodDistribution({ data, days = 30 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      if (modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length) focusable[0].focus();
+      }
+
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          setIsModalOpen(false);
+        } else if (e.key === "Tab" && modalRef.current) {
+          const focusable = modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusable.length) {
+            const firstElement = focusable[0];
+            const lastElement = focusable[focusable.length - 1];
+            if (e.shiftKey) {
+              if (document.activeElement === firstElement) {
+                lastElement.focus();
+                e.preventDefault();
+              }
+            } else {
+              if (document.activeElement === lastElement) {
+                firstElement.focus();
+                e.preventDefault();
+              }
+            }
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "";
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    } else if (triggerRef.current) {
+      triggerRef.current.focus();
+    }
+  }, [isModalOpen]);
 
   const distribution = useMemo(() => {
     return calculateDistribution(data, days);
@@ -178,38 +278,14 @@ export default function MoodDistribution({ data, days = 30 }) {
             }}
           >
             {chartData.map((item) => (
-              <div
-                key={item.moodName}
-                className="group flex items-center gap-3 rounded-xl border border-white/60 bg-white/55 px-3 py-1.5 transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/5 dark:bg-white/[0.04] dark:hover:bg-white/[0.07]"
-              >
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
-                  style={{ backgroundColor: item.color }}
-                >
-                  {item.emoji}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{item.moodName}</span>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{item.percentage}%</span>
-                  </div>
-                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
-                    <div
-                      className="h-full rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
-                    />
-                  </div>
-                </div>
-                <span className="shrink-0 text-[10px] font-medium text-slate-400 dark:text-slate-500">
-                  {item.count}x
-                </span>
-              </div>
+              <MoodListItem key={item.moodName} item={item} variant="compact" />
             ))}
           </div>
 
           {/* Mobile Overlay & Button */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-indigo-50/90 dark:from-slate-900/90 to-transparent sm:hidden pointer-events-none" />
           <button
+            ref={triggerRef}
             className="absolute bottom-0 left-0 right-0 py-2 mx-1 mb-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md text-indigo-600 dark:text-indigo-400 text-xs font-semibold rounded-xl border border-indigo-100 dark:border-slate-700 sm:hidden shadow-sm transition-all hover:bg-white dark:hover:bg-slate-700"
             onClick={() => setIsModalOpen(true)}
           >
@@ -222,43 +298,26 @@ export default function MoodDistribution({ data, days = 30 }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:hidden" onClick={() => setIsModalOpen(false)}>
           <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mood-breakdown-title"
             className="w-full max-h-[85vh] bg-white dark:bg-slate-900 rounded-t-3xl p-6 flex flex-col shadow-2xl animate-modal-overlay"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Mood Breakdown</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors">
+              <h3 id="mood-breakdown-title" className="text-lg font-semibold text-slate-800 dark:text-slate-100">Mood Breakdown</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                aria-label="Close"
+              >
                 <X size={16} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto flex flex-col gap-2 custom-scrollbar pb-6 pr-1">
               {chartData.map((item) => (
-                <div
-                  key={item.moodName}
-                  className="group flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-4 py-3"
-                >
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    {item.emoji}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3 mb-1.5">
-                      <span className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{item.moodName}</span>
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{item.percentage}%</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
-                      />
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500 ml-2">
-                    {item.count} entries
-                  </span>
-                </div>
+                <MoodListItem key={item.moodName} item={item} variant="modal" />
               ))}
             </div>
           </div>

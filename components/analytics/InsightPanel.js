@@ -21,6 +21,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
   const [aiError, setAiError] = useState(null);
   const [lastInsightHash, setLastInsightHash] = useState(null);
   const [isInsightExpanded, setIsInsightExpanded] = useState(false);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
 
   const { trends, distribution, weekly, periods, microInsight, consistency } = useMemo(() => {
     const nextTrends = calculateMoodTrends(data, days);
@@ -120,7 +121,10 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             worstWeekAvg: periods?.toughestPeriod?.average || "N/A",
             worstWeekDate: periods?.toughestPeriod?.label || "N/A",
           };
-          const res = await generateTrendsInsight(idToken, stats);
+          const res = await generateTrendsInsight(idToken, stats, forceRegenerate);
+          if (forceRegenerate) {
+            setForceRegenerate(false);
+          }
           if (res.success) {
             setAiInsight(res.data);
             setLastInsightHash(currentHash);
@@ -136,7 +140,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       };
       fetchAiInsight();
     }
-  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends]);
+  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends, forceRegenerate]);
 
   // Handle switching timeframes to check cache immediately
   useEffect(() => {
@@ -260,8 +264,13 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
                 ) : <div />}
                 <button
                   onClick={() => {
+                    if (currentUser) {
+                      localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                    }
+                    setForceRegenerate(true);
                     setAiInsight(null);
                     setAiError(null);
+                    setIsInsightExpanded(false);
                   }}
                   className="text-xs text-indigo-500 hover:text-indigo-600 dark:text-indigo-400/80 dark:hover:text-indigo-300 font-medium transition-colors"
                 >
@@ -286,8 +295,13 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
                 <span className="text-xs opacity-80">Timeframe or data changed</span>
                 <button
                   onClick={() => {
+                    if (currentUser) {
+                      localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                    }
+                    setForceRegenerate(true);
                     setAiInsight(null);
                     setAiError(null);
+                    setIsInsightExpanded(false);
                   }}
                   className="text-xs bg-indigo-100 dark:bg-indigo-500/20 hover:bg-indigo-200 dark:hover:bg-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors font-semibold"
                 >
@@ -310,6 +324,23 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
                 <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wide">Analyzing Trends...</span>
               </div>
             </div>
+          </div>
+        ) : aiError ? (
+          <div className="rounded-xl border border-red-200/70 bg-red-50/70 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 flex flex-col gap-2">
+            <span className="opacity-90">We couldn't generate your trends insight right now. Please try again.</span>
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  localStorage.removeItem(`moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`);
+                }
+                setForceRegenerate(true);
+                setAiInsight(null);
+                setAiError(null);
+              }}
+              className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold self-start"
+            >
+              Try Again
+            </button>
           </div>
         ) : (
           <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">

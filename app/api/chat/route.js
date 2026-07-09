@@ -6,8 +6,7 @@ import crypto from "node:crypto";
 import { GoogleGenAI } from "@google/genai";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { retrieveRelevantMemories } from "@/lib/rag";
-import { getEmbedding } from "@/app/actions/insights";
+import { retrieveRelevantMemories, getEmbedding } from "@/lib/rag";
 
 /**
  * stripWrappingQuotes — Removes exactly one matched pair of wrapping
@@ -390,13 +389,24 @@ export async function POST(req) {
 
       const fetchRag = async () => {
         try {
-          const queryEmbedding = await getEmbedding(message);
+          // 1. Lightweight precheck: Does this user even have journal entries stored?
+          const hasEmbeddings = await redis.exists(`embeddings:${effectiveUserId}`);
+          if (!hasEmbeddings) return;
+
+          // 2. Bounded timeout for embedding retrieval (don't stall the main chat response)
+          const queryEmbeddingPromise = getEmbedding(message);
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("RAG retrieval timed out")), 3500)
+          );
+
+          const queryEmbedding = await Promise.race([queryEmbeddingPromise, timeoutPromise]);
+          
           if (queryEmbedding) {
             const { memoryBlock } = await retrieveRelevantMemories(effectiveUserId, queryEmbedding);
             journalMemoryBlock = memoryBlock;
           }
         } catch (e) {
-          console.warn("[Chat API] Failed to fetch RAG memories", e);
+          console.warn("[Chat API] Failed to fetch RAG memories:", e.message || e);
         }
       };
 
@@ -568,7 +578,6 @@ export async function POST(req) {
     CRISIS HANDLING:
     - If someone expresses thoughts of self-harm or complete hopelessness, acknowledge it gently and warmly, suggest they reach out to someone they trust or a crisis line — don't panic or diagnose, just be a caring friend who knows her limits
 
-    ${journalText ? `\nCONTEXT — the user's current journal entry (may include rich text formatting). Use this like memory, naturally refer to it, don't phrase it like a robot, Never say "based on your data/journal". If they've bolded or italicized something, that's usually what they care about most:\n"""\n${journalText}\n"""\n` : ''}
 
     FINAL REMINDERS (read this again before you write your reply):
     - Each array element = ONE short thought. Never put a line break inside a single string.
@@ -577,6 +586,7 @@ export async function POST(req) {
     - Vary your energy — you don't need an emoji or exclamation point every time.
 
     ${journalMemoryBlock ? `\nLONG-TERM CONTEXT — from the user's past journal entries (this is what they've written about before, NOT what was said in this chat):\n"""\n${journalMemoryBlock}\n"""\nUse this naturally — like a friend who remembers details from past conversations. Never say "based on your journal". If something from their past entries is relevant to what they're saying right now, weave it in warmly.\n` : ''}
+
     ${journalText ? `\nCONTEXT — the user's current journal entry (may include rich text formatting). Use this like memory, naturally refer to it, don't phrase it like a robot, Never say "based on your data/journal". If they've bolded or italicized something, that's usually what they care about most:\n"""\n${journalText}\n"""\n` : ''}`;
 
     const demoChatPrompt = `${systemInstruction}

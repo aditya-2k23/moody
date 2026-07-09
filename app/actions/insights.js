@@ -5,7 +5,11 @@ import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
 import convertMood from "@/utils";
-import { retrieveRelevantMemories } from "@/lib/rag";
+import { retrieveRelevantMemories, fetchUserEmbeddings, getEmbedding } from "@/lib/rag";
+
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
@@ -133,39 +137,6 @@ function isQuotaError(error) {
 }
 
 // ===== SEMANTIC CACHING UTILITIES =====
-
-export async function getEmbedding(text) {
-  try {
-    const ai = getGenAIClient();
-    let result;
-    try {
-      result = await ai.models.embedContent({
-        model: 'gemini-embedding-001',
-        contents: [text],
-        config: { taskType: 'SEMANTIC_SIMILARITY' },
-        AI_TIMEOUT_MS
-      });
-    } catch (err) {
-      if (err.message?.includes("404") || err.message?.includes("not found")) {
-        console.warn("[Insights] gemini-embedding-001 not found, falling back to gemini-embedding-2-preview...");
-        result = await ai.models.embedContent({
-          model: 'gemini-embedding-2-preview',
-          contents: [text],
-          config: { taskType: 'SEMANTIC_SIMILARITY' },
-          AI_TIMEOUT_MS
-        });
-      } else {
-        throw err;
-      }
-    }
-    // Result has `embeddings` array
-    return result.embeddings[0].values;
-  } catch (error) {
-    console.error("[Insights] Embedding generation failed:", error.message);
-    return null; // Silent fail gracefully
-  }
-}
-
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   let dotProduct = 0;
@@ -200,29 +171,8 @@ function hasValidPartialCacheSeed(response) {
   return hasMood && hasHeadline && hasTriggers;
 }
 
-export async function fetchUserEmbeddings(userId) {
-  // [DEBUG-TRACE] Log fetch — remove after diagnosis
-  console.log(`[DEBUG-TRACE] fetchUserEmbeddings CALLED | ts=${Date.now()} | userId=${userId?.slice(0, 8)}...`);
-  try {
-    const raw = await redis.get(`embeddings:${userId}`);
-    const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (Array.isArray(data)) {
-      console.log(`[DEBUG-TRACE] fetchUserEmbeddings RETURNED | ts=${Date.now()} | count=${data.length}`);
-      return data;
-    }
-    console.log(`[DEBUG-TRACE] fetchUserEmbeddings RETURNED | ts=${Date.now()} | count=0 (not array)`);
-    return [];
-  } catch (error) {
-    console.error("[Insights] Redis embedding fetch failed:", error.message);
-    return [];
-  }
-}
-
-async function storeUserEmbedding(userId, embedding, response, sourceText = "") {
+async function storeUserEmbedding(userId, embedding, response, sourceText = "", entryDate = null) {
   if (!embedding) return;
-  // [DEBUG-TRACE] Log entry — remove after diagnosis
-  const _traceHash = crypto.createHash('sha256').update(normalizeEntryText(sourceText)).digest('hex').slice(0, 12);
-  console.log(`[DEBUG-TRACE] storeUserEmbedding CALLED | ts=${Date.now()} | hash=${_traceHash}`);
   try {
     const key = `embeddings:${userId}`;
     let data = await fetchUserEmbeddings(userId);
@@ -231,7 +181,6 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
     const normalizedSource = normalizeEntryText(sourceText);
     const isDuplicate = data.some(item => item.sourceText === normalizedSource);
     if (isDuplicate) {
-      console.log(`[DEBUG-TRACE] storeUserEmbedding SKIPPED (duplicate) | ts=${Date.now()} | hash=${_traceHash}`);
       return;
     }
 
@@ -241,7 +190,7 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
       sourceText: normalizedSource,
       createdAt: Date.now(),
       // Part 4a: Additional fields for future RAG retrieval
-      date: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
+      date: entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
       moodLabel: response?.mood ? convertMood(response.mood) : null,
     });
 
@@ -253,7 +202,6 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
 
     // Stringify explicitly to ensure Upstash compatibility — TTL unchanged (7 days)
     await redis.set(key, JSON.stringify(data), { ex: CACHE_TTL_SECONDS });
-    console.log(`[DEBUG-TRACE] storeUserEmbedding COMPLETED | ts=${Date.now()} | hash=${_traceHash}`);
   } catch (error) {
     console.error("[Insights] Redis embedding store failed:", error.message);
   }
@@ -400,7 +348,7 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
  * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
  * @returns {Promise<Object>} An object containing the generation success status, the insight data, and the model used.
  */
-export async function generateInsight(idToken, journalText, forceRegenerate = false) {
+export async function generateInsight(idToken, journalText, forceRegenerate = false, entryDate = null) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
   }
@@ -444,9 +392,9 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   }
 
   // ===== PHASE 1: SEMANTIC CACHING =====
-  if (!forceRegenerate) {
-    embedding = await getEmbedding(journalText);
+  embedding = await getEmbedding(journalText);
 
+  if (!forceRegenerate) {
     if (embedding) {
       const stored = storedEmbeddings || await fetchUserEmbeddings(userId);
       let bestMatch = null;
@@ -554,7 +502,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
 
   let memoryBlock = null;
   if (embedding) {
-    const ragResult = await retrieveRelevantMemories(userId, embedding);
+    const ragResult = await retrieveRelevantMemories(userId, embedding, storedEmbeddings);
     memoryBlock = ragResult.memoryBlock;
   }
 
@@ -562,10 +510,10 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   let modelUsed = null;
   const startTime = Date.now();
 
-  const currentDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const insightDate = entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const prompt = isCacheHit
-    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, currentDate, memoryBlock)
-    : buildPrompt(journalText, currentDate, memoryBlock);
+    ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, insightDate, memoryBlock)
+    : buildPrompt(journalText, insightDate, memoryBlock);
 
   // Define dynamic schema based on cache miss/hit
   const fullSchemaProperties = {
@@ -676,7 +624,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   // We reached here, so Gemini successfully generated a response (meaning we paid the token cost).
   // We must store it so that future repeat entries will hit the `pureMaxSimilarity >= 0.95` check.
   if (insight && embedding) {
-    await storeUserEmbedding(userId, embedding, insight, journalText);
+    await storeUserEmbedding(userId, embedding, insight, journalText, entryDate);
   }
 
   return { success: true, data: insight, modelUsed };
@@ -690,7 +638,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
  * @param {Object} analyticsData - The structured analytics data including trends, distribution, weekly patterns, etc.
  * @returns {Promise<Object>} An object containing the generation success status, the trends insight data, and the model used.
  */
-export async function generateTrendsInsight(idToken, analyticsData) {
+export async function generateTrendsInsight(idToken, analyticsData, forceRegenerate = false) {
   if (!idToken) {
     return { success: false, error: "Authentication required." };
   }
@@ -715,13 +663,15 @@ export async function generateTrendsInsight(idToken, analyticsData) {
   const cacheFingerprint = crypto.createHash('sha256').update(fingerprintStr).digest('hex').slice(0, 16);
   const cacheKey = `insights:analytics:${userId}:${days}:${cacheFingerprint}`;
 
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return { success: true, data: cached, modelUsed: "cache" };
+  if (!forceRegenerate) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return { success: true, data: cached, modelUsed: "cache" };
+      }
+    } catch (err) {
+      console.error("[Insights] Redis get error:", err);
     }
-  } catch (err) {
-    console.error("[Insights] Redis get error:", err);
   }
 
   try {

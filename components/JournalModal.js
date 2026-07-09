@@ -454,14 +454,15 @@ export default function JournalModal({
                                   return;
                                 }
                                 const forceRegenerate = !!dayInsights;
-                                const result = await generateInsight(idToken, journal, forceRegenerate);
+                                const dateKey = toDateKey(year, month, day);
+                                const result = await generateInsight(idToken, journal, forceRegenerate, dateKey);
                                 if (!result.success) {
                                   toast.error(result.error || "Failed to generate insights.");
                                   return;
                                 }
-                                setDayInsights(result.data);
                                 const docRef = doc(db, "users", userId, "insights", toDateKey(year, month, day));
                                 await setDoc(docRef, { ...result.data, sourceText: journal.trim() }, { merge: true });
+                                setDayInsights(result.data);
                                 toast.success("Insights generated successfully!");
                               } catch (err) {
                                 console.error("Error generating insights:", err);
@@ -471,7 +472,7 @@ export default function JournalModal({
                               }
                               return;
                             }
-                            
+
                             setLoadingInsights(true);
                             setShowInsights(true);
                             try {
