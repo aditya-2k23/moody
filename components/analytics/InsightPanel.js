@@ -14,6 +14,19 @@ import { useAuth } from "@/context/authContext";
 import { generateTrendsInsight } from "@/app/actions/insights";
 import { Maximize2, Minimize2, Loader2 } from "lucide-react";
 
+/**
+ * Renders an AI-generated personalized insight panel based on the user's mood data.
+ * The component calculates local statistics (trends, patterns, consistency) and sends
+ * them to the backend to generate a narrative text response via Gemini API.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.data - The user's mood data object.
+ * @param {number} [props.days=30] - The lookback timeframe for the analysis.
+ * @param {boolean} [props.isExpanded=false] - Used to trigger data fetching only when the analytics section is open.
+ * @param {boolean} [props.isMaximized=false] - Whether the panel is currently maximized in the layout.
+ * @param {Function} [props.onToggleMaximize] - Callback fired when the maximize/minimize button is clicked.
+ * @returns {JSX.Element} The rendered InsightPanel component.
+ */
 export default function InsightPanel({ data, days = 30, isExpanded = false, isMaximized, onToggleMaximize }) {
   const { currentUser } = useAuth();
   const [aiInsight, setAiInsight] = useState(null);

@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Advanced Analytics**: Enhanced the dashboard with interactive visualizations including Mood Trends, Weekly Patterns, Month-over-Month comparisons, Mood Distribution, and Journaling Consistency metrics.
+
 ## [3.3.0] - 2026-07-09
 
 ### 🚀 New Features

@@ -4,6 +4,15 @@ import { useMemo } from "react";
 import { calculateConsistency, calculateMoodHeatmap } from "@/utils/analytics";
 import { Flame } from "lucide-react";
 
+/**
+ * Displays the user's journaling consistency over the selected timeframe,
+ * including current streak, completion rate, and a 28-day mood heatmap grid.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.data - The user's mood data object.
+ * @param {number} [props.days=30] - The timeframe in days to evaluate completion rates against.
+ * @returns {JSX.Element} The rendered JournalingConsistency component.
+ */
 export default function JournalingConsistency({ data, days = 30 }) {
   const consistency = useMemo(() => {
     return calculateConsistency(data, days);

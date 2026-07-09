@@ -9,11 +9,25 @@ import gsap from "gsap";
 
 const moodNames = Object.keys(emojiMap);
 
+/**
+ * Maps a mood name to a specific color from the indigo gradient scale.
+ * @param {string} moodName - The name of the mood to look up.
+ * @returns {string} The hex color or CSS class representing the mood.
+ */
 function getMoodColor(moodName) {
   const index = Math.max(0, moodNames.indexOf(moodName));
   return gradients.indigo[Math.min(gradients.indigo.length - 1, index)];
 }
 
+/**
+ * Custom tooltip component for the Recharts PieChart.
+ * Animates into view using GSAP when hovered.
+ *
+ * @param {Object} props - Recharts tooltip props.
+ * @param {boolean} props.active - Whether the tooltip is currently active/visible.
+ * @param {Array} props.payload - The data payload for the hovered pie sector.
+ * @returns {JSX.Element|null} The rendered tooltip component.
+ */
 function CustomTooltip({ active, payload }) {
   const containerRef = useRef(null);
 
