@@ -7,10 +7,6 @@ import crypto from 'node:crypto';
 import convertMood from "@/utils";
 import { retrieveRelevantMemories, fetchUserEmbeddings, getEmbedding } from "@/lib/rag";
 
-if (process.env.NODE_ENV !== 'production') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
-
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days limits
 const MAX_EMBEDDINGS = 40; // Maintain last 40 embeddings
 const SIMILARITY_THRESHOLD = 0.85; // 0.85 indicates semantic similarity
