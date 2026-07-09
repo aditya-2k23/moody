@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-07-09
+
+### 🚀 New Features
+
+- **RAG Architecture**: Implemented Retrieval-Augmented Generation (`lib/rag.js`) to allow Lumi to contextually recall past journal entries and memories during chat conversations, enhancing long-term personalization.
+
+### 🎨 UI & UX Improvements
+
+- **UI Fixes**: Resolved various minor UI issues and addressed styling bugs (e.g., fixing the X icon visibility).
+
+### ⚡️ Optimizations & Fixes
+
+- **Chat Style Consistency**: Implemented deterministic post-processing in the chat API route to automatically split any newline-embedded, multi-paragraph bubbles into separate array elements. This ensures the frontend always renders distinct short-bubble chat messages even if the AI model output occasionally groups thoughts together.
+- **Chat Sampling Adjustments**: Added explicit `temperature` (1.15) and `topP` (0.95) parameters to the chat response generation config to increase natural response variance and reduce repetitive or formulaic phrasing (tag questions, uniform enthusiasm), while safely scoping this change only to the chat route to preserve structured output stability elsewhere.
+
 ## [3.2.0] - 2026-07-03
 
 ### 🚀 New Features
