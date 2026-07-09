@@ -11,6 +11,14 @@ import {
 } from "@/utils/analytics";
 import { Sparkles } from "lucide-react";
 
+/**
+ * A component that displays advanced comparison statistics between the current
+ * month and the previous month, including momentum, recovery time, and emotional range.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.data - The user's mood data object.
+ * @returns {JSX.Element} The rendered MonthlyComparison component.
+ */
 export default function MonthlyComparison({ data }) {
   const { currentStats, prevStats } = useMemo(() => {
     return calculateMonthlyComparison(data);

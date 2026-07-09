@@ -10,6 +10,15 @@ import MoodDistribution from "./MoodDistribution";
 import JournalingConsistency from "./JournalingConsistency";
 import MonthlyComparison from "./MonthlyComparison";
 
+/**
+ * A container component for the advanced analytics dashboard.
+ * It manages the timeframe state (30 vs 90 days), layout animations via GSAP Flip,
+ * and passes the active dataset to the individual visualization components.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.data - The user's mood data object (e.g. { year: { month: { day: value } } }).
+ * @returns {JSX.Element} The rendered AnalyticsSection component.
+ */
 export default function AnalyticsSection({ data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [days, setDays] = useState(30);

@@ -20,6 +20,11 @@ const MODEL_CHAIN = [
   { id: "gemini-2.0-flash", label: "2.0-Flash" },
 ];
 
+/**
+ * Retrieves and validates the Gemini API key from environment variables.
+ * @returns {string} The verified API key.
+ * @throws {Error} If the API key is missing or empty.
+ */
 function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === "") {
@@ -29,10 +34,20 @@ function getApiKey() {
   return apiKey;
 }
 
+/**
+ * Initializes and returns a new GoogleGenAI client instance.
+ * @returns {GoogleGenAI} The authenticated Gemini client.
+ */
 function getGenAIClient() {
   return new GoogleGenAI({ apiKey: getApiKey() });
 }
 
+/**
+ * Wraps a promise with a timeout mechanism.
+ * @param {Promise} promise - The promise to wrap.
+ * @param {number} timeoutMs - The timeout duration in milliseconds.
+ * @returns {Promise} A promise that rejects if the timeout is reached before resolution.
+ */
 function withTimeout(promise, timeoutMs) {
   let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
@@ -46,6 +61,11 @@ function withTimeout(promise, timeoutMs) {
 
 // ===== REDIS-BASED MODEL EXHAUSTION TRACKING =====
 
+/**
+ * Calculates the number of seconds remaining until midnight in the Asia/Kolkata timezone.
+ * Used for setting daily TTLs in Redis cache.
+ * @returns {number} Seconds until midnight.
+ */
 function secondsUntilMidnight() {
   const now = new Date();
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -86,6 +106,11 @@ function secondsUntilMidnight() {
   return Math.max(Math.ceil((istMidnight - istTime) / 1000), 60);
 }
 
+/**
+ * Marks a specific Gemini model as exhausted in the Redis cache until midnight.
+ * @param {string} modelId - The ID of the model (e.g., 'gemini-1.5-flash').
+ * @returns {Promise<void>}
+ */
 async function markModelExhausted(modelId) {
   try {
     const ttl = secondsUntilMidnight();
@@ -96,6 +121,10 @@ async function markModelExhausted(modelId) {
   }
 }
 
+/**
+ * Retrieves the list of available Gemini models that have not been marked as exhausted.
+ * @returns {Promise<Array>} Array of available model configurations.
+ */
 async function getAvailableModels() {
   try {
     const keys = MODEL_CHAIN.map((m) => `model:exhausted:${m.id}`);
@@ -106,6 +135,11 @@ async function getAvailableModels() {
   }
 }
 
+/**
+ * Determines if an error returned by the AI provider is temporary and worth retrying.
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if the error is retryable.
+ */
 function isRetryableError(error) {
   const msg = error.message || "";
   const isQuotaOrAccess =
@@ -122,6 +156,11 @@ function isRetryableError(error) {
   return isQuotaOrAccess || isTimeout || isFormat;
 }
 
+/**
+ * Determines if an error returned by the AI provider is specifically related to quota limits.
+ * @param {Error} error - The error object.
+ * @returns {boolean} True if the error is a quota error.
+ */
 function isQuotaError(error) {
   const msg = error.message || "";
   return (
@@ -134,6 +173,11 @@ function isQuotaError(error) {
 
 // ===== SEMANTIC CACHING UTILITIES =====
 
+/**
+ * Retrieves a vector embedding for the given text from the Gemini model.
+ * @param {string} text - The input text to embed.
+ * @returns {Promise<Array<number>|null>} The vector embedding array or null on failure.
+ */
 export async function getEmbedding(text) {
   try {
     const ai = getGenAIClient();
@@ -166,6 +210,12 @@ export async function getEmbedding(text) {
   }
 }
 
+/**
+ * Calculates the cosine similarity between two vector embeddings.
+ * @param {Array<number>} vecA - The first vector.
+ * @param {Array<number>} vecB - The second vector.
+ * @returns {number} A score from -1.0 to 1.0 representing similarity.
+ */
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   let dotProduct = 0;
@@ -180,6 +230,11 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+/**
+ * Normalizes input text for more reliable embedding and string matching.
+ * @param {string} text - The input text.
+ * @returns {string} The normalized text.
+ */
 function normalizeEntryText(text) {
   return (text || "")
     .toLowerCase()
@@ -187,6 +242,11 @@ function normalizeEntryText(text) {
     .trim();
 }
 
+/**
+ * Checks if a cached response has the minimum required fields to serve as a partial cache seed.
+ * @param {Object} response - The cached response object.
+ * @returns {boolean} True if the response is valid as a seed.
+ */
 function hasValidPartialCacheSeed(response) {
   if (!response || typeof response !== "object") return false;
 
@@ -200,6 +260,11 @@ function hasValidPartialCacheSeed(response) {
   return hasMood && hasHeadline && hasTriggers;
 }
 
+/**
+ * Retrieves the user's historical embedding list from Redis cache.
+ * @param {string} userId - The unique identifier of the user.
+ * @returns {Promise<Array>} The array of historical embeddings and metadata.
+ */
 export async function fetchUserEmbeddings(userId) {
   // [DEBUG-TRACE] Log fetch — remove after diagnosis
   console.log(`[DEBUG-TRACE] fetchUserEmbeddings CALLED | ts=${Date.now()} | userId=${userId?.slice(0, 8)}...`);
@@ -218,6 +283,15 @@ export async function fetchUserEmbeddings(userId) {
   }
 }
 
+/**
+ * Stores a new embedding with its associated context into the user's Redis cache,
+ * maintaining a rolling list up to MAX_EMBEDDINGS.
+ * @param {string} userId - The unique user ID.
+ * @param {Array<number>} embedding - The vector representation of the journal entry.
+ * @param {Object} response - The parsed insights generated from the entry.
+ * @param {string} [sourceText=""] - The original journal text used to generate the embedding.
+ * @returns {Promise<void>}
+ */
 async function storeUserEmbedding(userId, embedding, response, sourceText = "") {
   if (!embedding) return;
   // [DEBUG-TRACE] Log entry — remove after diagnosis
@@ -261,6 +335,13 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "") 
 
 // ===== PROMPT BUILDERS =====
 
+/**
+ * Builds the full system prompt for generating a complete insight response from scratch.
+ * @param {string} journalEntry - The user's journal text.
+ * @param {string} [currentDate=""] - The date context for the entry.
+ * @param {string|null} [memoryBlock=null] - Past context retrieved via semantic search.
+ * @returns {string} The constructed prompt string.
+ */
 function buildPrompt(journalEntry, currentDate = "", memoryBlock = null) {
   let prompt = `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's absolute best friend inside their journaling app Moody.
   WHO YOU ARE:
@@ -332,6 +413,17 @@ function buildPrompt(journalEntry, currentDate = "", memoryBlock = null) {
   return prompt;
 }
 
+/**
+ * Builds a lighter prompt for generating insights when a similar cached entry exists,
+ * reusing the cached mood, triggers, and headline to save processing time.
+ * @param {string} journalEntry - The user's new journal text.
+ * @param {string} cachedMood - The mood extracted from the cached similar entry.
+ * @param {Array<string>} cachedTriggers - The triggers extracted from the cached similar entry.
+ * @param {string} cachedHeadline - The headline extracted from the cached similar entry.
+ * @param {string} [currentDate=""] - The date context for the entry.
+ * @param {string|null} [memoryBlock=null] - Past context retrieved via semantic search.
+ * @returns {string} The constructed prompt string.
+ */
 function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHeadline, currentDate = "", memoryBlock = null) {
   let prompt = `You are Lumi 🌟 — a bubbly, warm best friend inside a mood tracker and journaling app called Moody.
   The user wrote something that feels emotionally similar to a recent entry. You already know their mood and what's been on their mind. Your job is to respond freshly — like a good friend who picks up the thread without being repetitive.

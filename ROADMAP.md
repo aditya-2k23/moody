@@ -22,7 +22,7 @@ This document outlines the development plan and future vision for **Moody**. Our
 ### Q1 2026
 
 - [x] **🎙️ Voice Input Support**
-- [ ] **📊 Advanced Analytics**
+- [x] **📊 Advanced Analytics**
   - Weekly and monthly mood graphs.
   - Correlation between specific triggers and moods over time.
 - [x] **🤖 AI Chat Companion (Beta)**

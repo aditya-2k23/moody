@@ -1,5 +1,9 @@
 import convertMood, { gradients, moods as emojiMap } from "../index";
 
+/**
+ * A mapping of mood names to numerical scores (1-10 scale)
+ * used for calculating averages, momentum, and trends.
+ */
 export const MOOD_SCORES = {
   'Awful': 1,
   'Angry': 1,
@@ -88,6 +92,15 @@ export function getMoodDetailsForDate(dataObj, date) {
   };
 }
 
+/**
+ * A higher-order utility that iterates backward over a specified number of days,
+ * extracts mood details for each date, and executes a callback.
+ *
+ * @param {Object} dataObj - The structured mood data.
+ * @param {number} days - The number of days to iterate over.
+ * @param {Function} callback - Function executed for each day: (date, details).
+ * @param {boolean} [reverse=false] - If true, iterates from oldest to newest instead of newest to oldest.
+ */
 export function iterateDays(dataObj, days, callback, reverse = false) {
   const now = new Date();
   const loop = (i) => {
@@ -107,6 +120,13 @@ export function iterateDays(dataObj, days, callback, reverse = false) {
   }
 }
 
+/**
+ * Calculates a daily mood trend series over a given timeframe for visualizations.
+ *
+ * @param {Object} dataObj - The structured mood data.
+ * @param {number} [days=7] - The number of days to analyze.
+ * @returns {Array} An array of daily trend objects, chronologically ordered (oldest to newest).
+ */
 export function calculateMoodTrends(dataObj, days = 7) {
   const result = [];
 
