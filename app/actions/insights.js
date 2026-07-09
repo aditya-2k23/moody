@@ -235,17 +235,22 @@ function hasValidPartialCacheSeed(response) {
  * @param {string} [sourceText=""] - The original journal text used to generate the embedding.
  * @returns {Promise<void>}
  */
-async function storeUserEmbedding(userId, embedding, response, sourceText = "", entryDate = null) {
+async function storeUserEmbedding(userId, embedding, response, sourceText = "", entryDate = null, forceRegenerate = false) {
   if (!embedding) return;
   try {
     const key = `embeddings:${userId}`;
     let data = await fetchUserEmbeddings(userId);
 
-    // Part 4c: Dedup — skip storing if exact normalized text already exists
+    // Part 4c: Dedup — skip storing if exact normalized text already exists (unless forcing regeneration)
     const normalizedSource = normalizeEntryText(sourceText);
-    const isDuplicate = data.some(item => item.sourceText === normalizedSource);
-    if (isDuplicate) {
-      return;
+    const duplicateIndex = data.findIndex(item => item.sourceText === normalizedSource);
+    
+    if (duplicateIndex !== -1) {
+      if (!forceRegenerate) {
+        return;
+      }
+      // If forcing regeneration, remove the stale entry so the new one takes its place
+      data.splice(duplicateIndex, 1);
     }
 
     data.push({
@@ -254,6 +259,7 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "", 
       sourceText: normalizedSource,
       createdAt: Date.now(),
       // Part 4a: Additional fields for future RAG retrieval
+      // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
       date: entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
       moodLabel: response?.mood ? convertMood(response.mood) : null,
     });
@@ -592,6 +598,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   let modelUsed = null;
   const startTime = Date.now();
 
+  // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
   const insightDate = entryDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const prompt = isCacheHit
     ? buildPartialPrompt(journalText, cachedData.mood, cachedData.triggers, cachedData.headline, insightDate, memoryBlock)
@@ -706,7 +713,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
   // We reached here, so Gemini successfully generated a response (meaning we paid the token cost).
   // We must store it so that future repeat entries will hit the `pureMaxSimilarity >= 0.95` check.
   if (insight && embedding) {
-    await storeUserEmbedding(userId, embedding, insight, journalText, entryDate);
+    await storeUserEmbedding(userId, embedding, insight, journalText, entryDate, forceRegenerate);
   }
 
   return { success: true, data: insight, modelUsed };
@@ -737,11 +744,22 @@ export async function generateTrendsInsight(idToken, analyticsData, forceRegener
     totalEntries,
     topMood,
     loggingRate,
+    distributionSummary,
+    trendDirection,
+    variance,
+    bestDay,
+    worstDay,
+    journalCorrelation,
+    bestWeekAvg,
+    bestWeekDate,
+    worstWeekAvg,
+    worstWeekDate,
     days = 30
   } = analyticsData;
 
+  // Note: Asia/Kolkata is the intended daily boundary. Keep timezone consistent with RAG/prompt anchoring.
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD
-  const fingerprintStr = `${totalEntries}|${topMood}|${loggingRate}|${today}`;
+  const fingerprintStr = `${totalEntries}|${topMood}|${loggingRate}|${distributionSummary}|${trendDirection}|${variance}|${bestDay}|${worstDay}|${journalCorrelation}|${bestWeekAvg}|${bestWeekDate}|${worstWeekAvg}|${worstWeekDate}|${today}`;
   const cacheFingerprint = crypto.createHash('sha256').update(fingerprintStr).digest('hex').slice(0, 16);
   const cacheKey = `insights:analytics:${userId}:${days}:${cacheFingerprint}`;
 

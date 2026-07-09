@@ -62,7 +62,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       return;
     }
 
-    if (isExpanded && loggedCount >= 3 && !aiInsight && !loadingAi && currentUser) {
+    if (isExpanded && loggedCount >= 3 && !aiInsight && !aiError && !loadingAi && currentUser) {
       const cacheKey = `moody_insight_${currentUser.uid}_${days}_${consistency.totalEntries}`;
       const cached = localStorage.getItem(cacheKey);
 
@@ -153,7 +153,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       };
       fetchAiInsight();
     }
-  }, [isExpanded, loggedCount, aiInsight, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends, forceRegenerate]);
+  }, [isExpanded, loggedCount, aiInsight, aiError, loadingAi, currentUser, consistency, distribution, weekly, days, lastInsightHash, periods, trends, forceRegenerate]);
 
   // Handle switching timeframes to check cache immediately
   useEffect(() => {
@@ -340,7 +340,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           </div>
         ) : aiError ? (
           <div className="rounded-xl border border-red-200/70 bg-red-50/70 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 flex flex-col gap-2">
-            <span className="opacity-90">We couldn't generate your trends insight right now. Please try again.</span>
+            <span className="opacity-90">We couldn&apos;t generate your trends insight right now. Please try again.</span>
             <button
               onClick={() => {
                 if (currentUser) {
