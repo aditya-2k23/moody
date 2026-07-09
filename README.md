@@ -35,39 +35,6 @@ Moody is a **minimalistic** and modern mood-tracking web application built with 
 - **Beautiful Landing Page**: A fully redesigned landing page featuring dynamic scroll animations, a features grid, and a modern aesthetic.
 - **Secure Deletion**: Full control over your data with the ability to delete specific memories (syncs with Firestore and Cloudinary) and a robust, sequential account deletion process that cleans up all Redis, Cloudinary, and Firebase records.
 
-### 🆕 Editor & Accessibility Overhaul (v3.1.0)
-
-- **📝 Enhanced Markdown Support**: Global integration of `react-markdown` and `@tiptap/react` ensuring that formatting (bolds, italics, lists) is natively rendered across the AI Insights panel, Chat History, and Journal Modals without breaking HTML layouts or swallowing text.
-- **♿ Accessibility Boost**: Extensive audit applying ARIA attributes to style tools, Chat containers, standardizing interactive components, and utilizing localized GSAP refs for more resilient, screen-reader-friendly animations.
-- **✨ Editor Polish**: The TipTap `RichTextEditor` and `ChatInput` now use advanced whitespace and newline normalization alongside reactive `useRef` states to prevent cursor jumping, state-staleness, and redundant synchronization during human vs voice typing.
-- **🛡️ Robust Formatting RegEx**: Replaced brittle string manipulation with `([\s\S]*)` Regex to accurately strip wrapper quotes containing multi-line code blocks and lists returned by AI models.
-- **💅 UX/UI Refinement**: Centralized component sizing (`Loader.js`), optimized GSAP transitions (`Splashscreen.js`, `Memories.js`), updated tailwind background opacities (`GlowBackground.js`), and removed unneeded dependencies.
-
-### 🆕 CI, Testing & Quality Pass (v3.1.3)
-
-- **🧪 103 Unit Tests**: Full Jest + React Testing Library suite covering utilities, security validators, hooks, and components — runs in ~25 seconds with SWC.
-- **🔧 Jenkins CI Pipeline**: 6-stage declarative pipeline (Checkout → Install → Audit → Lint → Test → Build) with post-build artifact archiving and workspace cleanup.
-- **🐛 Lint Fixed for Next.js 16**: `next lint` was removed from the Next.js 16 CLI; replaced with a direct `eslint` call — same `next/core-web-vitals` rules, no config changes needed.
-
-### 🆕 Performance & Security Pass (v3.0.3)
-
-- **🚀 Highly Parallel Deletions**: Account removal is now much faster, utilizing parallelized Cloudinary asset destruction and batched Redis key scanning.
-- **🛡️ CI/CD Hardening**: GitHub Action workflows are now pinned to immutable commit SHAs for maximum supply-chain security.
-- **🔒 HMAC-Signed Demo Sessions**: Enhanced unauthenticated chat security with signed session cookies and robust Redis quota management.
-- **⚡ Next.js 16 Ready**: Fully migrated to asynchronous cookie handling and optimized server-side flows.
-- **🩹 Stability Patches**: Fixed various edge cases in focus management, DOM ID collisions, and real-time calendar syncing.
-
-### 🆕 Chatbot Release (v3.0.0)
-
-- **🤖 Lumi Chat Companion**: Added a dedicated conversational flow via `app/api/chat/route.js` and reusable chat UI via `components/chat/ChatContainer.js`.
-- **🧠 Better Chat Resilience**: Multi-model Gemini fallback for transient capacity failures, with cleaner user-facing error messaging for quota and high-demand states.
-- **💬 Bubble-Aware Responses**: Lumi chat now returns JSON bubble arrays; frontend renders each bubble separately with human-like staggered timing.
-- **🕘 Chat History Sessions**: Daily chat history grouped by session with quick restore in the chat modal.
-- **🧪 Demo Chat Onboarding Mode**: Demo users now use a dedicated prompt variant tailored for first-time conversation flow, while preserving Lumi's core chat architecture in authenticated dashboard chat.
-- **🔒 Demo Quota Reliability**: Demo quota is scoped per session to avoid cross-visitor limit bleed, and the demo cap is currently **5 messages** with a visible toast at limit.
-- **✨ Discovery Improvements**: Added a new landing-nav `Lumi` link with new-feature indicator dot for faster feature discoverability.
-- **🏷️ Beta Branding Pass**: Updated app branding to reflect `v3.0.0 (beta)` across header, hero, footer, metadata, and chat UI.
-
 ## 🛠️ Tech Stack
 
 - **Next.js** (App Router)
