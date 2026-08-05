@@ -471,7 +471,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         item.sourceText === normalizedJournalText &&
         item.response
       ) {
-        void incrementMetric("cache_hit_exact_phase0");
+        await incrementMetric("cache_hit_exact_phase0");
         return { success: true, data: item.response, modelUsed: "cache" };
       }
     }
@@ -564,7 +564,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
       }
 
       if (exactCacheData) {
-        void incrementMetric("cache_hit_exact");
+        await incrementMetric("cache_hit_exact");
         return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
