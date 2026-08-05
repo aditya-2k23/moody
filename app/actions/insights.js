@@ -1,6 +1,7 @@
 "use server";
 
 import { redis } from "@/lib/redis";
+import { incrementMetric } from "@/lib/metrics";
 import { GoogleGenAI } from "@google/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
@@ -470,6 +471,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         item.sourceText === normalizedJournalText &&
         item.response
       ) {
+        await incrementMetric("cache_hit_exact_phase0");
         return { success: true, data: item.response, modelUsed: "cache" };
       }
     }
@@ -562,6 +564,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
       }
 
       if (exactCacheData) {
+        await incrementMetric("cache_hit_exact");
         return { success: true, data: exactCacheData, modelUsed: "cache" };
       }
 
@@ -569,6 +572,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         if (hasValidPartialCacheSeed(bestMatch.response)) {
           isCacheHit = true;
           cachedData = bestMatch.response;
+          void incrementMetric("cache_hit_partial");
         } else {
           isCacheHit = false;
           cachedData = null;
@@ -682,12 +686,17 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
         };
       } else {
         insight = parsed;
+        void incrementMetric("full_generation");
       }
 
       modelUsed = modelId;
       break;
     } catch (error) {
       console.error(`[Insights] ${modelLabel} error:`, error.message);
+
+      if (error.message?.includes("Validation Failed")) {
+        void incrementMetric("schema_validation_failed");
+      }
 
       if (isRetryableError(error)) {
         if (isQuotaError(error)) await markModelExhausted(modelId);
