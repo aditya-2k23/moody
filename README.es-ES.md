@@ -1,5 +1,3 @@
-
-
 # Moody: Plataforma Escalable de Seguimiento de Estado de Ánimo con IA
 
 [![GitHub](https://img.shields.io/badge/Repository-blue?logo=github)](https://github.com/aditya-2k23/moody)
@@ -7,21 +5,23 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/8b7234a7-03e7-40be-ab80-d7fa5f59a91a/deploy-status)](https://app.netlify.com/projects/moody-adi/deploys)
 [![Discussions](https://img.shields.io/badge/Discussions-Open-blue)](https://github.com/aditya-2k23/moody/discussions)
 
+🌐 [English](README.md) | **Español**
+
 Pruébalo en vivo en: [https://moody-adi.netlify.app/](https://moody-adi.netlify.app/)
 
 Moody es una aplicación web de seguimiento del estado de ánimo **minimalista** y moderna construida con Next.js, React y Firebase. Diseñada para la simplicidad y facilidad de uso, permite a los usuarios registrar sus estados de ánimo diarios, visualizar su historial y administrar su cuenta de forma segura con autenticación. La aplicación cuenta con una interfaz de usuario hermosa, mejoras de accesibilidad y retroalimentación en tiempo real, todo manteniendo una experiencia limpia y enfocada.
 
-## Table of Contents
+## Tabla de Contenidos
 
-- [Características](#-features)
-- [Tecnologías](#️-tech-stack)
-- [Soporte para Docker](#-docker-support)
-- [Cómo Empezar](#-getting-started)
-- [Cómo Usarlo](#-how-to-use)
-- [CI/CD y Automatización con Docker](#-cicd--docker-automation)
-- [Licencia](#-license)
-- [Comunidad](#-community)
-- [Créditos](#-credits)
+- [Características](#-características)
+- [Tecnologías](#-tecnologías)
+- [Soporte para Docker](#-soporte-para-docker)
+- [Cómo Empezar](#-cómo-empezar)
+- [Cómo Usarlo](#-cómo-usarlo)
+- [CI/CD y Automatización con Docker](#-cicd-y-automatización-con-docker)
+- [Licencia](#-licencia)
+- [Comunidad](#-comunidad)
+- [Créditos](#-créditos)
 
 ## 🚀 Características
 
@@ -140,7 +140,7 @@ Una vez en ejecución, accede a la aplicación en [http://localhost:3000](http:/
 
 ## 📦 Cómo Empezar
 
-Si prefieres Docker, consulta la sección [Soporte para Docker](#-docker-support) anterior.
+Si prefieres Docker, consulta la sección [Soporte para Docker](#-soporte-para-docker) anterior.
 
 1. **Clona el repositorio:**
 
@@ -194,8 +194,8 @@ Si prefieres Docker, consulta la sección [Soporte para Docker](#-docker-support
 5. **Ejecuta el conjunto de pruebas (opcional):**
 
    ```sh
-   npm test              # run all tests
-   npm run test:coverage # run tests with HTML coverage report
+   npm test              # ejecutar todas las pruebas
+   npm run test:coverage # ejecutar pruebas con informe de cobertura HTML
    ```
 
 6. **Revisa el código (lint) (opcional):**
@@ -227,13 +227,13 @@ Moody utiliza un sistema de CI/CD de dos vías:
 
 Se incluye un `Jenkinsfile` para CI de Jenkins autoalojado. El pipeline ejecuta estas etapas en orden:
 
-| Etapa                    | Comando                        | Propósito                                  |
-| ------------------------ | ------------------------------ | ------------------------------------------ |
-| Instalar Dependencias    | `npm ci`                       | Instalaciones reproducibles y exactas al lock-file   |
-| Auditoría de Seguridad   | `npm audit --audit-level=high` | Falla ante CVEs de alto/crítico nivel              |
-| Lint                     | `npm run lint`                 | ESLint con reglas `next/core-web-vitals`   |
-| Pruebas Unitarias        | `npm run test:ci`              | 103 pruebas vía Jest + RTL                 |
-| Construcción para Producción | `npm run build`                | Verificación completa de compilación `next build`      |
+| Etapa                        | Comando                        | Propósito                                          |
+| ---------------------------- | ------------------------------ | -------------------------------------------------- |
+| Instalar Dependencias        | `npm ci`                       | Instalaciones reproducibles y exactas al lock-file |
+| Auditoría de Seguridad       | `npm audit --audit-level=high` | Falla ante CVEs de alto/crítico nivel              |
+| Lint                         | `npm run lint`                 | ESLint con reglas `next/core-web-vitals`           |
+| Pruebas Unitarias            | `npm run test:ci`              | 103 pruebas vía Jest + RTL                         |
+| Construcción para Producción | `npm run build`                | Verificación completa de compilación `next build`  |
 
 El pipeline requiere la herramienta NodeJS configurada en Jenkins y las variables de entorno `NEXT_PUBLIC_*` agregadas como credenciales de Texto Secreto (los valores de marcador son suficientes para CI).
 
