@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Weekly Patterns**: Analyze which days of the week are typically your best or worst, helping identify weekly emotional triggers.
 - **Enhanced AI Insights**: Integrated trend, distribution, consistency, and weekly pattern data into the AI Insights prompt, providing more accurate and deeply personalized generative reflections.
 
+## [Unreleased]
+
+### 📝 Documentation
+
+- **README**: Fixed Spanish README table of contents navigation and added prominent localized language switchers to both English and Spanish READMEs.
+
 ## [Released]
 
 ### [3.1.3] - 2026-06-03
