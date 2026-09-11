@@ -7,6 +7,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Documentation**: Added prominent localized language switchers to the English and Spanish README files.
+
+### Fixed
+
+- **Documentation**: Fixed the Table of Contents (TOC) navigation links in `README.es-ES.md`.
+
 ## [3.3.1] - 2026-07-20
 
 ### 🧹 Chores
