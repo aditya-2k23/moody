@@ -51,7 +51,7 @@ This document outlines the development plan and future vision for **Moody**. Our
   - Predict your mood based on past entries and trends.
 - [ ] **🖼️ Photo Enhancements**
   - Basic photo editing tools (crop, rotate, filters).
-- [ ] **🌐 Multi-language Support**
+- [x] **🌐 Multi-language Support**
   - Support for additional languages beyond English.
 
 ### Q4 2026
