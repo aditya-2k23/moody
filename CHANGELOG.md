@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Insights Telemetry**: Added telemetry metrics for the generation pipeline (`app/actions/insights.js`).
+- **Insights Metrics**: Added a daily insights tracking utility using Redis (`lib/metrics.js`).
+- **Internationalization**: Added a Spanish README (`README.es-ES.md`) and prominent localized language switchers.
+
+### Changed
+
+- **Metrics Reliability**: Refactored metrics logic to ensure atomic increments via a Redis Lua script and wait for completion.
+
+### Security
+
+- **Chat Route**: Hardened chat prompt construction against system prompt injection (CodeQL alert #9).
+
 ## [3.3.1] - 2026-07-20
 
 ### 🧹 Chores

@@ -230,6 +230,8 @@ function hasValidPartialCacheSeed(response) {
  * @param {Array<number>} embedding - The vector representation of the journal entry.
  * @param {Object} response - The parsed insights generated from the entry.
  * @param {string} [sourceText=""] - The original journal text used to generate the embedding.
+ * @param {string|null} [entryDate=null] - The date of the entry.
+ * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
  * @returns {Promise<void>}
  */
 async function storeUserEmbedding(userId, embedding, response, sourceText = "", entryDate = null, forceRegenerate = false) {
@@ -431,6 +433,7 @@ function buildPartialPrompt(journalEntry, cachedMood, cachedTriggers, cachedHead
  * @param {string} idToken - The user's Firebase ID token for authentication.
  * @param {string} journalText - The text content of the journal entry.
  * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
+ * @param {string|null} [entryDate=null] - The date of the entry.
  * @returns {Promise<Object>} An object containing the generation success status, the insight data, and the model used.
  */
 export async function generateInsight(idToken, journalText, forceRegenerate = false, entryDate = null) {
@@ -730,6 +733,7 @@ export async function generateInsight(idToken, journalText, forceRegenerate = fa
  * Generates comprehensive AI insights based on the user's aggregated analytics data over time.
  * @param {string} idToken - The user's Firebase ID token for authentication.
  * @param {Object} analyticsData - The structured analytics data including trends, distribution, weekly patterns, etc.
+ * @param {boolean} [forceRegenerate=false] - Whether to bypass the cache and force a new generation.
  * @returns {Promise<Object>} An object containing the generation success status, the trends insight data, and the model used.
  */
 export async function generateTrendsInsight(idToken, analyticsData, forceRegenerate = false) {
