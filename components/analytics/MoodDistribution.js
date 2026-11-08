@@ -34,19 +34,19 @@ function CustomTooltip({ active, payload }) {
   const data = active && payload && payload.length ? payload[0].payload : null;
   const moodName = data ? data.moodName : null;
 
+  // Keyed on moodName, not data: recharts passes a new payload object every render.
   useEffect(() => {
-    if (active && data && containerRef.current) {
+    const el = containerRef.current;
+    if (active && moodName && el) {
       gsap.fromTo(
-        containerRef.current,
+        el,
         { opacity: 0, scale: 0.96 },
         { opacity: 1, scale: 1, duration: 0.15, ease: "power2.out" }
       );
     }
 
     return () => {
-      if (containerRef.current) {
-        gsap.killTweensOf(containerRef.current);
-      }
+      if (el) gsap.killTweensOf(el);
     };
   }, [active, moodName]);
 
