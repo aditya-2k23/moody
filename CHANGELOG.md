@@ -7,23 +7,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.4.0] - 2026-11-09
 
-### Added
+### 🚀 New Features
 
-- **Insights Telemetry**: Added telemetry metrics for the generation pipeline (`app/actions/insights.js`).
-- **Insights Metrics**: Added a daily insights tracking utility using Redis (`lib/metrics.js`).
-- **Internationalization**: Added a Spanish README (`README.es-ES.md`) and prominent localized language switchers.
+- **Insights Telemetry**: Added telemetry metrics for the AI insights generation pipeline (`app/actions/insights.js`).
+- **Insights Metrics**: Added a daily insights tracking utility backed by Redis (`lib/metrics.js`).
 
-### Changed
+### ⚡️ Optimizations & Fixes
 
-- **Metrics Reliability**: Refactored metrics logic to ensure atomic increments via a Redis Lua script and wait for completion.
+- **Metrics Reliability**: Metric increments are now atomic (Redis Lua script) and awaited before returning.
+- **Mood Distribution Tooltip**: The tooltip's GSAP cleanup now targets the element it animated, clearing the remaining ESLint warnings.
 
-### Security
+### 📚 Documentation
 
-- **Chat Route**: Hardened chat prompt construction against system prompt injection (CodeQL alert #9).
+- **Spanish README**: Added `README.es-ES.md`, fixed its table-of-contents links, and added language switchers to both READMEs.
+
+### 🔒 Security
+
+- **Journal Editor**: Upgraded `prosemirror-view` from 1.41.8 to 1.42.9, fixing an XSS vulnerability in paste handling.
+- **Dependencies**: Upgraded `node-forge` from 1.4.0 to 1.4.3 (TLS denial-of-service, PKCS#12 MAC forgery and certificate-chain validation advisories).
+
+### 🧹 Chores
+
+- **Dependencies**: Bumped `next` from 16.2.6 to 16.4.1 (with `sharp` 0.34.5 → 0.35.5), `postcss` 8.5.10 → 8.5.18, `markdown-it` 14.2.0 → 14.3.3, `linkify-it` 5.0.1 → 5.0.2, `@fastify/busboy` 3.2.0 → 3.2.2, `brace-expansion` (1.1.21 / 5.0.12), `source-map-js` 1.2.1 → 1.2.2, `baseline-browser-mapping` 2.10.11 → 2.11.22, `js-yaml` 3.14.2 → 3.15.2 and `@humanfs/node` 0.16.7 → 0.16.8.
 
 ## [3.3.1] - 2026-07-20
+
+### 🔒 Security
+
+- **Chat Route**: Hardened chat prompt construction against system prompt injection via journal context (CodeQL alert #9).
 
 ### 🧹 Chores
 
