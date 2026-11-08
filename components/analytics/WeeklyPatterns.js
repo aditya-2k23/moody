@@ -19,7 +19,7 @@ export default function WeeklyPatterns({ data, days = 90 }) {
 
   if (!averages || averages.length === 0 || !averages.some(a => a.score !== null)) {
     return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full justify-center items-center text-center">
+      <div className="bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full justify-center items-center text-center">
         <p className="text-slate-500 dark:text-slate-400">No weekly data available yet.</p>
       </div>
     );
@@ -43,21 +43,21 @@ export default function WeeklyPatterns({ data, days = 90 }) {
   }));
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full shadow-xs">
       <div className="mb-6">
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Weekly Rhythm</h3>
       </div>
 
       <div className="flex-1 w-full min-h-[260px] grid grid-cols-[minmax(0,1fr)_minmax(112px,132px)] gap-3">
         <div className="min-w-0">
-          <ResponsiveContainer width="100%" height="100%" className="focus:outline-none analytics-chart" style={{ outline: 'none' }}>
+          <ResponsiveContainer width="100%" height="100%" className="focus:outline-hidden analytics-chart" style={{ outline: 'none' }}>
             <BarChart 
               data={fullChartData} 
               layout="vertical" 
               margin={{ top: 0, right: 6, left: -16, bottom: 0 }}
               barCategoryGap={10}
               style={{ outline: 'none' }}
-              className="focus:outline-none"
+              className="focus:outline-hidden"
             >
               <XAxis type="number" hide domain={[0, 10]} />
               <YAxis 

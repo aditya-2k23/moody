@@ -80,7 +80,7 @@ function MoodListItem({ item, variant = "compact" }) {
     return (
       <div className="group flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
         <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm shadow-xs"
           style={{ backgroundColor: item.color }}
         >
           {item.emoji}
@@ -106,9 +106,9 @@ function MoodListItem({ item, variant = "compact" }) {
 
   // default to compact
   return (
-    <div className="group flex items-center gap-3 rounded-xl border border-white/60 bg-white/55 px-3 py-1.5 transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/5 dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
+    <div className="group flex items-center gap-3 rounded-xl border border-white/60 bg-white/55 px-3 py-1.5 transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/75 dark:border-white/5 dark:bg-white/4 dark:hover:bg-white/[0.07]">
       <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm shadow-xs"
         style={{ backgroundColor: item.color }}
       >
         {item.emoji}
@@ -203,7 +203,7 @@ export default function MoodDistribution({ data, days = 30 }) {
 
   if (distribution.length === 0 || totalEntries < 3) {
     return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[400px] shadow-sm relative overflow-hidden justify-center items-center text-center">
+      <div className="bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-[400px] shadow-xs relative overflow-hidden justify-center items-center text-center">
         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
           <PieChartIcon size={24} className="text-indigo-600 dark:text-indigo-400" />
         </div>
@@ -225,7 +225,7 @@ export default function MoodDistribution({ data, days = 30 }) {
   const variety = chartData.length;
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[425px] sm:h-[400px] shadow-sm relative overflow-hidden">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-[425px] sm:h-[400px] shadow-xs relative overflow-hidden">
       <div className="w-full text-left mb-4 shrink-0">
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Distribution</h3>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -240,7 +240,7 @@ export default function MoodDistribution({ data, days = 30 }) {
           role="img"
           aria-label={accessibleBreakdown}
         >
-          <PieChart style={{ outline: 'none' }} className="focus:outline-none" width={200} height={200}>
+          <PieChart style={{ outline: 'none' }} className="focus:outline-hidden" width={200} height={200}>
             <Pie
               data={visibleChartData}
               nameKey="moodName"
@@ -297,10 +297,10 @@ export default function MoodDistribution({ data, days = 30 }) {
           </div>
 
           {/* Mobile Overlay & Button */}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-indigo-50/90 dark:from-slate-900/90 to-transparent sm:hidden pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-indigo-50/90 dark:from-slate-900/90 to-transparent sm:hidden pointer-events-none" />
           <button
             ref={triggerRef}
-            className="absolute bottom-0 left-0 right-0 py-2 mx-1 mb-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md text-indigo-600 dark:text-indigo-400 text-xs font-semibold rounded-xl border border-indigo-100 dark:border-slate-700 sm:hidden shadow-sm transition-all hover:bg-white dark:hover:bg-slate-700"
+            className="absolute bottom-0 left-0 right-0 py-2 mx-1 mb-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md text-indigo-600 dark:text-indigo-400 text-xs font-semibold rounded-xl border border-indigo-100 dark:border-slate-700 sm:hidden shadow-xs transition-all hover:bg-white dark:hover:bg-slate-700"
             onClick={() => setIsModalOpen(true)}
           >
             View Full Breakdown
@@ -310,7 +310,7 @@ export default function MoodDistribution({ data, days = 30 }) {
 
       {/* Mobile Modal for full mood list */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:hidden" onClick={() => setIsModalOpen(false)}>
+        <div className="fixed inset-0 z-100 flex items-end justify-center bg-black/50 backdrop-blur-xs sm:hidden" onClick={() => setIsModalOpen(false)}>
           <div
             ref={modalRef}
             role="dialog"

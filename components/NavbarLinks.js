@@ -130,11 +130,11 @@ export default function NavbarLinks() {
 
       {/* Mobile Menu Modal — portaled to document.body to escape header's backdrop-filter containing block */}
       {mounted && isOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex justify-end">
+        <div className="fixed inset-0 z-100 flex justify-end">
           {/* Overlay */}
           <div
             ref={overlayRef}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={closeMenu}
           />
 

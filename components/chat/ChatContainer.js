@@ -656,14 +656,14 @@ export default function ChatContainer({
   // Otherwise, use a fixed overlay for standalone fullscreen
   const containerClasses = isFullscreen
     ? onFullscreenChange
-      ? `flex-1 flex flex-col bg-gradient-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] rounded-[2rem] overflow-hidden`
-      : `fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] overflow-hidden rounded-3xl`
-    : `flex flex-col mt-4 bg-white/80 dark:bg-gradient-to-b dark:from-[#0b1021] dark:to-[#111526] rounded-[2rem] border border-gray-200/50 dark:border-white/5 shadow-2xl overflow-hidden relative z-10 backdrop-blur-xl h-[550px] w-full transition-colors duration-300`;
+      ? `flex-1 flex flex-col bg-linear-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] rounded-4xl overflow-hidden`
+      : `fixed inset-0 z-50 flex flex-col bg-linear-to-b from-slate-50 to-indigo-50 dark:from-[#0b1021] dark:to-[#161c31] overflow-hidden rounded-3xl`
+    : `flex flex-col mt-4 bg-white/80 dark:bg-linear-to-b dark:from-[#0b1021] dark:to-[#111526] rounded-4xl border border-gray-200/50 dark:border-white/5 shadow-2xl overflow-hidden relative z-10 backdrop-blur-xl h-[550px] w-full transition-colors duration-300`;
 
   return (
     <div ref={containerRef} className={containerClasses} onScroll={(e) => e.stopPropagation()}>
       {isDemo ? (
-        <div className="flex flex-col items-center justify-center p-3 border-b border-gray-100/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md shrink-0 mb-2 shadow-sm">
+        <div className="flex flex-col items-center justify-center p-3 border-b border-gray-100/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md shrink-0 mb-2 shadow-xs">
           <h3 className="font-semibold text-gray-800 dark:text-gray-100 flex items-center justify-center gap-1 text-sm leading-tight">
             Lumi is
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
@@ -691,7 +691,7 @@ export default function ChatContainer({
       {showHistoryModal && (
         <div
           ref={historyModalBackdropRef}
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 dark:bg-black/40 backdrop-blur-sm rounded-2xl p-4 opacity-0"
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 dark:bg-black/40 backdrop-blur-xs rounded-2xl p-4 opacity-0"
           onClick={closeHistoryModal}
         >
           <div
@@ -714,7 +714,7 @@ export default function ChatContainer({
               </button>
             </div>
 
-            <div className="overflow-y-auto pr-1 max-h-[22rem] space-y-2 custom-scrollbar">
+            <div className="overflow-y-auto pr-1 max-h-88 space-y-2 custom-scrollbar">
               {historySessions.length > 0 ? (
                 historySessions.map((session) => (
                   <button
@@ -725,7 +725,7 @@ export default function ChatContainer({
                       sessionRequestIdRef.current++;
                       closeHistoryModal();
                     }}
-                    className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-300/90 dark:border-slate-700/50 shadow-sm hover:shadow group outline-none"
+                    className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 transition-all duration-200 border border-gray-300/90 dark:border-slate-700/50 shadow-xs hover:shadow-sm group outline-hidden"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <p className="text-xs text-indigo-600 dark:text-indigo-400">
@@ -764,7 +764,7 @@ export default function ChatContainer({
         />
 
         {isDemoLimitReached ? (
-          <div className="p-4 border-t border-gray-200/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur text-center w-full">
+          <div className="p-4 border-t border-gray-200/80 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm text-center w-full">
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
               You&apos;ve reached the end of the demo! Sign in to continue chatting with Lumi.
             </p>

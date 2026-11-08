@@ -182,9 +182,9 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
           <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
           <div className="flex items-center justify-center gap-2 text-slate-700 fugaz">
-            <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="w-full h-[2px] bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
             OR
-            <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="w-full h-[2px] bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
           </div>
           <Button
             onClick={handleGoogleSignIn}

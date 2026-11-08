@@ -41,7 +41,7 @@ const ToastItem = ({ t }) => {
 
       <div className="flex-1 w-0 p-3 lg:p-4 pl-5 lg:pl-6">
         <div className="flex items-center gap-3 lg:gap-4">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div
               className={`w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${isSuccess
                 ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"

@@ -97,7 +97,7 @@ export default function VideoModal({ isOpen, onClose }) {
   return (
     <div
       ref={overlayRef}
-      className="absolute inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6 dark:bg-black/5 backdrop-blur-sm"
+      className="absolute inset-0 z-100 flex items-center justify-center p-0 sm:p-4 md:p-6 dark:bg-black/5 backdrop-blur-xs"
       onClick={handleClose}
     >
       {/* Modal Content */}
@@ -107,13 +107,13 @@ export default function VideoModal({ isOpen, onClose }) {
         aria-modal="true"
         aria-label="Live demo video"
         tabIndex={-1}
-        className="relative w-full h-full sm:h-auto sm:max-w-5xl rounded-2xl overflow-hidden sm:border-2 sm:border-indigo-500 sm:shadow-[0_0_30px_rgba(99,102,241,0.3)] outline-none"
+        className="relative w-full h-full sm:h-auto sm:max-w-5xl rounded-2xl overflow-hidden sm:border-2 sm:border-indigo-500 sm:shadow-[0_0_30px_rgba(99,102,241,0.3)] outline-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-xs transition-colors focus:outline-hidden focus:ring-2 focus:ring-white/50"
           aria-label="Close modal"
         >
           <X size={20} />

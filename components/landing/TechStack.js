@@ -54,7 +54,7 @@ export default function TechStack() {
       <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl mb-3">
         Built in the Open, for <span className="textGradient">Everyone</span>
       </h2>
-      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-[520px] mx-auto mb-10 md:mb-12 leading-relaxed">
+      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-[520px] mx-auto mb-10 md:mb-12 leading-relaxed sm:leading-6">
         Moody is free, open-source, and community-driven. Star us on GitHub to show your support,
         or jump in and contribute—every PR makes Moody better for everyone.
       </p>

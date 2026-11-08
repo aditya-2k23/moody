@@ -138,7 +138,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
         <Sparkles size={25} />
         {insights || isLoading ? "Lumi's Thoughts" : "Let's talk about your day"}
         {showContent && insights && (
-          <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 animate-insights-badge shadow-sm">
+          <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 animate-insights-badge shadow-xs">
             <Check className="mr-1" size={12} />
             Lumi is ready
           </span>
@@ -197,7 +197,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
               <div className="flex-1 space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 glow">
+                    <div className="w-10 h-10 bg-linear-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 glow">
                       <MessageCircleMoreIcon size={20} className="text-white" />
                     </div>
                     <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest dark:text-indigo-400">
@@ -216,7 +216,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                 </div>
 
                 <div>
-                  <h4 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 leading-tight">
+                  <h4 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 leading-tight md:leading-8">
                     {insights.headline || "Your Personalized Insight"}
                   </h4>
 
@@ -236,7 +236,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                       {insights.triggers.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center bg-white dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5"
+                          className="inline-flex items-center bg-white dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-slate-700 shadow-xs transition-transform hover:-translate-y-0.5"
                           style={{ animationDelay: `${idx * 50}ms` }}
                         >
                           <span className="text-indigo-400 dark:text-indigo-500 mr-1">#</span>
@@ -251,7 +251,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                 {(insights.followUpQuestion || insights.pro_tip) && (
                   <button
                     onClick={() => handleReflectionClick(insights.followUpQuestion || insights.pro_tip)}
-                    className="w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-3 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700/60 transition-all duration-200 cursor-pointer"
+                    className="w-full text-left bg-linear-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-3 shadow-xs relative overflow-hidden group hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700/60 transition-all duration-200 cursor-pointer"
                   >
                     <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl" />
                     <div className="flex items-start gap-2 relative z-10">
@@ -313,14 +313,14 @@ function InsightCard({
 }) {
   return (
     <div
-      className={`bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden ${className}`}
+      className={`bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800/70 rounded-4xl p-6 md:p-8 shadow-xl border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden ${className}`}
     >
       {/* Background gradients */}
       {gradientPositions.top && (
-        <div className={`absolute ${gradientPositions.top} w-40 h-40 bg-gradient-to-tr ${gradientPositions.topColors} rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute ${gradientPositions.top} w-40 h-40 bg-linear-to-tr ${gradientPositions.topColors} rounded-full blur-3xl pointer-events-none`} />
       )}
       {gradientPositions.bottom && (
-        <div className={`absolute ${gradientPositions.bottom} w-40 h-40 bg-gradient-to-tr ${gradientPositions.bottomColors} rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute ${gradientPositions.bottom} w-40 h-40 bg-linear-to-tr ${gradientPositions.bottomColors} rounded-full blur-3xl pointer-events-none`} />
       )}
 
       {/* Actual Content */}
@@ -338,7 +338,7 @@ function InsightSkeletonLeft() {
       <div className="absolute inset-0 backdrop-blur-[2px] bg-white/10 dark:bg-slate-900/20 rounded-2xl transition-all duration-300 pointer-events-none z-30" />
 
       {/* Shimmer overlay */}
-      <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20 pointer-events-none" />
+      <div className="absolute inset-0 -translate-x-full animate-insights-shimmer bg-linear-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-20 pointer-events-none" />
 
       {/* Centered spinner loader */}
       <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
@@ -352,7 +352,7 @@ function InsightSkeletonLeft() {
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-            <div className="h-4 w-32 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200 dark:bg-slate-800 rounded-sm animate-pulse" />
           </div>
           <div className="w-20 h-10 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
         </div>
@@ -360,13 +360,13 @@ function InsightSkeletonLeft() {
         <div className="h-8 w-3/4 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse mb-6" />
 
         <div className="space-y-3 mb-6">
-          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
-          <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded-sm animate-pulse" />
+          <div className="h-4 w-full bg-gray-200 dark:bg-slate-800 rounded-sm animate-pulse" />
+          <div className="h-4 w-5/6 bg-gray-200 dark:bg-slate-800 rounded-sm animate-pulse" />
         </div>
 
         <div className="space-y-3 pt-4">
-          <div className="h-3 w-24 bg-gray-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-3 w-24 bg-gray-200 dark:bg-slate-800 rounded-sm animate-pulse" />
           <div className="flex flex-wrap gap-2">
             <div className="h-8 w-20 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />
             <div className="h-8 w-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse" />

@@ -33,7 +33,7 @@ function StaticGallery({ images, onImageClick }) {
               key={index}
               type="button"
               onClick={() => onImageClick?.(index)}
-              className="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+              className="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 focus:outline-hidden focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
               style={{
                 transform: `rotate(${rotation}deg) translateY(${yOffset}px)`,
               }}
@@ -108,8 +108,8 @@ export default function MemoriesCircularGallery({
       />
 
       {/* Gradient fade edges for visual polish */}
-      <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-purple-50 dark:from-slate-900 to-transparent pointer-events-none z-10 rounded-2xl" />
-      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-indigo-50 dark:from-slate-900/55 to-transparent pointer-events-none z-10 rounded-2xl" />
+      <div className="absolute inset-y-0 left-0 w-8 bg-linear-to-r from-purple-50 dark:from-slate-900 to-transparent pointer-events-none z-10 rounded-2xl" />
+      <div className="absolute inset-y-0 right-0 w-8 bg-linear-to-l from-indigo-50 dark:from-slate-900/55 to-transparent pointer-events-none z-10 rounded-2xl" />
 
       {/* Interaction hint */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-gray-700 dark:text-gray-300 font-semibold flex items-center gap-1.5 opacity-60">

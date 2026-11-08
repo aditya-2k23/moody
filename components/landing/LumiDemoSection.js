@@ -102,7 +102,7 @@ export default function LumiDemoSection() {
       <div className="flex flex-col lg:flex-row w-full gap-12 items-center lg:items-start">
         {/* Left Side: Lumi Intro */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-          <div className="w-48 h-48 rounded-full p-[3px] bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-[0_0_30px_rgba(79,70,229,0.3)] relative overflow-hidden">
+          <div className="w-48 h-48 rounded-full p-[3px] bg-linear-to-tr from-indigo-500 to-purple-500 shadow-[0_0_30px_rgba(79,70,229,0.3)] relative overflow-hidden">
             <div className="w-full h-full rounded-full overflow-hidden relative">
               <Image
                 src="/lumi-avatar.png"
@@ -116,7 +116,7 @@ export default function LumiDemoSection() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-800 dark:text-white">
             Meet <span className="fugaz textGradient">&apos;Lumi&apos;</span>
           </h2>
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-md leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-md leading-relaxed md:leading-7">
             Lumi is always here to listen. Whether you need a moment of reflection, someone to share your thoughts with, or just a quiet space to unwind, Lumi provides a warm, judgment-free presence.
           </p>
           <div className="pt-2">
@@ -133,7 +133,7 @@ export default function LumiDemoSection() {
 
         {/* Right Side: Demo Chat Container */}
         <div className="flex-1 w-full max-w-md relative flex flex-col justify-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 dark:from-indigo-500/20 dark:to-purple-500/20 blur-3xl -z-10 rounded-[3rem]" />
+          <div className="absolute inset-0 bg-linear-to-r from-blue-500/30 to-purple-500/30 dark:from-indigo-500/20 dark:to-purple-500/20 blur-3xl -z-10 rounded-[3rem]" />
           <ChatContainer isDemo={true} />
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function LumiDemoSection() {
       {showAuthModal && typeof document !== "undefined" && createPortal(
         <div
           ref={overlayRef}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/55 backdrop-blur-xs"
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseAuth();
           }}

@@ -121,7 +121,7 @@ export default function PwaInstallPrompt() {
   const primaryAction = isManualInstall ? dismiss : handleInstall;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[120] w-[min(92vw,420px)] rounded-2xl border border-indigo-200/70 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 shadow-xl shadow-indigo-300/40 dark:shadow-slate-900/60 backdrop-blur-md p-4">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-120 w-[min(92vw,420px)] rounded-2xl border border-indigo-200/70 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 shadow-xl shadow-indigo-300/40 dark:shadow-slate-900/60 backdrop-blur-md p-4">
       <div className="flex items-start gap-3">
         <div className="flex-1">
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Install Moody</p>

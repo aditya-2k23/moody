@@ -23,7 +23,7 @@ export default function JournalingConsistency({ data, days = 30 }) {
   }, [data]);
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200 dark:border-white/[0.05] flex flex-col h-[400px] shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200 dark:border-white/5 flex flex-col h-[400px] shadow-xs">
       <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Consistency</h3>
 
       <div className="flex-1 flex justify-between items-center relative">
@@ -36,14 +36,14 @@ export default function JournalingConsistency({ data, days = 30 }) {
             <span className="text-sm sm:text-base text-slate-500 dark:text-slate-400 font-medium">days</span>
           </div>
         </div>
-        <div className="relative p-4 flex-shrink-0">
+        <div className="relative p-4 shrink-0">
           {/* Orange/Yellow Glow behind the purple flame */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-orange-400/20 to-yellow-300/20 dark:from-orange-500/10 dark:to-yellow-500/10 blur-xl rounded-full scale-90" />
-          <Flame size={100} strokeWidth={2} className="relative z-10 text-orange-400 dark:text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.2)] dark:drop-shadow-[0_0_10px_rgba(249,115,22,0.15)] outline-none" />
+          <div className="absolute inset-0 bg-linear-to-tr from-orange-400/20 to-yellow-300/20 dark:from-orange-500/10 dark:to-yellow-500/10 blur-xl rounded-full scale-90" />
+          <Flame size={100} strokeWidth={2} className="relative z-10 text-orange-400 dark:text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.2)] dark:drop-shadow-[0_0_10px_rgba(249,115,22,0.15)] outline-hidden" />
         </div>
       </div>
 
-      <div className="h-px w-full bg-slate-200 dark:bg-white/[0.05] mb-4"></div>
+      <div className="h-px w-full bg-slate-200 dark:bg-white/5 mb-4"></div>
 
       <div className="mb-4">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -71,13 +71,13 @@ export default function JournalingConsistency({ data, days = 30 }) {
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
           <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-semibold mb-1">All time Longest</span>
-          <span className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">
+          <span className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none sm:leading-8">
             {consistency.longestStreak}
           </span>
         </div>
         <div className="flex flex-col text-right">
           <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-semibold mb-1">Journaling</span>
-          <span className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">
+          <span className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none sm:leading-8">
             {consistency.percentage}%
           </span>
         </div>

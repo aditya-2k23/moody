@@ -159,7 +159,7 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
   const displaySubtitle = loggedCount < 3 ? "Not enough data to calculate trends." : subtitle;
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-8 gap-4">
         <div>
           <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Trends</h3>
@@ -184,7 +184,7 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
 
       <div className="flex-1 w-full min-h-[220px]">
         {loggedCount < 3 ? (
-          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/[0.08] min-h-[220px] backdrop-blur-sm h-full">
+          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/8 min-h-[220px] backdrop-blur-xs h-full">
             <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
               <TrendingUp size={24} className="text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -199,8 +199,8 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
             </p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-hidden">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-hidden">
               <defs>
                 <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />

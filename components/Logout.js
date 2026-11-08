@@ -46,7 +46,7 @@ export default function Logout() {
           <LogOut className="ml-1 sm:ml-2" size={16} />
         </>}
         onClick={handleLogout}
-        className="dark:!text-slate-200 !text-slate-700 dark:hover:!text-white hover:!text-white !py-2 !px-5"
+        className="dark:text-slate-200! text-slate-700! dark:hover:text-white! hover:text-white! py-2! px-5!"
       />
     </div>
   )

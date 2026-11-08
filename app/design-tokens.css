@@ -1,8 +1,8 @@
 /* Design Tokens - extracted for consistent theming */
 :root {
   /* Fonts */
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  --font-fugaz: "Fugaz One", var(--font-sans);
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-fugaz: "Fugaz One", var(--font-body);
 
   /* Color Palette (light) */
   --color-white: #ffffff;
@@ -26,10 +26,10 @@
   --color-border: #e6eefc;
 
   /* Shadows & glows */
-  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
-  --shadow-md: 0 6px 18px rgba(2, 6, 23, 0.08);
-  --shadow-lg: 0 10px 30px rgba(2, 6, 23, 0.12);
-  --shadow-xl: 0 24px 60px rgba(2, 6, 23, 0.18);
+  --elevation-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
+  --elevation-md: 0 6px 18px rgba(2, 6, 23, 0.08);
+  --elevation-lg: 0 10px 30px rgba(2, 6, 23, 0.12);
+  --elevation-xl: 0 24px 60px rgba(2, 6, 23, 0.18);
   --glow-primary: 0 10px 30px rgba(99, 102, 241, 0.08);
 
   /* Spacing scale */
@@ -53,9 +53,9 @@
   --line-height-loose: 1.8;
 
   /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --corner-sm: 6px;
+  --corner-md: 12px;
+  --corner-lg: 20px;
 
   /* Durations & easing */
   --duration-fast: 160ms;
@@ -115,10 +115,10 @@
   --color-theme-reveal-light: #f6f8ff;
   --color-theme-reveal-dark: #141414;
 
-  --shadow-sm: 0 2px 6px rgba(2, 6, 23, 0.4);
-  --shadow-md: 0 8px 22px rgba(2, 6, 23, 0.55);
-  --shadow-lg: 0 18px 48px rgba(2, 6, 23, 0.6);
-  --shadow-xl: 0 28px 80px rgba(2, 6, 23, 0.7);
+  --elevation-sm: 0 2px 6px rgba(2, 6, 23, 0.4);
+  --elevation-md: 0 8px 22px rgba(2, 6, 23, 0.55);
+  --elevation-lg: 0 18px 48px rgba(2, 6, 23, 0.6);
+  --elevation-xl: 0 28px 80px rgba(2, 6, 23, 0.7);
   --glow-primary: 0 12px 40px rgba(99, 102, 241, 0.12);
   --color-resizer: var(--color-primary-400);
 }

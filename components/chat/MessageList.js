@@ -38,7 +38,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
       {/* Empty state */}
       {messages.length === 0 && (
         <div className="m-auto flex flex-col items-center justify-center text-center space-y-3">
-          <div className="w-20 h-20 rounded-full p-[3px] bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.15)] overflow-hidden mb-2">
+          <div className="w-20 h-20 rounded-full p-[3px] bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.15)] overflow-hidden mb-5">
             <div className="w-full h-full rounded-full overflow-hidden relative">
               <Image
                 src="/lumi-avatar.png"
@@ -78,7 +78,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
           aria-live="polite"
           aria-atomic="true"
         >
-          <div className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm mb-1 overflow-hidden">
+          <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-xs mb-1 overflow-hidden">
             <Image
               src="/lumi-avatar.png"
               alt="Lumi"
@@ -90,7 +90,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
               }}
             />
           </div>
-          <div className="bg-white dark:bg-slate-800/90 border border-gray-100 dark:border-slate-700/80 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
+          <div className="bg-white dark:bg-slate-800/90 border border-gray-100 dark:border-slate-700/80 px-4 py-3 rounded-2xl rounded-bl-sm shadow-xs">
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-400 dark:text-gray-500 mr-1.5 font-medium">
                 Lumi is typing

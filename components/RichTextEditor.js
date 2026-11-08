@@ -50,7 +50,7 @@ export default function RichTextEditor({
     onBlur,
     editorProps: {
       attributes: {
-        class: `prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-full scroll-auto ${className}`,
+        class: `prose prose-sm sm:prose-base dark:prose-invert focus:outline-hidden max-w-none min-h-full scroll-auto ${className}`,
       },
     },
   });

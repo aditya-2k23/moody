@@ -194,7 +194,7 @@ export default function GlowBackground() {
         {/* Secondary accent — pink/violet shift */}
         <div
           ref={secondaryRef}
-          className="glow-element fixed pointer-events-none -z-[11]"
+          className="glow-element fixed pointer-events-none z-[-11]"
           style={{
             top: "45vh",
             left: "55%",
@@ -217,7 +217,7 @@ export default function GlowBackground() {
         {/* Tertiary — wide indigo wash */}
         <div
           ref={tertiaryRef}
-          className="glow-element fixed pointer-events-none -z-[12]"
+          className="glow-element fixed pointer-events-none z-[-12]"
           style={{
             top: "35vh",
             left: "45%",
@@ -240,7 +240,7 @@ export default function GlowBackground() {
         {/* Left-side glow — violet/indigo accent */}
         <div
           ref={leftRef}
-          className="glow-element fixed pointer-events-none -z-[13]"
+          className="glow-element fixed pointer-events-none z-[-13]"
           style={{
             top: "55vh",
             left: "8%",

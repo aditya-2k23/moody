@@ -114,10 +114,10 @@ export default function TermsOfService() {
 
   return (
     <main className="flex-1 flex flex-col w-full relative">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 !pt-4 flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pt-4! flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}
-        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm pb-4 transition-all duration-300 ${isScrollingDown ? 'top-4' : 'top-[72px]'
+        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs pb-4 transition-all duration-300 ${isScrollingDown ? 'top-4' : 'top-[72px]'
           }`}>
           <button
             onClick={() => setIsMobileTocOpen(!isMobileTocOpen)}
@@ -149,7 +149,7 @@ export default function TermsOfService() {
         {/* Desktop Sidebar TOC */}
         <aside className={`hidden md:block w-72 shrink-0 sticky h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar transition-all duration-300 ${isScrollingDown ? 'top-6' : 'top-24'
           }`}>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
               <AlignLeft size={20} className="text-indigo-500" /> Contents
             </h3>
@@ -173,7 +173,7 @@ export default function TermsOfService() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm min-w-0">
+        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xs min-w-0">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 fugaz text-indigo-500 uppercase tracking-tighter">Terms of Service</h1>
           <div className="flex flex-col sm:flex-row sm:gap-6 mb-8 text-slate-500 italic text-sm">
             <p>Effective Date: April 2026 &mdash; Version 1.1</p>
@@ -209,7 +209,7 @@ export default function TermsOfService() {
               <p className="text-lg">
                 Welcome to Moody, an AI-powered mood tracking and journaling platform designed to help users reflect on their emotions and daily experiences. These Terms of Service (&quot;Terms&quot;) govern your access to and use of the Moody website, applications, and related services (collectively, the &quot;Service&quot;).
               </p>
-              <div className="mt-6 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border-l-4 border-indigo-500 shadow-sm">
+              <div className="mt-6 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border-l-4 border-indigo-500 shadow-xs">
                 <p className="font-bold text-slate-900 dark:text-slate-100 mb-2">Binding Agreement</p>
                 <p className="text-slate-700 dark:text-slate-300 italic">
                   By accessing or using Moody, you agree to be legally bound by these Terms. If you do not agree to these Terms, you must not use the Service.
