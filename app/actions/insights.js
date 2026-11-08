@@ -40,7 +40,8 @@ function getApiKey() {
  * @returns {GoogleGenAI} The authenticated Gemini client.
  */
 function getGenAIClient() {
-  return new GoogleGenAI({ apiKey: getApiKey() });
+  // @google/genai v3 defaults to the v1 API; responseSchema and preview models need v1beta.
+  return new GoogleGenAI({ apiKey: getApiKey(), apiVersion: "v1beta" });
 }
 
 /**

@@ -12,7 +12,7 @@
     "test:coverage": "jest --coverage --forceExit"
   },
   "dependencies": {
-    "@google/genai": "^1.46.0",
+    "@google/genai": "^3.0.0",
     "@gsap/react": "^2.1.2",
     "@tailwindcss/typography": "^0.5.20",
     "@tiptap/extension-placeholder": "^3.33.0",
