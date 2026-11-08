@@ -22,8 +22,8 @@
     "@tiptap/starter-kit": "^3.33.0",
     "@upstash/redis": "^1.41.0",
     "cloudinary": "^2.11.0",
-    "firebase": "^11.9.1",
-    "firebase-admin": "^13.6.0",
+    "firebase": "^13.2.0",
+    "firebase-admin": "^14.5.0",
     "gsap": "^3.15.1",
     "lucide-react": "^0.563.0",
     "next": "^16.4.5",
@@ -50,5 +50,10 @@
     "jest-environment-jsdom": "^30.5.2",
     "postcss": "^8.5.32",
     "tailwindcss": "^3.4.17"
+  },
+  "overrides": {
+    "@firebase/firestore": {
+      "@grpc/grpc-js": "^1.14.7"
+    }
   }
 }
