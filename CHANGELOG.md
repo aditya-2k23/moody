@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Chat Route**: Hardened chat prompt construction against system prompt injection (CodeQL alert #9).
 
+### 🧹 Chores
+
+- **Dependencies**: Bumped `node-forge` from 1.4.0 to 1.4.3.
+
 ## [3.3.1] - 2026-07-20
 
 ### 🧹 Chores
