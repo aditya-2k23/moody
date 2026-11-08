@@ -57,6 +57,9 @@
   "overrides": {
     "@firebase/firestore": {
       "@grpc/grpc-js": "^1.14.7"
+    },
+    "@tailwindcss/typography": {
+      "postcss-selector-parser": "^6.1.6"
     }
   }
 }
