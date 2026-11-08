@@ -30,18 +30,18 @@ In your report, please include:
 
 ### Response Timeline
 
-* **Acknowledgment:** We will acknowledge your report within 48 hours.
-* **Assessment:** We will assess the severity and impact within 1 week.
-* **Fix:** We aim to release a patch for critical vulnerabilities as soon as possible.
+- **Acknowledgment:** We will acknowledge your report within 48 hours.
+- **Assessment:** We will assess the severity and impact within 1 week.
+- **Fix:** We aim to release a patch for critical vulnerabilities as soon as possible.
 
 ## Out of Scope
 
 The following are generally considered out of scope:
 
-* Attacks requiring physical access to a user's device.
-* Social engineering attacks.
-* Vulnerabilities in third-party dependencies (unless a patch is available and we haven't updated).
-* Large-scale Denial of Service (DoS) attacks outside normal abuse-prevention controls.
+- Attacks requiring physical access to a user's device.
+- Social engineering attacks.
+- Vulnerabilities in third-party dependencies (unless a patch is available and we haven't updated).
+- Large-scale Denial of Service (DoS) attacks outside normal abuse-prevention controls.
 
 ## Current Security Controls (High Level)
 

@@ -38,7 +38,7 @@ export default function MessageList({ messages, isTyping, isFullscreen }) {
       {/* Empty state */}
       {messages.length === 0 && (
         <div className="m-auto flex flex-col items-center justify-center text-center space-y-3">
-          <div className="w-20 h-20 rounded-full p-[3px] bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.15)] overflow-hidden mb-5">
+          <div className="w-20 h-20 rounded-full p-0.75 bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.15)] overflow-hidden mb-5">
             <div className="w-full h-full rounded-full overflow-hidden relative">
               <Image
                 src="/lumi-avatar.png"

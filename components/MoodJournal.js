@@ -134,7 +134,7 @@ export default function MoodJournal({
           onClick={() => setShowAllMoods((prev) => !prev)}
           aria-expanded={showAllMoods}
           aria-label={showAllMoods ? "Show fewer moods" : "Show more moods"}
-          className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-[100px] flex items-center justify-center"
+          className="p-4 px-8 rounded-2xl border border-indigo-200 dark:border-indigo-400 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-300 font-bold hover:bg-indigo-100 dark:hover:bg-slate-700 duration-200 transition text-center flex-1 min-w-25 flex items-center justify-center"
         >
           {showAllMoods ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
         </button>

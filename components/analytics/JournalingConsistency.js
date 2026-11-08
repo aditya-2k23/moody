@@ -23,7 +23,7 @@ export default function JournalingConsistency({ data, days = 30 }) {
   }, [data]);
 
   return (
-    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200 dark:border-white/5 flex flex-col h-[400px] shadow-xs">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200 dark:border-white/5 flex flex-col h-100 shadow-xs">
       <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Consistency</h3>
 
       <div className="flex-1 flex justify-between items-center relative">

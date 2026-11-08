@@ -175,7 +175,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
       >
         {/* Scenario 1: No insights and not loading -> Full width Chat container */}
         {!insights && !isLoading && userId && (
-          <div id={`insights-chat-${chatId}`} className="w-full flex flex-col min-h-[500px]">
+          <div id={`insights-chat-${chatId}`} className="w-full flex flex-col min-h-125">
             <ChatContainer
               chatId={chatId}
               userId={userId}
@@ -206,7 +206,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
                   </div>
 
                   {insights.mood && (
-                    <div className="flex flex-col items-center justify-between min-w-[90px]">
+                    <div className="flex flex-col items-center justify-between min-w-22.5">
                       <span className="text-xl md:text-2xl lg:text-3xl">{moods[insights.mood] || '😄'}</span>
                       <span className="text-sm md:text-base font-semibold text-indigo-500 dark:text-indigo-400 capitalize fugaz">
                         {insights.mood}
@@ -283,7 +283,7 @@ export default function AIInsightsSection({ insights, isLoading, userId, journal
 
             {/* Right side: AI Chat */}
             {userId && (
-              <div id={`insights-chat-${chatId}`} className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8 min-h-[400px]">
+              <div id={`insights-chat-${chatId}`} className="flex-1 w-full shrink-0 flex flex-col pt-4 xl:pt-0 border-t xl:border-t-0 xl:border-l border-gray-200/90 dark:border-slate-800/80 xl:pl-8 min-h-100">
                 <ChatContainer
                   chatId={chatId}
                   userId={userId}

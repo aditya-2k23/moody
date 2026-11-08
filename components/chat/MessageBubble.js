@@ -70,8 +70,8 @@ export default function MessageBubble({ message, isLatest }) {
       >
         <div
           className={`relative px-3.5 py-2 text-[14px] leading-relaxed wrap-break-word smooth-transition ${isUser
-            ? "bg-indigo-500 dark:bg-indigo-600 text-white rounded-[1.25rem] rounded-br-[4px] shadow-xs"
-            : "bg-indigo-50/30 dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-[1.25rem] rounded-bl-[4px] border border-indigo-100 dark:border-slate-700/80 shadow-xs"
+            ? "bg-indigo-500 dark:bg-indigo-600 text-white rounded-[1.25rem] rounded-br-sm shadow-xs"
+            : "bg-indigo-50/30 dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-[1.25rem] rounded-bl-sm border border-indigo-100 dark:border-slate-700/80 shadow-xs"
             }`}
         >
           <div className={`prose prose-sm max-w-none ${isUser ? "prose-invert" : "dark:prose-invert"}`}>

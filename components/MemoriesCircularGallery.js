@@ -94,7 +94,7 @@ export default function MemoriesCircularGallery({
   }
 
   return (
-    <div className="memories-circular-gallery relative w-full h-[220px] sm:h-[320px] md:h-[380px]">
+    <div className="memories-circular-gallery relative w-full h-55 sm:h-80 md:h-95">
       <CircularGallery
         items={galleryItems}
         bend={1.5}

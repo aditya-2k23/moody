@@ -400,7 +400,6 @@ export async function POST(req) {
           );
 
           const queryEmbedding = await Promise.race([queryEmbeddingPromise, timeoutPromise]);
-          
           if (queryEmbedding) {
             const { memoryBlock } = await retrieveRelevantMemories(effectiveUserId, queryEmbedding);
             journalMemoryBlock = memoryBlock;

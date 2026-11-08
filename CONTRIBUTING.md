@@ -7,12 +7,12 @@ This project aims to promote mental well-being through thoughtful, privacy-consc
 
 Moody is an open-source, AI-powered mood tracking application built with:
 
-* Next.js
-* Firebase (Authentication + Firestore)
-* Cloudinary
-* Upstash (Redis)
-* AI-based mood analysis
-* Tailwind CSS
+- Next.js
+- Firebase (Authentication + Firestore)
+- Cloudinary
+- Upstash (Redis)
+- AI-based mood analysis
+- Tailwind CSS
 
 The focus is on creating a calm, reliable, and user-friendly journaling experience.
 
@@ -20,14 +20,14 @@ The focus is on creating a calm, reliable, and user-friendly journaling experien
 
 You can contribute in many ways, including:
 
-* Bug fixes
-* New features
-* UI / UX improvements
-* AI insight enhancements
-* Performance optimizations
-* Accessibility improvements
-* Documentation updates
-* Testing
+- Bug fixes
+- New features
+- UI / UX improvements
+- AI insight enhancements
+- Performance optimizations
+- Accessibility improvements
+- Documentation updates
+- Testing
 
 If you are new to the project, look for issues labeled **good first issue**.
 
@@ -62,8 +62,8 @@ Note: container logs can show a URL like `http://<container-id>:3000`. That is D
 
 If you prefer not to use Docker:
 
-* install Node.js 22+
-* run the setup steps below (`npm install`, env setup, `npm run dev`)
+- install Node.js 22+
+- run the setup steps below (`npm install`, env setup, `npm run dev`)
 
 ### 5. Install Dependencies
 
@@ -84,12 +84,11 @@ npm run dev
 
 ## Branching Strategy
 
-* `main` → production-ready code
-* Create feature or fix branches using clear names:
-
-  * `feature/visual-memories`
-  * `fix/journal-save-issue`
-  * `ui/calendar-improvements`
+- `main` → production-ready code
+- Create feature or fix branches using clear names:
+  - `feature/visual-memories`
+  - `fix/journal-save-issue`
+  - `ui/calendar-improvements`
 
 ## Submitting a Pull Request
 
@@ -97,35 +96,34 @@ npm run dev
 2. Make small, focused commits
 3. Ensure the app runs correctly and builds without errors
 4. Open a Pull Request with:
-
-   * A clear description of the changes
-   * Screenshots for UI-related updates
-   * A linked issue, if applicable
+   - A clear description of the changes
+   - Screenshots for UI-related updates
+   - A linked issue, if applicable
 
 ## Automated Reviews & Checks
 
 To ensure high code quality and security, every Pull Request is automatically analyzed by:
 
-* **GitHub Copilot & CodeRabbit**: AI-powered code reviews and suggestions.
-* **GitGuardian**: Scans for exposed secrets and credentials.
-* **CodeQL**: Performs semantic code analysis to detect security vulnerabilities.
-* **Netlify**: Verifies that the deployment build succeeds.
+- **GitHub Copilot & CodeRabbit**: AI-powered code reviews and suggestions.
+- **GitGuardian**: Scans for exposed secrets and credentials.
+- **CodeQL**: Performs semantic code analysis to detect security vulnerabilities.
+- **Netlify**: Verifies that the deployment build succeeds.
 
 Please review and address any issues raised by these bots.
 
 ## Code Guidelines
 
-* Keep code readable and well-structured
-* Follow the existing folder and component structure
-* Prefer clarity over clever or complex solutions
-* Avoid breaking changes without prior discussion
-* Be mindful of performance, accessibility, and user privacy
+- Keep code readable and well-structured
+- Follow the existing folder and component structure
+- Prefer clarity over clever or complex solutions
+- Avoid breaking changes without prior discussion
+- Be mindful of performance, accessibility, and user privacy
 
 ## Communication and Conduct
 
-* Be respectful and constructive in discussions
-* Mental health is a sensitive domain; empathy matters
-* Feedback should be clear, kind, and actionable
+- Be respectful and constructive in discussions
+- Mental health is a sensitive domain; empathy matters
+- Feedback should be clear, kind, and actionable
 
 ## 💬 Community
 
@@ -137,8 +135,8 @@ Join the discussion here:
 
 This project uses GitHub Actions to automatically build and push Docker images to both Docker Hub and GitHub Container Registry (GHCR) whenever changes are merged into the `main` branch.
 
-* **Version Management**: The Docker image version is tied directly to the `version` field in `package.json`.
-* **Contributor Requirement**: When submitting a Pull Request that introduces new features or fixes, please **increment the version** in `package.json` (following [SemVer](https://semver.org/)). This ensures that the new Docker image is correctly tagged and available for users.
+- **Version Management**: The Docker image version is tied directly to the `version` field in `package.json`.
+- **Contributor Requirement**: When submitting a Pull Request that introduces new features or fixes, please **increment the version** in `package.json` (following [SemVer](https://semver.org/)). This ensures that the new Docker image is correctly tagged and available for users.
 
 ## License
 

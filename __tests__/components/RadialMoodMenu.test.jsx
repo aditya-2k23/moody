@@ -53,7 +53,7 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={() => {}}
-      />
+      />,
     );
     // Center trigger: "+" when no mood set
     expect(screen.getByText("+")).toBeInTheDocument();
@@ -66,13 +66,13 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji="😊"
         currentMoodLabel="Good"
         onMoodChange={() => {}}
-      />
+      />,
     );
     // Use aria-label query rather than getByText: the emoji appears in both
     // the trigger span and the hidden menu item (role=menuitemradio), which
     // causes getByText to find multiple elements.
     expect(
-      screen.getByRole("button", { name: /Current mood: Good/i })
+      screen.getByRole("button", { name: /Current mood: Good/i }),
     ).toBeInTheDocument();
   });
 
@@ -83,7 +83,7 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={() => {}}
-      />
+      />,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -97,7 +97,7 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={() => {}}
-      />
+      />,
     );
     const trigger = screen.getByRole("button", { name: /no mood set/i });
     expect(trigger).toBeInTheDocument();
@@ -110,10 +110,10 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji="😃"
         currentMoodLabel="Elated"
         onMoodChange={() => {}}
-      />
+      />,
     );
     expect(
-      screen.getByRole("button", { name: /Current mood: Elated/i })
+      screen.getByRole("button", { name: /Current mood: Elated/i }),
     ).toBeInTheDocument();
   });
 
@@ -126,12 +126,12 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={() => {}}
-      />
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: /no mood set/i }));
     // Mood items render as role="menuitemradio" (correct ARIA for single-select menus)
     expect(
-      screen.getByRole("menuitemradio", { name: "Select mood: Awful" })
+      screen.getByRole("menuitemradio", { name: "Select mood: Awful" }),
     ).toBeInTheDocument();
   });
 
@@ -142,18 +142,20 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={() => {}}
-      />
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: /no mood set/i }));
     // Confirm menu is open
     expect(
-      screen.getByRole("menuitemradio", { name: "Select mood: Awful" })
+      screen.getByRole("menuitemradio", { name: "Select mood: Awful" }),
     ).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: "Escape" });
 
     // After Escape, items get tabIndex=-1 (closed state in the component)
-    const awfulBtn = screen.getByRole("menuitemradio", { name: "Select mood: Awful" });
+    const awfulBtn = screen.getByRole("menuitemradio", {
+      name: "Select mood: Awful",
+    });
     expect(awfulBtn).toHaveAttribute("tabindex", "-1");
   });
 
@@ -167,13 +169,13 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji={null}
         currentMoodLabel={null}
         onMoodChange={handler}
-      />
+      />,
     );
     // Open menu
     fireEvent.click(screen.getByRole("button", { name: /no mood set/i }));
     // Select "Good" (index 3) — queried by menuitemradio role
     fireEvent.click(
-      screen.getByRole("menuitemradio", { name: "Select mood: Good" })
+      screen.getByRole("menuitemradio", { name: "Select mood: Good" }),
     );
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith({ emoji: "😊", label: "Good" }, 3);
@@ -186,10 +188,14 @@ describe("RadialMoodMenu component", () => {
         currentMoodEmoji="😊"
         currentMoodLabel="Good"
         onMoodChange={() => {}}
-      />
+      />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Current mood: Good/i }));
-    const goodItem = screen.getByRole("menuitemradio", { name: "Select mood: Good" });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Current mood: Good/i }),
+    );
+    const goodItem = screen.getByRole("menuitemradio", {
+      name: "Select mood: Good",
+    });
     expect(goodItem).toHaveAttribute("aria-checked", "true");
   });
 
@@ -203,11 +209,13 @@ describe("RadialMoodMenu component", () => {
         currentMoodLabel={null}
         onMoodChange={() => {}}
         disabled
-      />
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: /no mood set/i }));
     // Menu items should still be tabindex=-1 (closed/disabled state)
-    const awfulBtn = screen.getByRole("menuitemradio", { name: "Select mood: Awful" });
+    const awfulBtn = screen.getByRole("menuitemradio", {
+      name: "Select mood: Awful",
+    });
     expect(awfulBtn).toHaveAttribute("tabindex", "-1");
   });
 });

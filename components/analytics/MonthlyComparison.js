@@ -48,7 +48,7 @@ export default function MonthlyComparison({ data }) {
 
   if (!currentStats || currentStats.count === 0) {
     return (
-      <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col w-full shadow-xs text-center items-center justify-center min-h-[160px]">
+      <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col w-full shadow-xs text-center items-center justify-center min-h-40">
         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-2.5 rounded-full mb-3">
           <Sparkles size={20} className="text-indigo-500 dark:text-indigo-400" />
         </div>

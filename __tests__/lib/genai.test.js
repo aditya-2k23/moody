@@ -25,7 +25,7 @@ describe("getGenAIClient", () => {
   });
 
   it("throws when the key is missing or blank", () => {
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => { });
     process.env.GEMINI_API_KEY = "  ";
     expect(() => getGenAIClient()).toThrow("AI service is not configured");
     expect(GoogleGenAI).not.toHaveBeenCalled();

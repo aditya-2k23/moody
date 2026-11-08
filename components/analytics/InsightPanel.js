@@ -324,7 +324,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             </div>
           )
         ) : loadingAi ? (
-          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/4 overflow-hidden min-h-[68px]">
+          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/4 overflow-hidden min-h-17">
             <div className="animate-pulse opacity-50">
               <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded-sm w-3/4 mb-2"></div>
               <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded-sm w-1/2"></div>

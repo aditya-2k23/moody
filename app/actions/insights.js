@@ -221,7 +221,7 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "", 
     // Part 4c: Dedup — skip storing if exact normalized text already exists (unless forcing regeneration)
     const normalizedSource = normalizeEntryText(sourceText);
     const duplicateIndex = data.findIndex(item => item.sourceText === normalizedSource);
-    
+
     if (duplicateIndex !== -1) {
       if (!forceRegenerate) {
         return;

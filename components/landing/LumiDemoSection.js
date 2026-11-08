@@ -102,7 +102,7 @@ export default function LumiDemoSection() {
       <div className="flex flex-col lg:flex-row w-full gap-12 items-center lg:items-start">
         {/* Left Side: Lumi Intro */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-          <div className="w-48 h-48 rounded-full p-[3px] bg-linear-to-tr from-indigo-500 to-purple-500 shadow-[0_0_30px_rgba(79,70,229,0.3)] relative overflow-hidden">
+          <div className="w-48 h-48 rounded-full p-0.75 bg-linear-to-tr from-indigo-500 to-purple-500 shadow-[0_0_30px_rgba(79,70,229,0.3)] relative overflow-hidden">
             <div className="w-full h-full rounded-full overflow-hidden relative">
               <Image
                 src="/lumi-avatar.png"

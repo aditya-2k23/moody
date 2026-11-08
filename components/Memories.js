@@ -24,7 +24,7 @@ function MemoriesSkeleton({ monthLabel }) {
       </h2>
 
       {/* Skeleton gallery placeholder */}
-      <div className="relative z-10 h-[220px] sm:h-[400px] flex items-center justify-center gap-4 overflow-hidden">
+      <div className="relative z-10 h-55 sm:h-100 flex items-center justify-center gap-4 overflow-hidden">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}

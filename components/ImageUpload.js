@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { Sparkles, X, Plus, ImagePlus } from "lucide-react";
+import { X, Plus, ImagePlus } from "lucide-react";
 
 const MAX_IMAGES_PER_DAY = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB

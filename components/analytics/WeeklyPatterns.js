@@ -48,28 +48,28 @@ export default function WeeklyPatterns({ data, days = 90 }) {
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Weekly Rhythm</h3>
       </div>
 
-      <div className="flex-1 w-full min-h-[260px] grid grid-cols-[minmax(0,1fr)_minmax(112px,132px)] gap-3">
+      <div className="flex-1 w-full min-h-65 grid grid-cols-[minmax(0,1fr)_minmax(112px,132px)] gap-3">
         <div className="min-w-0">
           <ResponsiveContainer width="100%" height="100%" className="focus:outline-hidden analytics-chart" style={{ outline: 'none' }}>
-            <BarChart 
-              data={fullChartData} 
-              layout="vertical" 
+            <BarChart
+              data={fullChartData}
+              layout="vertical"
               margin={{ top: 0, right: 6, left: -16, bottom: 0 }}
               barCategoryGap={10}
               style={{ outline: 'none' }}
               className="focus:outline-hidden"
             >
               <XAxis type="number" hide domain={[0, 10]} />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
-                axisLine={false} 
-                tickLine={false} 
+              <YAxis
+                dataKey="name"
+                type="category"
+                axisLine={false}
+                tickLine={false}
                 tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
               />
-              <Bar 
-                dataKey="score" 
-                radius={[4, 4, 4, 4]} 
+              <Bar
+                dataKey="score"
+                radius={[4, 4, 4, 4]}
                 background={{ fill: 'rgba(255, 255, 255, 0.03)', radius: [4, 4, 4, 4] }}
                 barSize={20}
                 isAnimationActive={true}
@@ -87,7 +87,7 @@ export default function WeeklyPatterns({ data, days = 90 }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="grid grid-rows-7 gap-[10px] py-[3px]">
+        <div className="grid grid-rows-7 gap-2.5 py-0.75">
           {fullChartData.map((entry) => (
             <div key={entry.name} className="flex min-w-0 items-center justify-end gap-2">
               <span className={`truncate text-[11px] font-medium ${entry.lowData ? "text-slate-400 dark:text-slate-500" : "text-slate-500 dark:text-slate-400"}`}>

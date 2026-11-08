@@ -22,17 +22,17 @@ export function generateInsights(analyticsData) {
     const recentHalf = trends.slice(half); // older to newer
     // Let's check calculateMoodTrends.js: "for (let i = days - 1; i >= 0; i--)" so oldest is index 0, newest is index length-1
     const olderHalf = trends.slice(0, half);
-    
+
     const validRecent = recentHalf.filter(t => t.score != null);
     const validOlder = olderHalf.filter(t => t.score != null);
-    
+
     const avgRecent = validRecent.length > 0
       ? validRecent.reduce((sum, t) => sum + t.score, 0) / validRecent.length
       : null;
     const avgOlder = validOlder.length > 0
       ? validOlder.reduce((sum, t) => sum + t.score, 0) / validOlder.length
       : null;
-    
+
     if (avgRecent !== null && avgOlder !== null) {
       if (avgRecent > avgOlder + 1) {
         insights.push("Your mood has been noticeably improving lately compared to earlier in the period.");

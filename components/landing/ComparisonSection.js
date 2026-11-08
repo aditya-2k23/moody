@@ -53,7 +53,7 @@ export default function ComparisonSection() {
         <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-2">
           From Chaos to <span className="textGradient">Intelligence</span>
         </h2>
-        <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-[500px] mx-auto">
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-125 mx-auto">
           Stop relying on subjective guesswork. Switch to data-driven clarity.
         </p>
 

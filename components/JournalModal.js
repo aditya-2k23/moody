@@ -378,9 +378,9 @@ export default function JournalModal({
                               onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
                               disabled={saving}
                             />
-                            <NewFeatureDot className="right-[3px]" />
+                            <NewFeatureDot className="right-0.75" />
                           </div>
-                          <div className="flex flex-col leading-tight min-w-[80px]">
+                          <div className="flex flex-col leading-tight min-w-20">
                             {draftMoodLabel ? (
                               <>
                                 <span className="text-sm font-bold capitalize text-indigo-700 dark:text-indigo-100">
@@ -405,7 +405,7 @@ export default function JournalModal({
 
                   {/* Journal content */}
                   {!isEditing ? (
-                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
+                    <div className="min-h-30 max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
                       {journal ? (
                         <RichTextEditor
                           value={journal}

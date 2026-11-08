@@ -147,7 +147,7 @@ export default function PrivacyPolicy() {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pt-4! flex-1 mb-8 flex flex-col md:flex-row gap-8 relative">
 
         {/* Mobile TOC Toggle */}
-        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs pb-4 transition-all duration-300 ${isScrollingDown ? 'top-4' : 'top-[72px]'
+        <div className={`md:hidden sticky z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs pb-4 transition-all duration-300 ${isScrollingDown ? 'top-4' : 'top-18'
           }`}>
           <button
             onClick={() => setIsMobileTocOpen(!isMobileTocOpen)}

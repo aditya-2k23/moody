@@ -18,7 +18,7 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
       </p>
       <div className="flex items-center justify-center w-full">
         {/* Left Decorative Line */}
-        <div className="h-[4px] flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
+        <div className="h-1 flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
 
         <button
           onClick={() => {
@@ -39,7 +39,7 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
         </button>
 
         {/* Right Decorative Line */}
-        <div className="h-[4px] flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
+        <div className="h-1 flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
       </div>
     </div>
   );

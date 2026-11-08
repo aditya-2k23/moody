@@ -55,7 +55,7 @@ function CustomTooltip({ active, payload }) {
   return (
     <div
       ref={containerRef}
-      className="opacity-0 min-w-[150px] rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl pointer-events-none"
+      className="opacity-0 min-w-37.5 rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl pointer-events-none"
     >
       <div className="flex items-center justify-between gap-3">
         <span className="text-base font-semibold text-white">
@@ -203,7 +203,7 @@ export default function MoodDistribution({ data, days = 30 }) {
 
   if (distribution.length === 0 || totalEntries < 3) {
     return (
-      <div className="bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-[400px] shadow-xs relative overflow-hidden justify-center items-center text-center">
+      <div className="bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-100 shadow-xs relative overflow-hidden justify-center items-center text-center">
         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
           <PieChartIcon size={24} className="text-indigo-600 dark:text-indigo-400" />
         </div>
@@ -225,7 +225,7 @@ export default function MoodDistribution({ data, days = 30 }) {
   const variety = chartData.length;
 
   return (
-    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-[425px] sm:h-[400px] shadow-xs relative overflow-hidden">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-106.25 sm:h-100 shadow-xs relative overflow-hidden">
       <div className="w-full text-left mb-4 shrink-0">
         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Distribution</h3>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -236,7 +236,7 @@ export default function MoodDistribution({ data, days = 30 }) {
       <div className="flex-1 w-full flex flex-col sm:flex-row items-center justify-between gap-6 min-h-0">
         {/* Left side: Chart */}
         <div
-          className="relative w-full sm:w-[50%] h-[200px] sm:h-full flex items-center justify-center shrink-0"
+          className="relative w-full sm:w-[50%] h-50 sm:h-full flex items-center justify-center shrink-0"
           role="img"
           aria-label={accessibleBreakdown}
         >
@@ -284,7 +284,7 @@ export default function MoodDistribution({ data, days = 30 }) {
         </div>
 
         {/* Right side: Scrollable Mood list */}
-        <div className="w-full sm:w-[50%] h-[220px] sm:h-[250px] overflow-hidden sm:overflow-y-auto pr-1 flex flex-col gap-2 custom-scrollbar relative">
+        <div className="w-full sm:w-[50%] h-55 sm:h-62.5 overflow-hidden sm:overflow-y-auto pr-1 flex flex-col gap-2 custom-scrollbar relative">
           <div
             className="flex flex-col gap-2 h-full sm:h-auto overflow-y-auto sm:overflow-visible pb-12 sm:pb-0 cursor-pointer sm:cursor-default"
             onClick={() => {

@@ -14,7 +14,7 @@ export default function Logout() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-[120px] h-[40px]">
+      <div className="flex items-center justify-center w-30 h-10">
         <Loader size="sm" />
       </div>
     );

@@ -145,7 +145,7 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
           inputType="email"
           placeholderText="Email"
         />
-        <div className="relative w-full max-w-[400px] mx-auto">
+        <div className="relative w-full max-w-100 mx-auto">
           <Input
             value={password}
             onChange={(e) => {
@@ -167,7 +167,7 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
         </div>
 
         {!isRegister && (
-          <div className="w-full max-w-[400px] mx-auto flex justify-end">
+          <div className="w-full max-w-100 mx-auto flex justify-end">
             <button
               type="button"
               className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-85 font-semibold underline disabled:opacity-60 disabled:cursor-not-allowed"
@@ -179,12 +179,12 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
           </div>
         )}
 
-        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-2">
+        <div className="w-full max-w-100 mx-auto flex flex-col gap-2">
           <Button onClick={handleSubmit} text={authenticating ? "Submitting..." : "Submit"} full />
           <div className="flex items-center justify-center gap-2 text-slate-700 fugaz">
-            <div className="w-full h-[2px] bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
             OR
-            <div className="w-full h-[2px] bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500 to-transparent" />
           </div>
           <Button
             onClick={handleGoogleSignIn}
@@ -200,7 +200,7 @@ export default function Login({ initialRegister = false, onAuthSuccess }) {
             full />
         </div>
 
-        <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-[550px] mx-auto font-sans">
+        <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-137.5 mx-auto font-sans">
           By <b>{isRegister ? "creating an account" : "signing in"}</b>, you agree to our{" "}
           <Link href="/terms" className="text-indigo-500 dark:text-indigo-400 font-semibold dark:font-normal underline hover:opacity-80">Terms of Service</Link>{" "}
           and{" "}
