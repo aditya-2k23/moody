@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔒 Security
 
+- **Journal Editor**: Upgraded `prosemirror-view` from 1.41.8 to 1.42.9, fixing an XSS vulnerability in paste handling.
 - **Dependencies**: Upgraded `node-forge` from 1.4.0 to 1.4.3 (TLS denial-of-service, PKCS#12 MAC forgery and certificate-chain validation advisories).
 
 ### 🧹 Chores
