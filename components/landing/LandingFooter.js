@@ -1,4 +1,4 @@
-import { Github, Linkedin } from "lucide-react";
+import { Github, Linkedin } from "@/components/BrandIcons";
 import Image from "next/image";
 import Link from "next/link";
 import { APP_VERSION_LABEL } from "@/lib/release";

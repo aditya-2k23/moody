@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Button from "./Button";
-import { Github, Linkedin } from "lucide-react";
+import { Github, Linkedin } from "@/components/BrandIcons";
 import { APP_VERSION_LABEL } from "@/lib/release";
 import Image from "next/image";
 
