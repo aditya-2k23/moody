@@ -11,14 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔒 Security
 
-- **Dependency Overhaul**: Upgraded every dependency to its latest release. `npm audit` drops from 65 findings (9 high) to 30 (0 high); the production tree goes from 44 (7 high) to 6 moderate, all in build-time or unused code paths with no upstream fix yet.
-- **gRPC**: Forced `@grpc/grpc-js` ^1.14.7 for the Firestore client SDK, which still pins the unpatched 1.9.x line.
+- **Dependency Overhaul**: Upgraded every dependency to its latest release. `npm audit` drops from 65 findings (9 high) to 28 (0 high); the production tree goes from 44 (7 high) to 4 moderate, all from one `minimatch` advisory in a build-only `rimraf` dependency of `google-gax` with no compatible fix yet.
+- **Transitive Overrides**: Forced `@grpc/grpc-js` ^1.14.7 for the Firestore client SDK (which still pins the unpatched 1.9.x line) and `postcss-selector-parser` ^6.1.6 for `@tailwindcss/typography` (compiled CSS verified byte-identical).
 
 ### ⬆️ Major Upgrades
 
 - **Tailwind CSS 3 → 4**: CSS-first configuration in `app/globals.css`, `@tailwindcss/postcss` replaces `autoprefixer`, utilities renamed by the official upgrade tool. The rendered UI is unchanged: v3 font stack, line heights, form-field backgrounds, placeholder colour and tap-to-hover behaviour are kept explicitly.
 - **Firebase 11 → 13** and **firebase-admin 13 → 14**.
-- **@google/genai 1 → 3**: Clients pin the `v1beta` API (v3 defaults to `v1`) so structured output and preview models keep working.
+- **@google/genai 1 → 3**: All Gemini calls now share `lib/genai.js`, which pins the `v1beta` API (v3 defaults to `v1`) so structured output and preview models keep working.
 - **lucide-react 0.563 → 1**: v1 removed brand icons, so the GitHub and LinkedIn footer icons now live in `components/BrandIcons.js`.
 - **@testing-library/jest-dom 6 → 7**.
 
