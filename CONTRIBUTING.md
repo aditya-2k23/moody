@@ -62,7 +62,7 @@ Note: container logs can show a URL like `http://<container-id>:3000`. That is D
 
 If you prefer not to use Docker:
 
-* install Node.js 20+
+* install Node.js 22+
 * run the setup steps below (`npm install`, env setup, `npm run dev`)
 
 ### 5. Install Dependencies
