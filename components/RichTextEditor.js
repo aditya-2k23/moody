@@ -73,10 +73,9 @@ export default function RichTextEditor({
       const isManualTyping = editor.isFocused;
 
       if (!isManualTyping || isVoiceInput) {
-        editor.commands.setContent(value, {
-          emitUpdate: false,
-          parseOptions: { preserveWhitespace: "full" },
-        });
+        // No parseOptions.preserveWhitespace "full": in Tiptap 3 it routes through insertContentAt,
+        // which tiptap-markdown parses a second time and shows the HTML tags as literal text.
+        editor.commands.setContent(value, { emitUpdate: false });
       }
     }
   }, [value, editor, isVoiceInput]);

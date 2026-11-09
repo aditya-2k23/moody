@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependency Overhaul**: Upgraded every dependency to its latest release. `npm audit` drops from 65 findings (9 high) to 28 (0 high); the production tree goes from 44 (7 high) to 4 moderate, all from one `minimatch` advisory in a build-only `rimraf` dependency of `google-gax` with no compatible fix yet.
 - **Transitive Overrides**: Forced `@grpc/grpc-js` ^1.14.7 for the Firestore client SDK (which still pins the unpatched 1.9.x line) and `postcss-selector-parser` ^6.1.6 for `@tailwindcss/typography` (compiled CSS verified byte-identical).
 
+### 🐛 Bug Fixes
+
+- **Journal Editor**: Saved entries loaded after login no longer appear as escaped HTML (e.g. `&lt;p&gt;Happy Diwali&lt;/p&gt;`). The editor's sync path asked Tiptap 3 to preserve whitespace, which made `tiptap-markdown` parse the content twice.
+
 ### ⬆️ Major Upgrades
 
 - **Tailwind CSS 3 → 4**: CSS-first configuration in `app/globals.css`, `@tailwindcss/postcss` replaces `autoprefixer`, utilities renamed by the official upgrade tool. The rendered UI is unchanged: v3 font stack, line heights, form-field backgrounds, placeholder colour and tap-to-hover behaviour are kept explicitly.
