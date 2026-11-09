@@ -15,5 +15,7 @@
   width: var(--cursor-size);
   height: var(--cursor-size);
   /* Scale transitions */
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }

@@ -136,7 +136,7 @@ export default function GuestMoodSection() {
         {showAuth && typeof document !== "undefined" && createPortal(
           <div
             ref={overlayRef}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/55 backdrop-blur-xs"
             onClick={(e) => {
               if (e.target === e.currentTarget) handleCloseAuth();
             }}

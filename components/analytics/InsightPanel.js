@@ -201,13 +201,13 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
 
   if (loggedCount < 3) {
     return (
-      <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm justify-between">
+      <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full shadow-xs justify-between">
         <div>
-          <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight mb-6">
+          <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight sm:leading-9 mb-6">
             Insights Await
           </h3>
 
-          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-4 text-xs font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 mb-6 flex items-start gap-2.5">
+          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-4 text-xs font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/4 dark:text-indigo-200 mb-6 flex items-start gap-2.5">
             <span className="text-base leading-none">🧠</span>
             <div>
               <p className="font-semibold mb-1">AI-Powered Pattern Analysis</p>
@@ -233,7 +233,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           </div>
         </div>
 
-        <div className="mt-8 border-t border-slate-200 dark:border-white/[0.05] pt-4">
+        <div className="mt-8 border-t border-slate-200 dark:border-white/5 pt-4">
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
             Please log more moods to unlock these stats. Remember, you can backdate entries using the calendar!
           </p>
@@ -243,9 +243,9 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
   }
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full shadow-xs">
       <div className="flex items-start justify-between mb-8 gap-4">
-        <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight">
+        <h3 className="text-2xl sm:text-3xl font-semibold text-slate-800 dark:text-white leading-tight sm:leading-9">
           {title}
         </h3>
         {onToggleMaximize && (
@@ -262,7 +262,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
       <div className="flex-1 flex flex-col gap-5 text-sm sm:text-base">
         {aiInsight ? (
           lastInsightHash === `${days}-${consistency.totalEntries}` ? (
-            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col">
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/4 dark:text-indigo-200 flex flex-col">
               <div className={`transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
                 {aiInsight}
               </div>
@@ -292,7 +292,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200 flex flex-col gap-2 transition-all">
+            <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/4 dark:text-indigo-200 flex flex-col gap-2 transition-all">
               <div className={`opacity-60 italic leading-relaxed transition-all ${!(isMaximized || isInsightExpanded) ? "line-clamp-3" : ""}`}>
                 {aiInsight}
               </div>
@@ -324,15 +324,15 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             </div>
           )
         ) : loadingAi ? (
-          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/[0.04] overflow-hidden min-h-[68px]">
+          <div className="relative rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 dark:border-indigo-300/10 dark:bg-white/4 overflow-hidden min-h-17">
             <div className="animate-pulse opacity-50">
-              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-3/4 mb-2"></div>
-              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded w-1/2"></div>
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded-sm w-3/4 mb-2"></div>
+              <div className="h-2.5 bg-indigo-200 dark:bg-indigo-900/50 rounded-sm w-1/2"></div>
             </div>
 
             {/* Centered spinner loader */}
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-[2px]">
-              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-indigo-100 dark:border-slate-700/50">
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-xs border border-indigo-100 dark:border-slate-700/50">
                 <Loader2 size={14} className="animate-spin text-indigo-600 dark:text-indigo-400" />
                 <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wide">Analyzing Trends...</span>
               </div>
@@ -356,7 +356,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
             </button>
           </div>
         ) : (
-          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/[0.04] dark:text-indigo-200">
+          <div className="rounded-xl border border-indigo-200/70 bg-white/70 px-4 py-3 text-sm font-medium text-indigo-700 dark:border-indigo-300/10 dark:bg-white/4 dark:text-indigo-200">
             {microInsight}
           </div>
         )}
@@ -390,7 +390,7 @@ export default function InsightPanel({ data, days = 30, isExpanded = false, isMa
           </div>
         )}
 
-        <div className="h-px w-full bg-slate-200 dark:bg-white/[0.05] my-2"></div>
+        <div className="h-px w-full bg-slate-200 dark:bg-white/5 my-2"></div>
 
         <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
           {summary}

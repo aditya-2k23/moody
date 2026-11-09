@@ -11,21 +11,21 @@ export default function FinalCTA() {
 
   return (
     <section className="w-screen relative left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-950">
-      <div className="max-w-[1200px] mx-auto px-6 sm:px-8 py-16 md:py-20">
+      <div className="max-w-300 mx-auto px-6 sm:px-8 py-16 md:py-20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-12">
           {/* Left: Headline */}
           <div className="md:max-w-[55%]">
-            <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-white leading-snug">
+            <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-white leading-snug sm:leading-9 md:leading-10">
               Start Understanding Yourself Better Today.
             </h2>
-            <p className="text-slate-400 mt-3 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-400 mt-3 text-sm sm:text-base leading-relaxed sm:leading-6">
               Join thousands of high-performers optimizing their emotional
               intelligence.
             </p>
           </div>
 
           {/* Right: CTA */}
-          <div className="flex flex-col items-start md:items-end gap-3 min-h-[56px] min-w-[200px]">
+          <div className="flex flex-col items-start md:items-end gap-3 min-h-14 min-w-50">
             {loading ? (
               <div className="flex justify-center items-center w-full h-full">
                 <Loader size="base" />

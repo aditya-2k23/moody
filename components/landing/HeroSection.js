@@ -40,7 +40,7 @@ export default function HeroSection() {
       </div>
 
       {/* Headline */}
-      <h1 className="fugaz text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] mb-6">
+      <h1 className="fugaz text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] sm:leading-none mb-6">
         Understand Your
         <br />
         Emotions.{" "}
@@ -50,13 +50,13 @@ export default function HeroSection() {
       </h1>
 
       {/* Subheading */}
-      <p className="text-base sm:text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-[600px] mx-auto mb-10 leading-relaxed font-sans font-medium">
+      <p className="text-base sm:text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-150 mx-auto mb-10 leading-relaxed sm:leading-7 font-sans font-medium">
         Your personal AI-powered emotional architect. Track, analyze, and
         optimize your mental state with precision—no more subjective guesswork.
       </p>
 
       {/* CTAs */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 min-h-[56px]">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 min-h-14">
         {loading ? (
           <div className="flex justify-center items-center w-full">
             <Loader size="base" />
@@ -71,7 +71,7 @@ export default function HeroSection() {
               }
               dark
               size="lg"
-              className="w-full sm:w-auto sm:!px-56 flex justify-center"
+              className="w-full sm:w-auto sm:px-56! flex justify-center"
             />
           </Link>
         ) : (

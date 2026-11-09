@@ -8,11 +8,11 @@ export default function FeaturesGrid() {
         How It Works
       </p>
       {/* Section Headline */}
-      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl leading-snug mb-2">
+      <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl leading-snug sm:leading-9 md:leading-10 mb-2">
         Understand Your Emotions With{" "}
         <span className="textGradient">Data, Not Guesswork.</span>
       </h2>
-      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-lg mb-6 md:mb-8 leading-relaxed">
+      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-lg mb-6 md:mb-8 leading-relaxed sm:leading-6">
         Moody turns daily reflections into measurable emotional patterns.
       </p>
 
@@ -44,7 +44,7 @@ export default function FeaturesGrid() {
           <div className="absolute -top-20 -right-20 w-56 h-56 bg-purple-400/20 dark:bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-3 mb-4 relative z-10">
-            <span className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
               <Brain size={20} className="text-indigo-500 dark:text-indigo-400" />
             </span>
             <h3 className="font-bold text-base sm:text-lg relative z-10">AI-Powered Analysis</h3>
@@ -66,7 +66,7 @@ export default function FeaturesGrid() {
           </ul>
 
           {/* AI Insight Preview */}
-          <div className="rounded-xl bg-gradient-to-br from-indigo-50/90 to-purple-50/90 dark:from-indigo-600/5 dark:to-purple-600/5 border border-indigo-200 dark:border-indigo-500/20 p-4 relative z-10">
+          <div className="rounded-xl bg-linear-to-br from-indigo-50/90 to-purple-50/90 dark:from-indigo-600/5 dark:to-purple-600/5 border border-indigo-200 dark:border-indigo-500/20 p-4 relative z-10">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
                 <Sparkles size={12} className="text-indigo-500 dark:text-indigo-400" />
@@ -109,7 +109,7 @@ export default function FeaturesGrid() {
           <div className="absolute -top-20 -right-20 w-52 h-52 bg-emerald-400/20 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-3 mb-2">
-            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
               <ImageIcon size={20} className="text-emerald-500 dark:text-emerald-400" />
             </span>
             <h3 className="font-bold text-base sm:text-lg">Log Your Day</h3>
@@ -161,7 +161,7 @@ export default function FeaturesGrid() {
           <div className="absolute -top-20 -right-20 w-44 h-44 bg-indigo-400/20 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-3 mb-1">
-            <span className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shrink-0">
               <Calendar size={20} className="text-violet-500 dark:text-violet-400" />
             </span>
             <h3 className="font-bold text-base sm:text-lg">See Your Patterns</h3>
@@ -203,10 +203,10 @@ export default function FeaturesGrid() {
           <div className="absolute -top-20 -right-20 w-44 h-44 bg-red-600/20 dark:bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center shrink-0">
               <Flame size={20} className="text-orange-500 dark:text-orange-400" />
             </span>
-            <span className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center shrink-0">
               <Mic size={20} className="text-red-500 dark:text-red-400" />
             </span>
             <h3 className="font-bold text-base sm:text-lg">Streaks & Voice</h3>
@@ -247,13 +247,13 @@ export default function FeaturesGrid() {
         </div>
 
         {/* Mood Correlation Engine — replaces Theme Reveal */}
-        <div className="sm:col-span-2 md:col-span-1 group rounded-2xl border border-slate-700/60 bg-gradient-to-br from-slate-900 to-indigo-950 dark:from-slate-800/80 dark:to-indigo-900/30 p-6 sm:p-8 hover:shadow-xl hover:shadow-indigo-500/15 hover:-translate-y-1 transition-all duration-300 overflow-hidden relative text-white">
+        <div className="sm:col-span-2 md:col-span-1 group rounded-2xl border border-slate-700/60 bg-linear-to-br from-slate-900 to-indigo-950 dark:from-slate-800/80 dark:to-indigo-900/30 p-6 sm:p-8 hover:shadow-xl hover:shadow-indigo-500/15 hover:-translate-y-1 transition-all duration-300 overflow-hidden relative text-white">
           {/* Decorative glow */}
           <div className="absolute -top-10 -left-10 w-36 h-36 bg-purple-500/20 dark:bg-indigo-300/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-start gap-3 mb-4 relative z-10">
-            <span className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
               <TrendingUp size={20} className="text-indigo-300" />
             </span>
           </div>

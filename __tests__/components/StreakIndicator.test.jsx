@@ -38,7 +38,7 @@ describe("StreakIndicator component", () => {
   it("shows streak count in the aria-label", () => {
     render(<StreakIndicator streak={7} hasLoggedToday={true} />);
     expect(
-      screen.getByRole("status", { name: /Current streak: 7 days/i })
+      screen.getByRole("status", { name: /Current streak: 7 days/i }),
     ).toBeInTheDocument();
   });
 
@@ -46,7 +46,7 @@ describe("StreakIndicator component", () => {
     render(<StreakIndicator streak={3} hasLoggedToday={false} />);
     const status = screen.getByRole("status");
     expect(status.getAttribute("aria-label")).toMatch(
-      /haven't logged your mood today yet/i
+      /haven't logged your mood today yet/i,
     );
   });
 
@@ -103,7 +103,7 @@ describe("StreakIndicator component", () => {
 
   it("animation resets after 1 second following a not-logged → logged transition", () => {
     const { rerender } = render(
-      <StreakIndicator streak={4} hasLoggedToday={false} />
+      <StreakIndicator streak={4} hasLoggedToday={false} />,
     );
 
     rerender(<StreakIndicator streak={5} hasLoggedToday={true} />);

@@ -164,7 +164,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/80 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/80 dark:bg-black/40 backdrop-blur-xs flex items-center justify-center"
       onWheel={handleWheel}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -195,7 +195,7 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
 
       {/* Delete confirmation overlay */}
       {confirmDelete && (
-        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center">
           <div className="bg-slate-800 rounded-2xl p-6 max-w-sm mx-4 text-center shadow-2xl">
             <Trash2 className="mx-auto text-indigo-400 mb-4" size={40} />
             <h3 className="text-white text-lg font-bold mb-2">Delete this memory?</h3>
@@ -220,11 +220,11 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
         </div>
       )}
 
-      <div className="absolute top-4 left-4 z-10 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-sm font-medium">
+      <div className="absolute top-4 left-4 z-10 bg-white/10 backdrop-blur-xs px-3 py-1.5 rounded-full text-white text-sm font-medium">
         {currentIndex + 1} / {images.length}
       </div>
 
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-sm rounded-full p-1">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-xs rounded-full p-1">
         <button
           onClick={handleZoomOut}
           disabled={zoom <= 1}
@@ -296,17 +296,17 @@ export default function PhotoModal({ images = [], initialIndex = 0, onClose, yea
         />
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/10 backdrop-blur-xs px-4 py-2 rounded-full text-white text-sm font-medium">
         Day {currentImage.day}
       </div>
 
       {images.length > 1 && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-sm p-2 rounded-xl max-w-[80vw] overflow-x-auto">
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-white/10 backdrop-blur-xs p-2 rounded-xl max-w-[80vw] overflow-x-auto">
           {images.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 ${idx === currentIndex
+              className={`w-12 h-12 rounded-lg overflow-hidden shrink-0 transition-all duration-200 ${idx === currentIndex
                 ? "ring-2 ring-white scale-110"
                 : "opacity-60 hover:opacity-100"
                 }`}

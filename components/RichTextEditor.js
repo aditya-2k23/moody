@@ -50,7 +50,7 @@ export default function RichTextEditor({
     onBlur,
     editorProps: {
       attributes: {
-        class: `prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-full scroll-auto ${className}`,
+        class: `prose prose-sm sm:prose-base dark:prose-invert focus:outline-hidden max-w-none min-h-full scroll-auto ${className}`,
       },
     },
   });
@@ -73,10 +73,9 @@ export default function RichTextEditor({
       const isManualTyping = editor.isFocused;
 
       if (!isManualTyping || isVoiceInput) {
-        editor.commands.setContent(value, {
-          emitUpdate: false,
-          parseOptions: { preserveWhitespace: "full" },
-        });
+        // No parseOptions.preserveWhitespace "full": in Tiptap 3 it routes through insertContentAt,
+        // which tiptap-markdown parses a second time and shows the HTML tags as literal text.
+        editor.commands.setContent(value, { emitUpdate: false });
       }
     }
   }, [value, editor, isVoiceInput]);

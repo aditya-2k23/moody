@@ -1,4 +1,4 @@
-import { Github, Linkedin } from "lucide-react";
+import { Github, Linkedin } from "@/components/BrandIcons";
 import Image from "next/image";
 import Link from "next/link";
 import { APP_VERSION_LABEL } from "@/lib/release";
@@ -53,7 +53,7 @@ const SocialLinks = () => {
 export default function LandingFooter() {
   return (
     <footer className="w-screen relative left-1/2 -translate-x-1/2 bg-slate-950 border-t border-slate-800">
-      <div className="max-w-[1200px] mx-auto px-6 sm:px-8 py-6">
+      <div className="max-w-300 mx-auto px-6 sm:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           {/* Logo */}
           <div className="flex items-center gap-1.5">

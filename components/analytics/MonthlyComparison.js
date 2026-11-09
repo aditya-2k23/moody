@@ -48,7 +48,7 @@ export default function MonthlyComparison({ data }) {
 
   if (!currentStats || currentStats.count === 0) {
     return (
-      <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col w-full shadow-sm text-center items-center justify-center min-h-[160px]">
+      <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col w-full shadow-xs text-center items-center justify-center min-h-40">
         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-2.5 rounded-full mb-3">
           <Sparkles size={20} className="text-indigo-500 dark:text-indigo-400" />
         </div>
@@ -68,7 +68,7 @@ export default function MonthlyComparison({ data }) {
   const prevMonthName = prevMonthDate.toLocaleString('default', { month: 'long' });
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col w-full shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col w-full shadow-xs">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
           <Sparkles size={18} className="text-indigo-500 dark:text-indigo-400" />

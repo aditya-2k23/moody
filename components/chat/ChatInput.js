@@ -201,21 +201,21 @@ const ChatInput = forwardRef(function ChatInput({
           {!isMobile && !isFullscreen && editor && showStyleTools && (
             <div
               ref={styleToolsRef}
-              className="absolute -top-[3.25rem] left-2 z-20 style-tools-container"
+              className="absolute -top-13 left-2 z-20 style-tools-container"
             >
               <StyleTools editor={editor} />
             </div>
           )}
 
-          <div className="flex-1 flex items-start bg-slate-50 dark:bg-[#1f233b] rounded-[2rem] border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative shadow-sm min-w-0">
+          <div className="flex-1 flex items-start bg-slate-50 dark:bg-[#1f233b] rounded-4xl border border-indigo-100/50 dark:border-[#333857] focus-within:border-indigo-300 dark:focus-within:border-[#4f5682] focus-within:bg-white dark:focus-within:bg-[#252945] focus-within:shadow-[0_0_15px_rgba(79,70,229,0.1)] transition-all overflow-hidden relative shadow-xs min-w-0">
             <div
-              className={`flex-1 flex max-h-[160px] overflow-y-auto chat-scrollbar tiptap-chat-editor min-w-0`}
+              className={`flex-1 flex max-h-40 overflow-y-auto chat-scrollbar tiptap-chat-editor min-w-0`}
               onClick={() => editor?.commands.focus()}
             >
               <EditorContent
                 editor={editor}
                 aria-label="Message input"
-                className="flex-1 w-full min-w-0 pl-5 pr-2 py-3 min-h-[48px] text-[15px] focus:outline-none dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:!my-0"
+                className="flex-1 w-full min-w-0 pl-5 pr-2 py-3 min-h-12 text-[15px] focus:outline-hidden dark:text-gray-200 resize-none leading-relaxed flex flex-col justify-center border-0 prose-p:my-0!"
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
               />
@@ -254,7 +254,7 @@ const ChatInput = forwardRef(function ChatInput({
 
             {/* Listening indicator bar */}
             {isListening && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-red-400 via-red-500 to-red-400 animate-pulse" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.75 bg-linear-to-r from-red-400 via-red-500 to-red-400 animate-pulse" />
             )}
           </div>
         </div>

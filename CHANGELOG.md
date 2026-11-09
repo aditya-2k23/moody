@@ -7,6 +7,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2026-11-09
+
+### 🔒 Security
+
+- **Dependency Overhaul**: Upgraded every dependency to its latest release. `npm audit` drops from 65 findings (9 high) to 28 (0 high); the production tree goes from 44 (7 high) to 4 moderate, all from one `minimatch` advisory in a build-only `rimraf` dependency of `google-gax` with no compatible fix yet.
+- **Transitive Overrides**: Forced `@grpc/grpc-js` ^1.14.7 for the Firestore client SDK (which still pins the unpatched 1.9.x line) and `postcss-selector-parser` ^6.1.6 for `@tailwindcss/typography` (compiled CSS verified byte-identical).
+
+### 🐛 Bug Fixes
+
+- **Journal Editor**: Saved entries loaded after login no longer appear as escaped HTML (e.g. `&lt;p&gt;Happy Diwali&lt;/p&gt;`). The editor's sync path asked Tiptap 3 to preserve whitespace, which made `tiptap-markdown` parse the content twice.
+
+### ⬆️ Major Upgrades
+
+- **Tailwind CSS 3 → 4**: CSS-first configuration in `app/globals.css`, `@tailwindcss/postcss` replaces `autoprefixer`, utilities renamed by the official upgrade tool. The rendered UI is unchanged: v3 font stack, line heights, form-field backgrounds, placeholder colour and tap-to-hover behaviour are kept explicitly.
+- **Firebase 11 → 13** and **firebase-admin 13 → 14**.
+- **@google/genai 1 → 3**: All Gemini calls now share `lib/genai.js`, which pins the `v1beta` API (v3 defaults to `v1`) so structured output and preview models keep working.
+- **lucide-react 0.563 → 1**: v1 removed brand icons, so the GitHub and LinkedIn footer icons now live in `components/BrandIcons.js`.
+- **@testing-library/jest-dom 6 → 7**.
+
+### 🧹 Chores
+
+- **Node.js 22**: Now required (`engines`, `.nvmrc`, Docker images); Node 20 reached end-of-life in April 2026.
+- **Design Tokens**: Renamed tokens that clash with Tailwind v4 theme variables: `--shadow-*` → `--elevation-*`, `--radius-*` → `--corner-*`, `--font-sans` → `--font-body`.
+- **Dependencies**: Next.js 16.4.5, React 19.3.1, Tiptap 3.33, Recharts 3.10, Upstash Redis 1.41, Cloudinary 2.11, GSAP 3.15 and the remaining minor/patch updates. ESLint stays on 9.x because Next's lint config does not support ESLint 10 yet.
+
 ## [3.4.0] - 2026-11-09
 
 ### 🚀 New Features

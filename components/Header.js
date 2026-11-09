@@ -53,7 +53,7 @@ export default function Header() {
   return (
     <header
       ref={headerRef}
-      className="p-4 sm:px-8 sm:py-6 sticky top-0 z-20 flex items-center justify-between gap-4 backdrop-blur-sm bg-white/10 dark:bg-transparent"
+      className="p-4 sm:px-8 sm:py-6 sticky top-0 z-20 flex items-center justify-between gap-4 backdrop-blur-xs bg-white/10 dark:bg-transparent"
     >
       {/* Logo — left */}
       <Link

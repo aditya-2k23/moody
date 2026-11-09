@@ -2,9 +2,9 @@ name: Jules Automation (Labeling & Docs)
 
 on:
   pull_request_target:
-    types: [ opened, reopened ]
+    types: [opened, reopened]
   issues:
-    types: [ opened, reopened ]
+    types: [opened, reopened]
 
 permissions:
   contents: write

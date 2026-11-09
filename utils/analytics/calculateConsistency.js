@@ -30,7 +30,7 @@ export function calculateConsistency(dataObj, days = 30) {
 
   if (hasTodayEntry || hasYesterdayEntry) {
     if (!hasTodayEntry) streakCurrent = yesterday;
-    
+
     while (hasEntry(streakCurrent)) {
       currentStreak++;
       streakCurrent.setDate(streakCurrent.getDate() - 1);

@@ -41,7 +41,7 @@ function CustomTooltip({ active, payload, label }) {
   const item = payload?.[0]?.payload;
 
   return (
-    <div className="min-w-[190px] rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl">
+    <div className="min-w-47.5 rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl">
       <p className="text-sm font-semibold text-slate-50">{formatFullDate(item?.timestamp || label)}</p>
 
       {item?.moodName ? (
@@ -139,14 +139,14 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
     const half = Math.floor(chartData.length / 2);
     const firstHalf = chartData.slice(0, half).filter(item => typeof item.score === 'number');
     const secondHalf = chartData.slice(half).filter(item => typeof item.score === 'number');
-    
+
     if (firstHalf.length === 0 || secondHalf.length === 0) {
       return "Your mood has been relatively steady.";
     }
 
     const avgFirst = firstHalf.reduce((sum, item) => sum + item.score, 0) / firstHalf.length;
     const avgSecond = secondHalf.reduce((sum, item) => sum + item.score, 0) / secondHalf.length;
-    
+
     if (avgSecond > avgFirst + 1) return "A gentle rise in overall wellbeing.";
     if (avgSecond < avgFirst - 1) return "A slight dip in your recent mood.";
     return "Your mood has been relatively steady.";
@@ -159,7 +159,7 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
   const displaySubtitle = loggedCount < 3 ? "Not enough data to calculate trends." : subtitle;
 
   return (
-    <div className="analytics-card bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/[0.05] flex flex-col h-full shadow-sm">
+    <div className="analytics-card bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/5 flex flex-col h-full shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-8 gap-4">
         <div>
           <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Mood Trends</h3>
@@ -171,7 +171,7 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
             <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-medium">Average</span>
           </div>
           {onToggleMaximize && (
-            <button 
+            <button
               onClick={onToggleMaximize}
               className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
               title={isMaximized ? "Restore view" : "Maximize chart"}
@@ -182,9 +182,9 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
         </div>
       </div>
 
-      <div className="flex-1 w-full min-h-[220px]">
+      <div className="flex-1 w-full min-h-55">
         {loggedCount < 3 ? (
-          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/[0.08] min-h-[220px] backdrop-blur-sm h-full">
+          <div className="flex-1 flex flex-col justify-center items-center text-center p-6 bg-white/20 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-300 dark:border-white/8 min-h-55 backdrop-blur-xs h-full">
             <div className="bg-indigo-100 dark:bg-indigo-500/10 p-3 rounded-full mb-3">
               <TrendingUp size={24} className="text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -199,22 +199,22 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
             </p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-none">
+          <ResponsiveContainer width="100%" height="100%" className="analytics-chart focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-hidden">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 4, bottom: 0 }} className="focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl focus:outline-hidden">
               <defs>
                 <linearGradient id="colorScorePremium" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#818cf8" stopOpacity={0.25} />
                   <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis 
+              <XAxis
                 dataKey="timestamp"
                 type="number"
                 scale="time"
                 domain={['dataMin', 'dataMax']}
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
                 tickFormatter={formatShortDate}
                 dy={10}
               />
@@ -232,8 +232,8 @@ export default function MoodTrendChart({ data, days = 30, isMaximized, onToggleM
                   return "High";
                 }}
               />
-              <Tooltip 
-                cursor={{ stroke: '#818cf8', strokeWidth: 1, strokeDasharray: '4 4' }} 
+              <Tooltip
+                cursor={{ stroke: '#818cf8', strokeWidth: 1, strokeDasharray: '4 4' }}
                 content={<CustomTooltip />}
                 isAnimationActive={false}
               />

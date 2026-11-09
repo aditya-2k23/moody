@@ -311,7 +311,7 @@ export default function JournalModal({
     <>
       {/* Main Modal Overlay / Scroll Container */}
       <div
-        className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm animate-modal-overlay custom-scrollbar"
+        className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-xs animate-modal-overlay custom-scrollbar"
         onClick={handleOverlayClick}
       >
         <div
@@ -331,12 +331,12 @@ export default function JournalModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Dark mode background override */}
-            <div className="absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 -z-[5]" />
+            <div className="absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 z-[-5]" />
 
             {/* Close button */}
             <button
               ref={closeButtonRef}
-              className="absolute top-3 right-3 p-1.5 text-indigo-500/70 dark:text-indigo-300/80 hover:text-indigo-700 dark:hover:text-indigo-200 hover:bg-indigo-100/50 dark:hover:bg-slate-700/50 rounded-lg transition duration-150 disabled:opacity-50 z-10 outline-none"
+              className="absolute top-3 right-3 p-1.5 text-indigo-500/70 dark:text-indigo-300/80 hover:text-indigo-700 dark:hover:text-indigo-200 hover:bg-indigo-100/50 dark:hover:bg-slate-700/50 rounded-lg transition duration-150 disabled:opacity-50 z-10 outline-hidden"
               onClick={handleClose}
               disabled={saving || deleting}
               title="Close"
@@ -378,9 +378,9 @@ export default function JournalModal({
                               onMoodChange={(moodItem, index) => setDraftMood(index + 1)}
                               disabled={saving}
                             />
-                            <NewFeatureDot className="-right-[-3px]" />
+                            <NewFeatureDot className="right-0.75" />
                           </div>
-                          <div className="flex flex-col leading-tight min-w-[80px]">
+                          <div className="flex flex-col leading-tight min-w-20">
                             {draftMoodLabel ? (
                               <>
                                 <span className="text-sm font-bold capitalize text-indigo-700 dark:text-indigo-100">
@@ -405,7 +405,7 @@ export default function JournalModal({
 
                   {/* Journal content */}
                   {!isEditing ? (
-                    <div className="min-h-[120px] max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
+                    <div className="min-h-30 max-h-[40vh] overflow-y-auto p-4 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-100 dark:border-slate-700 custom-scrollbar">
                       {journal ? (
                         <RichTextEditor
                           value={journal}
@@ -419,7 +419,7 @@ export default function JournalModal({
                     </div>
                   ) : (
                     <div className="relative">
-                      <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/70 focus-within:border-transparent transition-[ring,border-color] duration-200 break-words whitespace-pre-wrap text-sm leading-relaxed">
+                      <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/50 dark:bg-slate-800/50 rounded-xl border border-indigo-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/70 focus-within:border-transparent transition-[ring,border-color] duration-200 wrap-break-word whitespace-pre-wrap text-sm leading-relaxed">
                         <RichTextEditor
                           value={draftJournal}
                           onChange={setDraftJournal}
@@ -607,7 +607,7 @@ export default function JournalModal({
                     <div className="space-y-4">
                       {/* Insight summary */}
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                        <div className="w-8 h-8 bg-linear-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-xs shrink-0">
                           <MessageCircleMoreIcon size={16} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -684,7 +684,7 @@ export default function JournalModal({
       {/* Delete confirmation dialog */}
       {confirmDelete && (
         <div
-          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 animate-modal-overlay"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center px-4 animate-modal-overlay"
           onClick={closeDeleteDialog}
         >
           <div
@@ -731,7 +731,7 @@ export default function JournalModal({
       {/* Unsaved changes confirmation dialog */}
       {confirmDiscard && (
         <div
-          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 animate-modal-overlay"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center px-4 animate-modal-overlay"
           onClick={closeDiscardDialog}
         >
           <div

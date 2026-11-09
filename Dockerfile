@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ---------- BUILDER ----------
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 
 # ---------- RUNNER ----------
-FROM gcr.io/distroless/nodejs20-debian12 AS runner
+FROM gcr.io/distroless/nodejs22-debian12 AS runner
 
 WORKDIR /app
 

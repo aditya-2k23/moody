@@ -1,9 +1,79 @@
-@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&display=swap");
-@import "./design-tokens.css";
+@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&display=swap")
+layer(base);
+@import "./design-tokens.css" layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:is(.dark *));
+/* v3 behaviour: hover styles also apply on tap, so hover-revealed controls stay reachable on touch screens. */
+@custom-variant hover (&:hover);
+
+@theme {
+  /* v3 font stack and absolute line heights, so inherited line heights match v3. */
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-float-up: floatUp 2s ease-out infinite;
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0px);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* v4 preflight makes form fields transparent with half-opacity placeholders; keep v3 defaults. */
+  input:where(:not([type="button"], [type="reset"], [type="submit"])),
+  select,
+  textarea {
+    background-color: Field;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+}
 
 /* ======= Tiptap Editor & Chat Scrollbar overrides ======= */
 .tiptap-chat-editor .ProseMirror {
@@ -103,11 +173,11 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
 
 /* Text Gradients */
 .textGradient {
-  @apply bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-400 bg-clip-text text-transparent;
+  @apply bg-linear-to-r from-indigo-700 via-indigo-500 to-indigo-400 bg-clip-text text-transparent;
 }
 
 .dark .textGradient {
-  @apply bg-gradient-to-r from-indigo-500 via-indigo-400 to-indigo-300 bg-clip-text text-transparent;
+  @apply bg-linear-to-r from-indigo-500 via-indigo-400 to-indigo-300 bg-clip-text text-transparent;
 }
 
 /* Custom Scrollbar */
@@ -139,12 +209,12 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
 
 /* Shadows */
 .purpleShadow {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--elevation-md);
 }
 
 .purpleShadow:hover {
   transform: translate(3px, 3px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-lg);
 }
 
 /* Glow */
@@ -597,28 +667,32 @@ input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
   backdrop-filter: blur(10px);
 }
 
-.dark .bg-white {
-  @apply bg-slate-900;
-}
+/* Dark fallbacks for utilities without a dark: variant. Kept in the utilities layer
+   with :where() so explicit dark: utilities still win, as they did in Tailwind v3. */
+@layer utilities {
+  :where(.dark) .bg-white {
+    @apply bg-slate-900;
+  }
 
-.dark .text-slate-800 {
-  @apply text-slate-100;
-}
+  :where(.dark) .text-slate-800 {
+    @apply text-slate-100;
+  }
 
-.dark .text-slate-700 {
-  @apply text-slate-200;
-}
+  :where(.dark) .text-slate-700 {
+    @apply text-slate-200;
+  }
 
-.dark .text-slate-600 {
-  @apply text-slate-300;
-}
+  :where(.dark) .text-slate-600 {
+    @apply text-slate-300;
+  }
 
-.dark .bg-slate-100 {
-  @apply bg-slate-800;
-}
+  :where(.dark) .bg-slate-100 {
+    @apply bg-slate-800;
+  }
 
-.dark .hover\:bg-slate-100:hover {
-  @apply hover:bg-slate-800;
+  :where(.dark) .hover\:bg-slate-100:hover {
+    @apply bg-slate-800;
+  }
 }
 
 /* Journal Textarea */

@@ -53,8 +53,12 @@ describe("Input component", () => {
   });
 
   it("renders as a password input and is not queryable by textbox role", () => {
-    const { container } = render(<Input inputType="password" value="" onChange={() => {}} />);
+    const { container } = render(
+      <Input inputType="password" value="" onChange={() => {}} />,
+    );
     // password inputs are not exposed as "textbox" role
-    expect(container.querySelector("input[type='password']")).toBeInTheDocument();
+    expect(
+      container.querySelector("input[type='password']"),
+    ).toBeInTheDocument();
   });
 });

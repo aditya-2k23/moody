@@ -44,7 +44,7 @@ export default function MessageBubble({ message, isLatest }) {
     >
       {/* Avatar — only for assistant */}
       {!isUser && (
-        <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm overflow-hidden mb-0.5">
+        <div className="shrink-0 w-7 h-7 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-xs overflow-hidden mb-0.5">
           <Image
             src="/lumi-avatar.png"
             alt="Lumi"
@@ -59,7 +59,7 @@ export default function MessageBubble({ message, isLatest }) {
         </div>
       )}
       {isUser && (
-        <div className="shrink-0 w-7 h-7 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center shadow-sm overflow-hidden text-xs font-bold text-gray-400 dark:text-gray-500">
+        <div className="shrink-0 w-7 h-7 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center shadow-xs overflow-hidden text-xs font-bold text-gray-400 dark:text-gray-500">
           Me
         </div>
       )}
@@ -69,9 +69,9 @@ export default function MessageBubble({ message, isLatest }) {
           }`}
       >
         <div
-          className={`relative px-3.5 py-2 text-[14px] leading-relaxed break-words smooth-transition ${isUser
-            ? "bg-indigo-500 dark:bg-indigo-600 text-white rounded-[1.25rem] rounded-br-[4px] shadow-sm"
-            : "bg-indigo-50/30 dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-[1.25rem] rounded-bl-[4px] border border-indigo-100 dark:border-slate-700/80 shadow-sm"
+          className={`relative px-3.5 py-2 text-[14px] leading-relaxed wrap-break-word smooth-transition ${isUser
+            ? "bg-indigo-500 dark:bg-indigo-600 text-white rounded-[1.25rem] rounded-br-sm shadow-xs"
+            : "bg-indigo-50/30 dark:bg-slate-800/90 text-gray-700 dark:text-gray-200 rounded-[1.25rem] rounded-bl-sm border border-indigo-100 dark:border-slate-700/80 shadow-xs"
             }`}
         >
           <div className={`prose prose-sm max-w-none ${isUser ? "prose-invert" : "dark:prose-invert"}`}>

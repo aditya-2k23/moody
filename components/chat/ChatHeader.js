@@ -37,7 +37,7 @@ export default function ChatHeader({
         {/* Left: Avatar + Name */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md overflow-hidden">
               <Image
                 src="/lumi-avatar.png"
                 alt="Lumi"
@@ -130,7 +130,7 @@ export default function ChatHeader({
       {/* Clear Chat Confirmation Modal */}
       {showClearConfirm && (
         <div
-          className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 rounded-[2rem]"
+          className="absolute inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 rounded-4xl"
           onClick={() => setShowClearConfirm(false)}
         >
           <div
@@ -161,7 +161,7 @@ export default function ChatHeader({
                   onClearChat();
                   setShowClearConfirm(false);
                 }}
-                className="px-4 py-2 rounded-xl text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors flex items-center gap-2 shadow-sm"
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors flex items-center gap-2 shadow-xs"
               >
                 <Trash2 size={16} />
                 Delete

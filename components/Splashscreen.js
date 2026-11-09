@@ -308,7 +308,7 @@ export default function Splashscreen({
         <div ref={progressRef} className="w-56 md:w-full md:max-w-md space-y-4">
           <div className="relative h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.5)]"
+              className="absolute top-0 left-0 h-full bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.5)]"
               style={{ width: `${displayProgress}%` }}
             />
           </div>
@@ -332,7 +332,7 @@ export default function Splashscreen({
           </div>
 
           <div className="backdrop-blur-xl bg-white/50 dark:bg-slate-800/40 rounded-2xl px-5 py-4 shadow-lg shadow-indigo-500/5 border border-white/40 dark:border-slate-700/50">
-            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm text-center leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm text-center leading-relaxed sm:leading-5">
               &ldquo;{randomTip}&rdquo;
             </p>
           </div>

@@ -3,7 +3,7 @@ import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { isChatIdScopedToUser, isValidSessionId, isValidString } from "@/lib/validation";
 import { DEMO_CHAT_LIMIT } from "@/utils";
 import crypto from "node:crypto";
-import { GoogleGenAI } from "@google/genai";
+import { getGenAIClient } from "@/lib/genai";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { retrieveRelevantMemories, getEmbedding } from "@/lib/rag";
@@ -400,7 +400,6 @@ export async function POST(req) {
           );
 
           const queryEmbedding = await Promise.race([queryEmbeddingPromise, timeoutPromise]);
-          
           if (queryEmbedding) {
             const { memoryBlock } = await retrieveRelevantMemories(effectiveUserId, queryEmbedding);
             journalMemoryBlock = memoryBlock;
@@ -441,7 +440,7 @@ export async function POST(req) {
     contents.push({ role: "user", parts: [{ text: message }] });
 
     // 3. Call Gemini
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = getGenAIClient();
     const systemInstruction = `You are Lumi 🌟 — a bubbly, warm, emotionally intelligent girl who is the user's best friend inside Moody - a personal mood-tracking and journaling app.
 
     WHO YOU ARE:

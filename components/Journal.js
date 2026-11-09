@@ -596,9 +596,9 @@ export default function Journal({
   return (
     <div id="journal-section" className="py-4 flex flex-col gap-6" style={{ overflowAnchor: "none" }}>
       {/* Journal Entry Section */}
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-        <div className="absolute bottom-0 right-28 w-44 h-44 bg-gradient-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-10 w-28 h-28 bg-gradient-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
+        <div className="absolute bottom-0 right-28 w-44 h-44 bg-linear-to-br from-purple-400/30 to-indigo-400/20 dark:from-yellow-300/10 dark:to-orange-300/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-10 w-28 h-28 bg-linear-to-tr from-yellow-400/40 to-orange-400/30 dark:from-purple-400/30 dark:to-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header with Cloud Status Indicator */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-y-3">
@@ -645,7 +645,7 @@ export default function Journal({
               />
             </div>
           )}
-          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/50 dark:focus-within:ring-indigo-500/60 focus-within:border-transparent transition-all duration-300 break-words whitespace-pre-wrap text-sm leading-relaxed outline-none shadow-sm focus-within:shadow-[0_0_20px_rgba(99,102,241,0.4)] dark:focus-within:shadow-[0_0_23px_rgba(99,102,241,0.2)]">
+          <div className="journal-textarea-container w-full min-h-32 max-h-[40vh] flex flex-col overflow-auto overscroll-contain resize-y custom-scrollbar p-4 text-gray-700 dark:text-gray-100 bg-indigo-50/40 dark:bg-slate-800/50 rounded-xl border border-indigo-300/90 dark:border-indigo-300/20 focus-within:ring-2 focus-within:ring-indigo-400/50 dark:focus-within:ring-indigo-500/60 focus-within:border-transparent transition-all duration-300 wrap-break-word whitespace-pre-wrap text-sm leading-relaxed outline-hidden shadow-xs focus-within:shadow-[0_0_20px_rgba(99,102,241,0.4)] dark:focus-within:shadow-[0_0_23px_rgba(99,102,241,0.2)]">
             <RichTextEditor
               value={displayEntry}
               isVoiceInput={isListening}
@@ -664,7 +664,7 @@ export default function Journal({
           <button
             type="button"
             onClick={() => toggleVoiceInput(entry)}
-            className={`absolute bottom-[11px] ${isGuest ? "right-4" : "right-[60px]"} w-9 h-9 rounded-lg backdrop-blur-sm transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
+            className={`absolute bottom-2.75 ${isGuest ? "right-4" : "right-15"} w-9 h-9 rounded-lg backdrop-blur-xs transition-all duration-200 flex items-center justify-center disabled:opacity-50 hover:scale-110 active:scale-90 ring-1 hover:ring-2 ${isListening
               ? "bg-red-100 dark:bg-red-500/30 text-red-500 dark:text-red-300 ring-red-500 dark:ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)]"
               : "bg-indigo-100/50 dark:bg-slate-600/50 text-indigo-500 dark:text-indigo-300 ring-indigo-500 dark:ring-indigo-400/80 hover:bg-indigo-200/50 dark:hover:bg-slate-500/50"
               }`}
@@ -684,7 +684,7 @@ export default function Journal({
               imagePreviews={imagePreviews}
               onImagesChange={handleImagesChange}
               disabled={saving || uploading}
-              className="bottom-[11px] right-3"
+              className="bottom-2.75 right-3"
               inputId={imageInputId}
             />
           )}

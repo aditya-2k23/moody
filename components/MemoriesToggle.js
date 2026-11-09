@@ -18,7 +18,7 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
       </p>
       <div className="flex items-center justify-center w-full">
         {/* Left Decorative Line */}
-        <div className="h-[4px] flex-1 bg-gradient-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
+        <div className="h-1 flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
 
         <button
           onClick={() => {
@@ -28,7 +28,7 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
               if (typeof onToggle === 'function') onToggle();
             }
           }}
-          className={`mx-4 p-2.5 rounded-full shadow-sm border transition-all duration-300
+          className={`mx-4 p-2.5 rounded-full shadow-xs border transition-all duration-300
             ${!hasMemories
               ? "bg-indigo-50 dark:bg-slate-800 text-indigo-400 dark:text-indigo-300 border-indigo-200 dark:border-slate-600 hover:bg-indigo-100/80 hover:scale-110"
               : "bg-indigo-100/80 dark:bg-slate-800/90 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-slate-700 scale-110 hover:scale-125 border-indigo-200/50 dark:border-slate-600/50"
@@ -39,7 +39,7 @@ export default function MemoriesToggle({ showMemories, onToggle, hasMemories = t
         </button>
 
         {/* Right Decorative Line */}
-        <div className="h-[4px] flex-1 bg-gradient-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
+        <div className="h-1 flex-1 bg-linear-to-r from-transparent via-indigo-300 dark:via-indigo-600 to-transparent animate-pulse" />
       </div>
     </div>
   );

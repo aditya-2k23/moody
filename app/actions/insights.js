@@ -2,7 +2,7 @@
 
 import { redis } from "@/lib/redis";
 import { incrementMetric } from "@/lib/metrics";
-import { GoogleGenAI } from "@google/genai";
+import { getGenAIClient } from "@/lib/genai";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import crypto from 'node:crypto';
 import convertMood from "@/utils";
@@ -20,28 +20,6 @@ const MODEL_CHAIN = [
   { id: "gemini-2.5-flash", label: "2.5-Flash" },
   { id: "gemini-2.0-flash", label: "2.0-Flash" },
 ];
-
-/**
- * Retrieves and validates the Gemini API key from environment variables.
- * @returns {string} The verified API key.
- * @throws {Error} If the API key is missing or empty.
- */
-function getApiKey() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey.trim() === "") {
-    console.error("[Gemini] GEMINI_API_KEY environment variable is missing.");
-    throw new Error("AI service is not configured. Please contact support.");
-  }
-  return apiKey;
-}
-
-/**
- * Initializes and returns a new GoogleGenAI client instance.
- * @returns {GoogleGenAI} The authenticated Gemini client.
- */
-function getGenAIClient() {
-  return new GoogleGenAI({ apiKey: getApiKey() });
-}
 
 /**
  * Wraps a promise with a timeout mechanism.
@@ -243,7 +221,7 @@ async function storeUserEmbedding(userId, embedding, response, sourceText = "", 
     // Part 4c: Dedup — skip storing if exact normalized text already exists (unless forcing regeneration)
     const normalizedSource = normalizeEntryText(sourceText);
     const duplicateIndex = data.findIndex(item => item.sourceText === normalizedSource);
-    
+
     if (duplicateIndex !== -1) {
       if (!forceRegenerate) {
         return;

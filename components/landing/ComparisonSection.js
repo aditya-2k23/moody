@@ -9,7 +9,7 @@ export default function ComparisonSection() {
       iconBg: "bg-indigo-200/50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400",
       title: "Chaos",
       subtitle: "Scattered & Forgettable",
-      cardBg: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-100 dark:border-slate-600/50 shadow shadow-indigo-400/20 relative",
+      cardBg: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-100 dark:border-slate-600/50 shadow-sm shadow-indigo-400/20 relative",
       textColor: "text-slate-700 dark:text-slate-300",
       subTextColor: "text-slate-500 dark:text-slate-400",
       listIcon: <X size={24} className="text-red-400 dark:text-red-500" />,
@@ -37,7 +37,7 @@ export default function ComparisonSection() {
       iconBg: "bg-white/20 text-white",
       title: "Intelligence",
       subtitle: "AI-Powered Insights",
-      cardBg: "bg-gradient-to-br from-indigo-500 to-violet-600 border-indigo-400 dark:border-indigo-500 shadow-xl shadow-indigo-500/30 text-white relative overflow-hidden",
+      cardBg: "bg-linear-to-br from-indigo-500 to-violet-600 border-indigo-400 dark:border-indigo-500 shadow-xl shadow-indigo-500/30 text-white relative overflow-hidden",
       textColor: "text-white",
       subTextColor: "text-indigo-100",
       listIcon: <Star size={14} className="text-white fill-white" />,
@@ -53,7 +53,7 @@ export default function ComparisonSection() {
         <h2 className="fugaz text-2xl sm:text-3xl md:text-4xl text-center mb-2">
           From Chaos to <span className="textGradient">Intelligence</span>
         </h2>
-        <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-[500px] mx-auto">
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-10 md:mb-14 max-w-125 mx-auto">
           Stop relying on subjective guesswork. Switch to data-driven clarity.
         </p>
 
@@ -84,7 +84,7 @@ export default function ComparisonSection() {
                       <span className="shrink-0 flex items-center justify-center w-5 h-5 mt-0.5 sm:mt-1">
                         {stage.listIcon}
                       </span>
-                      <span className={`text-sm md:text-base font-medium leading-tight ${stage.textColor}`}>{feat}</span>
+                      <span className={`text-sm md:text-base font-medium leading-tight md:leading-6 ${stage.textColor}`}>{feat}</span>
                     </div>
                   ))}
                 </div>

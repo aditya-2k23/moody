@@ -28,7 +28,7 @@ export function calculateWeeklyPatterns(dataObj, days = 90) {
   });
 
   const validAverages = averages.filter(a => a.score !== null);
-  
+
   if (validAverages.length === 0) {
     return { averages, bestDay: null, lowestDay: null };
   }

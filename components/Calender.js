@@ -174,12 +174,12 @@ export default function Calender({
   const numRows = (Math.floor(daysToDisplay / 7)) + (daysToDisplay % 7 ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-2 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 pb-3 md:pb-2 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-44 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-0 left-1/3 w-64 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/20 to-orange-300/20 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-0 right-0 w-32 h-28 dark:w-52 dark:h-36 bg-gradient-to-tr from-yellow-300/30 to-orange-400/30 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="flex flex-col gap-2 bg-linear-to-br from-purple-50 to-indigo-50 dark:from-slate-900 dark:to-slate-700/50 rounded-2xl p-6 pb-3 md:pb-2 shadow-lg border border-gray-100 dark:border-none dark:shadow-none relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-44 h-44 bg-linear-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/3 w-64 h-44 bg-linear-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-44 h-44 bg-linear-to-br from-purple-300/30 to-indigo-300/30 dark:from-yellow-200/5 dark:to-orange-200/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-32 h-28 dark:w-52 dark:h-36 bg-linear-to-tr from-yellow-300/20 to-orange-300/20 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-28 dark:w-52 dark:h-36 bg-linear-to-tr from-yellow-300/30 to-orange-400/30 dark:from-purple-400/10 dark:to-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Journal Modal */}
       {showJournalPopup && (
